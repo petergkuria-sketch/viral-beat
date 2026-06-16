@@ -1,0 +1,3 @@
+ALTER TABLE `creators` MODIFY COLUMN `platform` enum('youtube','tiktok','twitter','instagram') NOT NULL;--> statement-breakpoint
+ALTER TABLE `favorites` MODIFY COLUMN `platform` enum('all','youtube','tiktok','twitter','instagram') NOT NULL DEFAULT 'all';--> statement-breakpoint
+ALTER TABLE `sentimentCache` MODIFY COLUMN `platform` enum('all','youtube','tiktok','twitter','instagram') NOT NULL DEFAULT 'all';

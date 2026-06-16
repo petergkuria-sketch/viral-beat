@@ -1,0 +1,1 @@
+ALTER TABLE `userTokens` ADD `lastLoginDate` varchar(10);

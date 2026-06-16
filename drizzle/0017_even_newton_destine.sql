@@ -1,0 +1,1 @@
+ALTER TABLE `tokenTransactions` MODIFY COLUMN `type` enum('earn_thread_creation','earn_post_reply','earn_upvote_received','earn_feature_implementation','earn_bug_report','earn_daily_login','earn_referral','earn_admin_grant','earn_haa','spend_ai_agent','spend_analytics','spend_boost','spend_premium_feature','spend_marketplace','spend_migration','refund') NOT NULL;

@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS aiAssistantProfiles (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL UNIQUE,\n  niche VARCHAR(100),\n  primaryPlatform ENUM('youtube', 'tiktok', 'instagram', 'twitter'),\n  audienceSize INT,\n  averageViews INT,\n  contentStyle TEXT,\n  goals TEXT,\n  challenges TEXT,\n  successPatterns TEXT,\n  preferredHashtags TEXT,\n  optimalPostingTimes TEXT,\n  onboardingCompleted BOOLEAN NOT NULL DEFAULT FALSE,\n  lastAnalyzedAt TIMESTAMP,\n  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user Y97Ut1YwTXPt8sp.28d19db59263 --database 8S7U27Prim5uGeJRCfd6ms --execute CREATE TABLE IF NOT EXISTS aiAssistantProfiles (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL UNIQUE,\n  niche VARCHAR(100),\n  primaryPlatform ENUM('youtube', 'tiktok', 'instagram', 'twitter'),\n  audienceSize INT,\n  averageViews INT,\n  contentStyle TEXT,\n  goals TEXT,\n  challenges TEXT,\n  successPatterns TEXT,\n  preferredHashtags TEXT,\n  optimalPostingTimes TEXT,\n  onboardingCompleted BOOLEAN NOT NULL DEFAULT FALSE,\n  lastAnalyzedAt TIMESTAMP,\n  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 54
+}

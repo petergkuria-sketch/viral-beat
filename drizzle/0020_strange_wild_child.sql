@@ -1,0 +1,1 @@
+ALTER TABLE `tokenEarningRules` ADD `verifiedCreatorMultiplier` decimal(3,2) DEFAULT '1.50' NOT NULL;
