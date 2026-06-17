@@ -118,8 +118,8 @@ const menuItems = [
   { icon: Shield, label: "Privacy Settings", path: "/privacy-settings", category: "Settings" },
 ];
 
-// Categories that are collapsible (have many items)
-const COLLAPSIBLE_CATEGORIES = new Set(["Kenya"]);
+// All non-Core categories are collapsible to keep sidebar manageable
+const COLLAPSIBLE_CATEGORIES = new Set(["AI & Content", "Economy", "Advanced", "Developer", "Admin", "Kenya Intelligence", "Settings"]);
 
 // Group menu items by category
 const menuCategories = [
@@ -203,6 +203,77 @@ type DashboardLayoutContentProps = {
   setSidebarWidth: (width: number) => void;
 };
 
+function UserDropdown({
+  user,
+  logout,
+  setLocation,
+  size = "md",
+}: {
+  user: { name?: string; email?: string; role?: string } | null;
+  logout: () => void;
+  setLocation: (path: string) => void;
+  size?: "sm" | "md";
+}) {
+  const avatarSize = size === "sm" ? "h-7 w-7" : "h-9 w-9";
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-accent/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring w-full text-left"
+          aria-label="User menu"
+        >
+          <Avatar className={`${avatarSize} border shrink-0`}>
+            <AvatarFallback className="text-xs font-medium">
+              {user?.name?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          {size === "md" && (
+            <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+              <p className="text-sm font-medium truncate leading-none">{user?.name || "-"}</p>
+              <p className="text-xs text-muted-foreground truncate mt-1.5">{user?.email || "-"}</p>
+            </div>
+          )}
+          {size === "sm" && (
+            <span className="text-sm font-medium hidden lg:block max-w-[120px] truncate">{user?.name}</span>
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" side={size === "md" ? "top" : "bottom"} className="w-52">
+        <div className="px-2 py-1.5">
+          <p className="text-sm font-medium truncate">{user?.name}</p>
+          <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => setLocation("/settings")} className="cursor-pointer">
+          <UserCircle className="mr-2 h-4 w-4" />
+          <span>Profile & Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setLocation("/tokens")} className="cursor-pointer">
+          <Coins className="mr-2 h-4 w-4" />
+          <span>My Tokens</span>
+        </DropdownMenuItem>
+        {user?.role === "admin" && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setLocation("/admin")} className="cursor-pointer">
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              <span>Admin Dashboard</span>
+            </DropdownMenuItem>
+          </>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={logout}
+          className="cursor-pointer text-destructive focus:text-destructive"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Sign out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function DashboardLayoutContent({
   children,
   setSidebarWidth,
@@ -218,7 +289,11 @@ function DashboardLayoutContent({
 
   // Track which collapsible categories are expanded
   // Auto-expand Kenya if currently on a Kenya page
-  const isOnKenyaPage = location.startsWith("/kenya");
+  // Find which category the current page belongs to
+  const activeCategoryName = menuCategories.find(c =>
+    c.items.some(i => location === i.path || (i.path !== "/dashboard" && location.startsWith(i.path + "/")))
+  )?.name;
+
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(() => {
     const saved = localStorage.getItem("sidebar-expanded-categories");
     if (saved) {
@@ -229,19 +304,20 @@ function DashboardLayoutContent({
         // ignore
       }
     }
-    return isOnKenyaPage ? new Set(["Kenya Intelligence"]) : new Set();
+    // Default: expand only the category of the current page
+    return activeCategoryName ? new Set([activeCategoryName]) : new Set();
   });
 
-  // Auto-expand Kenya section when navigating to a Kenya page
+  // Auto-expand the category of the active page when navigating
   useEffect(() => {
-    if (isOnKenyaPage && !expandedCategories.has("Kenya Intelligence")) {
+    if (activeCategoryName && !expandedCategories.has(activeCategoryName)) {
       setExpandedCategories(prev => {
         const next = new Set(prev);
-        next.add("Kenya Intelligence");
+        next.add(activeCategoryName);
         return next;
       });
     }
-  }, [isOnKenyaPage]);
+  }, [activeCategoryName]);
 
   // Persist expanded categories
   useEffect(() => {
@@ -332,7 +408,8 @@ function DashboardLayoutContent({
               {!isCollapsed ? (
                 <button
                   onClick={() => setLocation("/dashboard")}
-                  className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity focus:outline-none"
+                  className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                  aria-label="Go to dashboard"
                 >
                   <div className="w-6 h-6 bg-primary rounded flex items-center justify-center shrink-0">
                     <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />
@@ -355,7 +432,7 @@ function DashboardLayoutContent({
               // Don't render empty categories
               if (visibleItems.length === 0) return null;
 
-              const isCollapsibleCategory = COLLAPSIBLE_CATEGORIES.has(category.name.replace(" Intelligence", ""));
+              const isCollapsibleCategory = COLLAPSIBLE_CATEGORIES.has(category.name);
               const isCategoryExpanded = !isCollapsibleCategory || expandedCategories.has(category.name);
               const hasCategoryActive = visibleItems.some(item => location.startsWith(item.path) || location === item.path);
               
@@ -431,66 +508,7 @@ function DashboardLayoutContent({
             <div className="flex items-center gap-2 mb-2">
               <ThemeSelector />
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <Avatar className="h-9 w-9 border shrink-0">
-                    <AvatarFallback className="text-xs font-medium">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                    <p className="text-sm font-medium truncate leading-none">
-                      {user?.name || "-"}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate mt-1.5">
-                      {user?.email || "-"}
-                    </p>
-                  </div>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="top" className="w-52">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium truncate">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setLocation("/settings")}
-                  className="cursor-pointer"
-                >
-                  <UserCircle className="mr-2 h-4 w-4" />
-                  <span>Profile & Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setLocation("/tokens")}
-                  className="cursor-pointer"
-                >
-                  <Coins className="mr-2 h-4 w-4" />
-                  <span>My Tokens</span>
-                </DropdownMenuItem>
-                {user?.role === 'admin' && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => setLocation("/admin")}
-                      className="cursor-pointer"
-                    >
-                      <ShieldCheck className="mr-2 h-4 w-4" />
-                      <span>Admin Dashboard</span>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={logout}
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserDropdown user={user} logout={logout} setLocation={setLocation} size="md" />
           </SidebarFooter>
         </Sidebar>
         <div
@@ -518,7 +536,7 @@ function DashboardLayoutContent({
                   {crumb.path && i < breadcrumbs.length - 1 ? (
                     <button
                       onClick={() => setLocation(crumb.path!)}
-                      className="text-muted-foreground hover:text-foreground transition-colors truncate"
+                      className="text-muted-foreground hover:text-foreground transition-colors truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
                     >
                       {i === 0 ? <Home className="h-3.5 w-3.5" /> : crumb.label}
                     </button>
@@ -531,50 +549,10 @@ function DashboardLayoutContent({
               ))}
             </nav>
           </div>
-          {/* Right side: theme selector on desktop */}
+          {/* Right side: user menu on desktop */}
           {!isMobile && (
             <div className="flex items-center gap-2 shrink-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-accent/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <Avatar className="h-7 w-7 border shrink-0">
-                      <AvatarFallback className="text-xs font-medium">
-                        {user?.name?.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium hidden lg:block max-w-[120px] truncate">{user?.name}</span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium truncate">{user?.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setLocation("/settings")} className="cursor-pointer">
-                    <UserCircle className="mr-2 h-4 w-4" />
-                    <span>Profile & Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLocation("/tokens")} className="cursor-pointer">
-                    <Coins className="mr-2 h-4 w-4" />
-                    <span>My Tokens</span>
-                  </DropdownMenuItem>
-                  {user?.role === 'admin' && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setLocation("/admin")} className="cursor-pointer">
-                        <ShieldCheck className="mr-2 h-4 w-4" />
-                        <span>Admin Dashboard</span>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <UserDropdown user={user} logout={logout} setLocation={setLocation} size="sm" />
             </div>
           )}
         </div>

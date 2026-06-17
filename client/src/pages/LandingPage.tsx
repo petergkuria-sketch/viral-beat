@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
 import { 
   TrendingUp, 
@@ -28,47 +28,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
+import { Sparkline, ViralityBar } from "@/components/Sparkline";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { ThemeSelector } from "@/components/ThemeSelector";
-
-// Sparkline mini-chart using SVG
-function Sparkline({ values, color = "#22d3ee", height = 32 }: { values: number[]; color?: string; height?: number }) {
-  if (!values || values.length < 2) return null;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const w = 80;
-  const h = height;
-  const pts = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * w;
-    const y = h - ((v - min) / range) * h;
-    return `${x},${y}`;
-  }).join(" ");
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="overflow-visible">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={pts.split(" ").pop()?.split(",")[0]} cy={pts.split(" ").pop()?.split(",")[1]} r="3" fill={color} />
-    </svg>
-  );
-}
-
-// Animated virality bar
-function ViralityBar({ score, color = "#22d3ee" }: { score: number; color?: string }) {
-  return (
-    <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden w-full">
-      <motion.div
-        initial={{ width: 0 }}
-        animate={{ width: `${Math.min(score, 100)}%` }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-        className="absolute inset-y-0 left-0 rounded-full"
-        style={{ background: color }}
-      />
-    </div>
-  );
-}
 
 // Platform badge
 function PlatformBadge({ platform }: { platform: string }) {
@@ -155,43 +120,51 @@ export default function LandingPage() {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Generate sparkline data for trends
-  const generateSparkline = (seed: number) => {
-    const pts: number[] = [];
-    let v = 50 + seed * 3;
-    for (let i = 0; i < 8; i++) {
-      v += (Math.random() - 0.4) * 15;
-      pts.push(Math.max(20, Math.min(100, v)));
-    }
-    return pts;
-  };
-
   const trendColors = ["#22d3ee", "#a78bfa", "#34d399", "#fb923c", "#f472b6"];
 
-  const liveTrends = trendingTopics?.youtube?.slice(0, 5).map((t: any, i: number) => ({
-    ...t,
-    sparkline: generateSparkline(i),
-    color: trendColors[i % trendColors.length],
-    platform: "youtube",
-  })) || Array.from({ length: 5 }, (_, i) => ({
-    topic: `Trend ${i + 1}`,
-    viralityScore: 70 + i * 5,
-    sparkline: generateSparkline(i),
-    color: trendColors[i],
-    platform: "youtube",
-  }));
+  // Stable sparkline data — seeded so it doesn't re-randomize on every render
+  const stableSparklines = useMemo(() => {
+    return Array.from({ length: 5 }, (_, seed) => {
+      const pts: number[] = [];
+      let v = 50 + seed * 3;
+      // Use seed-based pseudo-random so values are stable across renders
+      const lcg = (n: number) => (1664525 * n + 1013904223) & 0xffffffff;
+      let rng = seed + 1;
+      for (let i = 0; i < 8; i++) {
+        rng = lcg(rng);
+        v += ((rng / 0x80000000) - 1.4) * 15;
+        pts.push(Math.max(20, Math.min(100, v)));
+      }
+      return pts;
+    });
+  }, []);
+
+  const liveTrends = useMemo(() => {
+    return trendingTopics?.youtube?.slice(0, 5).map((t: any, i: number) => ({
+      ...t,
+      sparkline: stableSparklines[i],
+      color: trendColors[i % trendColors.length],
+      platform: "youtube",
+    })) || Array.from({ length: 5 }, (_, i) => ({
+      topic: `Trend ${i + 1}`,
+      viralityScore: 70 + i * 5,
+      sparkline: stableSparklines[i],
+      color: trendColors[i],
+      platform: "youtube",
+    }));
+  }, [trendingTopics, stableSparklines]);
 
   return (
     <>
-      <Toaster position="top-right" richColors theme="dark" />
       <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
 
         {/* ── NAVIGATION ── */}
         <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-xl border-b border-border/50 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <button
-              className="flex items-center gap-2.5 focus:outline-none group"
+              className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg group"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              aria-label="The Viral Beat – scroll to top"
             >
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-shadow">
                 <TrendingUp className="w-4.5 h-4.5 text-primary-foreground" />
