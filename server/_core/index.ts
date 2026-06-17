@@ -9,6 +9,9 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { initializeWebSocket } from "./websocket";
 import { generalApiLimiter, authenticatedApiLimiter } from "./rateLimit";
+import swaggerUi from "swagger-ui-express";
+import v1Router from "../api/v1";
+import { openapiSpec } from "../api/openapi";
 import { startMigrationService } from "../migrationService";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -56,6 +59,13 @@ async function startServer() {
       createContext,
     })
   );
+
+  // Public REST API v1 + Swagger docs
+  app.use("/api/v1", v1Router);
+  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec as any, {
+    customSiteTitle: "Viral Beat API Docs",
+    swaggerOptions: { persistAuthorization: true },
+  }));
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

@@ -1122,3 +1122,23 @@ export const constituencies = mysqlTable("constituencies", {
 });
 export type Constituency = typeof constituencies.$inferSelect;
 export type InsertConstituency = typeof constituencies.$inferInsert;
+
+/**
+ * Public API keys for third-party developer access.
+ */
+export const apiKeys = mysqlTable("apiKeys", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 64 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  userId: int("userId").notNull(),
+  scopes: json("scopes").$type<string[]>().notNull().default(["trends", "kenya", "ai"]),
+  requestsToday: int("requestsToday").notNull().default(0),
+  requestsTotal: int("requestsTotal").notNull().default(0),
+  dailyLimit: int("dailyLimit").notNull().default(1000),
+  lastUsedAt: timestamp("lastUsedAt"),
+  resetAt: timestamp("resetAt").defaultNow().notNull(),
+  isActive: boolean("isActive").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
