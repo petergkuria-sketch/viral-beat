@@ -47,6 +47,13 @@ export default function Settings() {
       color: "text-purple-500",
     },
     {
+      icon: Key,
+      title: "API Keys",
+      description: "Generate keys to access the Viral Beat REST API from your own apps",
+      path: "/api-keys-settings",
+      color: "text-cyan-400",
+    },
+    {
       icon: User,
       title: "Account Settings",
       description: "Manage your account information and preferences",
@@ -60,14 +67,6 @@ export default function Settings() {
       description: "Configure notification preferences and alerts",
       path: "/notification-settings",
       color: "text-green-500",
-      comingSoon: true,
-    },
-    {
-      icon: Key,
-      title: "Security",
-      description: "Manage security settings and authentication",
-      path: "/security-settings",
-      color: "text-red-500",
       comingSoon: true,
     },
   ];
