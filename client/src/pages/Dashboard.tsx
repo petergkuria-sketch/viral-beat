@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
+import { Sparkline, ViralityBar } from "@/components/Sparkline";
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -41,42 +42,6 @@ import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import { BeatVote } from "@/components/BeatVote";
 import { TokenBalanceIndicator } from "@/components/TokenBalanceIndicator";
-
-// Inline SVG sparkline
-function Sparkline({ values, color = "#22d3ee", width = 80, height = 32 }: { values: number[]; color?: string; width?: number; height?: number }) {
-  if (!values || values.length < 2) return null;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const pts = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * width;
-    const y = height - ((v - min) / range) * height;
-    return `${x},${y}`;
-  }).join(" ");
-  const lastX = (((values.length - 1) / (values.length - 1)) * width).toString();
-  const lastY = (height - ((values[values.length - 1] - min) / range) * height).toString();
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={lastX} cy={lastY} r="3" fill={color} />
-    </svg>
-  );
-}
-
-// Animated virality bar
-function ViralityBar({ score, color = "#22d3ee" }: { score: number; color?: string }) {
-  return (
-    <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden w-full">
-      <motion.div
-        initial={{ width: 0 }}
-        animate={{ width: `${Math.min(score, 100)}%` }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-        className="absolute inset-y-0 left-0 rounded-full"
-        style={{ background: color }}
-      />
-    </div>
-  );
-}
 
 // Sentiment donut using SVG
 function SentimentDonut({ positive, negative, neutral }: { positive: number; negative: number; neutral: number }) {
