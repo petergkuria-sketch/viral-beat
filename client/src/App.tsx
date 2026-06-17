@@ -17,6 +17,7 @@ const EmbedWidget = lazy(() => import("./pages/EmbedWidget"));
 const AIAgentsHub = lazy(() => import("./pages/AIAgentsHub"));
 const PrivacySettings = lazy(() => import("./pages/PrivacySettings"));
 const ApiKeysSettings = lazy(() => import("./pages/ApiKeysSettings"));
+const AfricaIntelligence = lazy(() => import("./pages/AfricaIntelligence"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const DeveloperHub = lazy(() => import("./pages/DeveloperHub"));
@@ -84,6 +85,8 @@ function Router() {
     { path: "/settings", component: Settings },
     { path: "/privacy-settings", component: PrivacySettings },
     { path: "/api-keys-settings", component: ApiKeysSettings },
+    { path: "/africa", component: AfricaIntelligence },
+    { path: "/africa/:code", component: AfricaIntelligence },
     { path: "/admin", component: AdminDashboard },
     { path: "/developer-hub", component: DeveloperHub },
     { path: "/developer-hub/agent", component: DeveloperAgent },

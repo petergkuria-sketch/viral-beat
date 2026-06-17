@@ -1142,3 +1142,56 @@ export const apiKeys = mysqlTable("apiKeys", {
 });
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+/**
+ * User country profile — stores geo-detected default country and manual override.
+ */
+export const userCountryProfiles = mysqlTable("user_country_profiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  defaultCountryCode: varchar("defaultCountryCode", { length: 2 }).notNull(),
+  detectedCountryCode: varchar("detectedCountryCode", { length: 2 }),
+  detectionMethod: mysqlEnum("detectionMethod", ["ip", "browser", "manual"]).default("browser"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type UserCountryProfile = typeof userCountryProfiles.$inferSelect;
+export type InsertUserCountryProfile = typeof userCountryProfiles.$inferInsert;
+
+/**
+ * Africa-wide region sentiment snapshots (one row per country per day).
+ */
+export const africaRegionSentiments = mysqlTable("africa_region_sentiments", {
+  id: int("id").autoincrement().primaryKey(),
+  countryCode: varchar("countryCode", { length: 2 }).notNull(),
+  region: varchar("region", { length: 50 }).notNull(),
+  sentimentScore: decimal("sentimentScore", { precision: 5, scale: 2 }).notNull(),
+  stabilityScore: decimal("stabilityScore", { precision: 5, scale: 2 }),
+  riskLevel: mysqlEnum("riskLevel", ["low", "medium", "high", "critical"]).default("low").notNull(),
+  summary: text("summary"),
+  keyThemes: json("keyThemes").$type<string[]>(),
+  sourcedFrom: varchar("sourcedFrom", { length: 50 }).default("ai"),
+  recordedAt: timestamp("recordedAt").defaultNow().notNull(),
+});
+export type AfricaRegionSentiment = typeof africaRegionSentiments.$inferSelect;
+export type InsertAfricaRegionSentiment = typeof africaRegionSentiments.$inferInsert;
+
+/**
+ * Africa-wide content sources (news articles, social posts) per country.
+ */
+export const africaContentSources = mysqlTable("africa_content_sources", {
+  id: int("id").autoincrement().primaryKey(),
+  countryCode: varchar("countryCode", { length: 2 }).notNull(),
+  sourceType: mysqlEnum("sourceType", ["news", "rss", "twitter", "manual"]).notNull(),
+  title: varchar("title", { length: 500 }),
+  content: text("content").notNull(),
+  url: text("url"),
+  author: varchar("author", { length: 255 }),
+  publishedAt: timestamp("publishedAt"),
+  sentimentScore: decimal("sentimentScore", { precision: 5, scale: 2 }),
+  riskLevel: mysqlEnum("riskLevel", ["Low", "Moderate", "High", "Critical"]),
+  processedAt: timestamp("processedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AfricaContentSource = typeof africaContentSources.$inferSelect;
+export type InsertAfricaContentSource = typeof africaContentSources.$inferInsert;

@@ -357,4 +357,33 @@ v1.get(
   })
 );
 
+// ─── AFRICA ──────────────────────────────────────────────────────────────────
+
+v1.get("/africa/catalogue", wrap(async (_req, res) => {
+  const data = await caller().africa.catalogue();
+  ok(res, data);
+}));
+
+v1.get("/africa/overview", wrap(async (_req, res) => {
+  const data = await caller().africa.getContinentOverview();
+  ok(res, data);
+}));
+
+v1.get("/africa/:countryCode/brief", wrap(async (req, res) => {
+  const data = await caller().africa.getCountryBrief({ countryCode: req.params.countryCode.toUpperCase() });
+  ok(res, data);
+}));
+
+v1.get("/africa/:countryCode/news", wrap(async (req, res) => {
+  const data = await caller().africa.getCountryNews({ countryCode: req.params.countryCode.toUpperCase() });
+  ok(res, data);
+}));
+
+v1.post("/africa/:countryCode/sentiment/analyze", wrap(async (req, res) => {
+  const { text } = req.body;
+  if (!text) return err(res, 400, "text is required");
+  const data = await caller().africa.analyzeSentiment({ countryCode: req.params.countryCode.toUpperCase(), text });
+  ok(res, data);
+}));
+
 export default v1;

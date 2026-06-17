@@ -51,6 +51,7 @@ import { aiAssistantRouter } from "./routers/aiAssistant";
 import { newsletterRouter } from "./routers/newsletter";
 import { pushNotificationsRouter } from "./routers/pushNotifications";
 import { kenyaRouter } from "./routers/kenya";
+import { africaRouter } from "./routers/africa";
 
 // Types for API responses
 interface YouTubeVideo {
@@ -1835,6 +1836,7 @@ Be concise, technical, and actionable. When discussing features, consider:
   newsletter: newsletterRouter,
   pushNotifications: pushNotificationsRouter,
   kenya: kenyaRouter,
+  africa: africaRouter,
 
   developerKeys: router({
     list: protectedProcedure.query(async ({ ctx }) => {

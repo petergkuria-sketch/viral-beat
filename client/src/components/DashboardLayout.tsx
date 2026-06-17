@@ -23,6 +23,8 @@ import {
 import { getLoginUrl } from "@/const";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { useIsMobile } from "@/hooks/useMobile";
+import { trpc } from "@/lib/trpc";
+import { AFRICAN_COUNTRIES, AFRICAN_REGIONS, getCountriesByRegion } from "../../../shared/africanCountries";
 import { 
   LayoutDashboard, 
   LogOut, 
@@ -96,7 +98,7 @@ const menuItems = [
   // Admin (only shown to admins)
   { icon: ShieldCheck, label: "Admin Dashboard", path: "/admin", category: "Admin", adminOnly: true },
   
-  // Kenya Intelligence
+  // Africa Intelligence (Kenya deep-dive items)
   { icon: Globe, label: "Kenya Overview", path: "/kenya", category: "Kenya" },
   { icon: MapPin, label: "Sentiment Tracker", path: "/kenya/tracker", category: "Kenya" },
   { icon: MapPin, label: "Regional Map", path: "/kenya/regional-map", category: "Kenya" },
@@ -113,13 +115,15 @@ const menuItems = [
   { icon: AlertTriangle, label: "Alerts", path: "/kenya/alerts", category: "Kenya" },
   { icon: FileText, label: "Reports", path: "/kenya/reports", category: "Kenya" },
   { icon: Users, label: "Civic Movements", path: "/kenya/movements", category: "Kenya" },
+  // Africa hub (single entry — rest rendered via AfricaNavSection)
+  { icon: Globe, label: "Africa Hub", path: "/africa", category: "Africa" },
   // Settings
   { icon: SettingsIcon, label: "Settings", path: "/settings", category: "Settings" },
   { icon: Shield, label: "Privacy Settings", path: "/privacy-settings", category: "Settings" },
 ];
 
 // All non-Core categories are collapsible to keep sidebar manageable
-const COLLAPSIBLE_CATEGORIES = new Set(["AI & Content", "Economy", "Advanced", "Developer", "Admin", "Kenya Intelligence", "Settings"]);
+const COLLAPSIBLE_CATEGORIES = new Set(["AI & Content", "Economy", "Advanced", "Developer", "Admin", "Kenya Intelligence", "Africa Intelligence", "Settings"]);
 
 // Group menu items by category
 const menuCategories = [
@@ -130,6 +134,7 @@ const menuCategories = [
   { name: "Developer", items: menuItems.filter(item => item.category === "Developer") },
   { name: "Admin", items: menuItems.filter(item => item.category === "Admin") },
   { name: "Kenya Intelligence", items: menuItems.filter(item => item.category === "Kenya") },
+  { name: "Africa Intelligence", items: menuItems.filter(item => item.category === "Africa") },
   { name: "Settings", items: menuItems.filter(item => item.category === "Settings") },
 ];
 
@@ -209,7 +214,7 @@ function UserDropdown({
   setLocation,
   size = "md",
 }: {
-  user: { name?: string; email?: string; role?: string } | null;
+  user: { name?: string | null; email?: string | null; role?: string | null } | null;
   logout: () => void;
   setLocation: (path: string) => void;
   size?: "sm" | "md";
@@ -274,6 +279,134 @@ function UserDropdown({
   );
 }
 
+// ── Africa nav: nested region groups inside the sidebar ─────────────────────
+
+function AfricaNavSection({
+  isCollapsed,
+  location,
+  setLocation,
+  expandedRegions,
+  toggleRegion,
+  myCountryCode,
+}: {
+  isCollapsed: boolean;
+  location: string;
+  setLocation: (p: string) => void;
+  expandedRegions: Set<string>;
+  toggleRegion: (r: string) => void;
+  myCountryCode: string | null;
+}) {
+  const isAfricaActive = location.startsWith("/africa");
+
+  if (isCollapsed) {
+    return isAfricaActive ? (
+      <SidebarMenu className="px-2">
+        <SidebarMenuItem>
+          <SidebarMenuButton isActive onClick={() => setLocation("/africa")} tooltip="Africa Intelligence" className="h-9">
+            <Globe className="h-4 w-4 shrink-0 text-primary" />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    ) : null;
+  }
+
+  return (
+    <div className="px-2 space-y-0.5">
+      {/* Hub link */}
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            isActive={location === "/africa"}
+            onClick={() => setLocation("/africa")}
+            tooltip="Africa Hub"
+            className={`h-9 ${location === "/africa" ? "bg-accent" : ""}`}
+          >
+            <Globe className={`h-4 w-4 shrink-0 ${location === "/africa" ? "text-primary" : "text-muted-foreground"}`} />
+            <span className="text-sm truncate">Africa Hub</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+
+      {/* My Country shortcut */}
+      {myCountryCode && (() => {
+        const c = AFRICAN_COUNTRIES.find(x => x.code === myCountryCode);
+        if (!c) return null;
+        const path = c.hasRichData ? "/kenya" : `/africa/${c.code}`;
+        const isActive = location === path || location.startsWith(path + "/");
+        return (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={isActive}
+                onClick={() => setLocation(path)}
+                className={`h-9 ${isActive ? "bg-accent" : ""}`}
+              >
+                <span className="text-base leading-none shrink-0">{c.flag}</span>
+                <span className={`text-sm truncate ${isActive ? "font-medium" : ""}`}>
+                  {c.name} <span className="text-[10px] text-cyan-400 ml-1">My Country</span>
+                </span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        );
+      })()}
+
+      {/* Regions */}
+      {AFRICAN_REGIONS.map(region => {
+        const countries = getCountriesByRegion(region);
+        const isExpanded = expandedRegions.has(region);
+        const hasActive = countries.some(c => {
+          const p = c.hasRichData ? "/kenya" : `/africa/${c.code}`;
+          return location === p || location.startsWith(p + "/");
+        });
+
+        return (
+          <div key={region}>
+            <button
+              onClick={() => toggleRegion(region)}
+              className={`w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors rounded hover:text-foreground ${hasActive ? "text-primary" : "text-muted-foreground"}`}
+            >
+              <span>{region.replace(" Africa", "")}</span>
+              {isExpanded
+                ? <ChevronDown className="h-3 w-3" />
+                : <ChevronRight className="h-3 w-3" />
+              }
+            </button>
+            {isExpanded && (
+              <SidebarMenu className="pl-2">
+                {countries.map(c => {
+                  const path = c.hasRichData ? "/kenya" : `/africa/${c.code}`;
+                  const isActive = location === path || (path !== "/dashboard" && location.startsWith(path + "/"));
+                  return (
+                    <SidebarMenuItem key={c.code}>
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        onClick={() => setLocation(path)}
+                        tooltip={c.name}
+                        className={`h-8 ${isActive ? "bg-accent" : ""}`}
+                      >
+                        <span className="text-sm leading-none shrink-0">{c.flag}</span>
+                        <span className={`text-xs truncate ${isActive ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                          {c.name}
+                        </span>
+                        {c.hasRichData && (
+                          <span className="ml-auto text-[9px] text-cyan-400 shrink-0">★</span>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Main layout content ───────────────────────────────────────────────────────
+
 function DashboardLayoutContent({
   children,
   setSidebarWidth,
@@ -286,6 +419,53 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+
+  // Geo-detect country on first login and persist it
+  const autoDetect = trpc.africa.autoDetectCountry.useMutation();
+  const setMyCountry = trpc.africa.setMyCountry.useMutation();
+  const { data: myCountry } = trpc.africa.getMyCountry.useQuery(undefined, {
+    retry: false,
+    enabled: !!user,
+  });
+  useEffect(() => {
+    if (!user || myCountry !== null) return; // already set or still loading (undefined)
+    if (myCountry === null) {
+      autoDetect.mutate(undefined, {
+        onSuccess(result) {
+          if (!result) {
+            const locales = navigator.languages || [navigator.language];
+            for (const locale of locales) {
+              const match = locale.match(/[a-z]{2}-([A-Z]{2})/);
+              if (match) { setMyCountry.mutate({ countryCode: match[1], method: "browser" }); break; }
+            }
+          }
+        },
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, myCountry]);
+  const myCountryCode = myCountry?.code ?? null;
+
+  // Africa region collapse state
+  const [expandedRegions, setExpandedRegions] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem("sidebar-expanded-regions");
+    if (saved) { try { return new Set(JSON.parse(saved) as string[]); } catch {} }
+    // Auto-expand the region of the current page or user's country
+    const activeCountryCode = location.match(/^\/africa\/([A-Z]{2})/)?.[1];
+    if (activeCountryCode) {
+      const c = AFRICAN_COUNTRIES.find(x => x.code === activeCountryCode);
+      if (c) return new Set([c.region]);
+    }
+    return new Set<string>();
+  });
+  const toggleRegion = (region: string) => {
+    setExpandedRegions(prev => {
+      const next = new Set(prev);
+      next.has(region) ? next.delete(region) : next.add(region);
+      localStorage.setItem("sidebar-expanded-regions", JSON.stringify(Array.from(next)));
+      return next;
+    });
+  };
 
   // Track which collapsible categories are expanded
   // Auto-expand Kenya if currently on a Kenya page
@@ -438,66 +618,96 @@ function DashboardLayoutContent({
               
               return (
                 <div key={category.name} className="mb-1">
-                  {!isCollapsed && (
-                    isCollapsibleCategory ? (
-                      // Collapsible category header (Kenya Intelligence)
-                      <button
-                        onClick={() => toggleCategory(category.name)}
-                        className={`w-full flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-foreground ${hasCategoryActive ? "text-primary" : "text-muted-foreground"}`}
-                      >
-                        <span>{category.name}</span>
-                        {isCategoryExpanded
-                          ? <ChevronDown className="h-3 w-3" />
-                          : <ChevronRight className="h-3 w-3" />
-                        }
-                      </button>
-                    ) : (
-                      <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        {category.name}
-                      </div>
-                    )
-                  )}
-                  {isCategoryExpanded && (
-                    <SidebarMenu className="px-2">
-                      {visibleItems.map(item => {
-                        const isActive = location === item.path || 
-                          (item.path !== "/dashboard" && location.startsWith(item.path + "/"));
-                        return (
-                          <SidebarMenuItem key={item.path}>
-                            <SidebarMenuButton
-                              isActive={isActive}
-                              onClick={() => setLocation(item.path)}
-                              tooltip={item.label}
-                              className={`h-9 transition-all font-normal ${isActive ? "bg-accent" : ""}`}
-                            >
-                              <item.icon
-                                className={`h-4 w-4 shrink-0 ${isActive ? "text-primary" : "text-muted-foreground"}`}
-                              />
-                              <span className={`text-sm truncate ${isActive ? "text-foreground font-medium" : ""}`}>
-                                {item.label}
-                              </span>
+                  {/* Africa Intelligence uses its own nested renderer */}
+                  {category.name === "Africa Intelligence" ? (
+                    <>
+                      {!isCollapsed && (
+                        <button
+                          onClick={() => toggleCategory(category.name)}
+                          className={`w-full flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-foreground ${location.startsWith("/africa") || location.startsWith("/kenya") ? "text-primary" : "text-muted-foreground"}`}
+                        >
+                          <span>Africa Intelligence</span>
+                          {isCategoryExpanded
+                            ? <ChevronDown className="h-3 w-3" />
+                            : <ChevronRight className="h-3 w-3" />
+                          }
+                        </button>
+                      )}
+                      {isCategoryExpanded && (
+                        <AfricaNavSection
+                          isCollapsed={isCollapsed}
+                          location={location}
+                          setLocation={setLocation}
+                          expandedRegions={expandedRegions}
+                          toggleRegion={toggleRegion}
+                          myCountryCode={myCountryCode}
+                        />
+                      )}
+                      {isCollapsed && (location.startsWith("/africa") || location.startsWith("/kenya")) && (
+                        <SidebarMenu className="px-2">
+                          <SidebarMenuItem>
+                            <SidebarMenuButton isActive onClick={() => setLocation("/africa")} tooltip="Africa Intelligence" className="h-9">
+                              <Globe className="h-4 w-4 shrink-0 text-primary" />
                             </SidebarMenuButton>
                           </SidebarMenuItem>
-                        );
-                      })}
-                    </SidebarMenu>
-                  )}
-                  {/* Show collapsed Kenya indicator dot when collapsed and has active item */}
-                  {isCollapsed && isCollapsibleCategory && hasCategoryActive && (
-                    <SidebarMenu className="px-2">
-                      {visibleItems.filter(item => location === item.path || location.startsWith(item.path + "/")).map(item => (
-                        <SidebarMenuItem key={item.path}>
-                          <SidebarMenuButton
-                            isActive={true}
-                            onClick={() => setLocation(item.path)}
-                            tooltip={item.label}
-                            className="h-9"
+                        </SidebarMenu>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {!isCollapsed && (
+                        isCollapsibleCategory ? (
+                          <button
+                            onClick={() => toggleCategory(category.name)}
+                            className={`w-full flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors hover:text-foreground ${hasCategoryActive ? "text-primary" : "text-muted-foreground"}`}
                           >
-                            <item.icon className="h-4 w-4 shrink-0 text-primary" />
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
+                            <span>{category.name}</span>
+                            {isCategoryExpanded
+                              ? <ChevronDown className="h-3 w-3" />
+                              : <ChevronRight className="h-3 w-3" />
+                            }
+                          </button>
+                        ) : (
+                          <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            {category.name}
+                          </div>
+                        )
+                      )}
+                      {isCategoryExpanded && (
+                        <SidebarMenu className="px-2">
+                          {visibleItems.map(item => {
+                            const isActive = location === item.path ||
+                              (item.path !== "/dashboard" && location.startsWith(item.path + "/"));
+                            return (
+                              <SidebarMenuItem key={item.path}>
+                                <SidebarMenuButton
+                                  isActive={isActive}
+                                  onClick={() => setLocation(item.path)}
+                                  tooltip={item.label}
+                                  className={`h-9 transition-all font-normal ${isActive ? "bg-accent" : ""}`}
+                                >
+                                  <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                                  <span className={`text-sm truncate ${isActive ? "text-foreground font-medium" : ""}`}>
+                                    {item.label}
+                                  </span>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            );
+                          })}
+                        </SidebarMenu>
+                      )}
+                      {isCollapsed && isCollapsibleCategory && hasCategoryActive && (
+                        <SidebarMenu className="px-2">
+                          {visibleItems.filter(item => location === item.path || location.startsWith(item.path + "/")).map(item => (
+                            <SidebarMenuItem key={item.path}>
+                              <SidebarMenuButton isActive onClick={() => setLocation(item.path)} tooltip={item.label} className="h-9">
+                                <item.icon className="h-4 w-4 shrink-0 text-primary" />
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenu>
+                      )}
+                    </>
                   )}
                 </div>
               );
