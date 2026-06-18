@@ -328,7 +328,8 @@
 - [ ] Show "Insufficient tokens" warning when balance is low
 - [ ] Add token purchase/earn CTA in AI Agents
 - [x] Display token costs before actions
-- [ ] Add token transaction confirmation dialogsce indicator in navigation bar
+- [ ] Add token transaction confirmation dialogs
+- [ ] Add balance indicator in navigation bar
 - [ ] Implement token transaction confirmation modals
 
 ### Admin Features

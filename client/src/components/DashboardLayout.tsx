@@ -120,6 +120,7 @@ const menuItems = [
   { icon: ShieldCheck, label: "Admin Dashboard",       path: "/admin",                 category: "Admin", adminOnly: true },
 
   // ── Settings ─────────────────────────────────────────────────────────────
+  { icon: Crown,        label: "Pricing & Plans",      path: "/pricing",               category: "Settings" },
   { icon: SettingsIcon, label: "Settings",             path: "/settings",              category: "Settings" },
   { icon: Shield,       label: "Privacy Settings",     path: "/privacy-settings",      category: "Settings" },
 ];

@@ -1,4 +1,4 @@
-import { int, mysqlTable, text, timestamp, varchar, mysqlEnum, boolean, bigint, json, decimal } from "drizzle-orm/mysql-core";
+import { int, mysqlTable, text, timestamp, varchar, mysqlEnum, boolean, bigint, json, decimal, index } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -17,6 +17,10 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  // Subscription tier — gates LLM features and API limits
+  subscriptionTier: mysqlEnum("subscriptionTier", ["free", "analyst", "enterprise"]).default("free").notNull(),
+  subscriptionExpiresAt: timestamp("subscriptionExpiresAt"),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 64 }),
   // Privacy settings
   profileVisibility: mysqlEnum("profileVisibility", ["public", "private"]).default("public").notNull(),
   showStats: boolean("showStats").default(true).notNull(),
@@ -1195,3 +1199,40 @@ export const africaContentSources = mysqlTable("africa_content_sources", {
 });
 export type AfricaContentSource = typeof africaContentSources.$inferSelect;
 export type InsertAfricaContentSource = typeof africaContentSources.$inferInsert;
+
+/**
+ * LLM response cache — prevents redundant AI calls.
+ * Key: "router:operation:params" e.g. "africa:brief:KE".
+ * TTL enforced by expiresAt.
+ */
+export const llmCache = mysqlTable("llmCache", {
+  id: int("id").autoincrement().primaryKey(),
+  cacheKey: varchar("cacheKey", { length: 128 }).notNull().unique(),
+  payload: json("payload").$type<Record<string, unknown>>().notNull(),
+  model: varchar("model", { length: 64 }).notNull().default("claude-opus-4-8"),
+  inputTokens: int("inputTokens").default(0),
+  outputTokens: int("outputTokens").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+}, table => ({
+  keyIdx: index("llmCache_key_idx").on(table.cacheKey),
+  expiryIdx: index("llmCache_expiry_idx").on(table.expiresAt),
+}));
+export type LlmCache = typeof llmCache.$inferSelect;
+export type InsertLlmCache = typeof llmCache.$inferInsert;
+
+/**
+ * Subscription events — audit log for tier changes.
+ */
+export const subscriptionEvents = mysqlTable("subscriptionEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  event: mysqlEnum("event", ["upgraded", "downgraded", "renewed", "cancelled", "trial_started"]).notNull(),
+  fromTier: mysqlEnum("fromTier", ["free", "analyst", "enterprise"]),
+  toTier: mysqlEnum("toTier", ["free", "analyst", "enterprise"]).notNull(),
+  stripeEventId: varchar("stripeEventId", { length: 128 }),
+  metadata: json("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SubscriptionEvent = typeof subscriptionEvents.$inferSelect;
+export type InsertSubscriptionEvent = typeof subscriptionEvents.$inferInsert;
