@@ -67,75 +67,77 @@ import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
-// Navigation menu items organized by category
+// Navigation menu items — ordered: Intelligence first, Creator tools second
 const menuItems = [
-  // Core Features
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", category: "Core" },
-  { icon: TrendingUp, label: "Trends", path: "/x-trends", category: "Core" },
-  { icon: Heart, label: "Favorites", path: "/favorites", category: "Core" },
-  
-  // Content & AI
-  { icon: MessageSquare, label: "ViralMind Assistant", path: "/viralmind", category: "AI" },
-  { icon: Mail, label: "Newsletter", path: "/newsletter", category: "AI" },
-  { icon: Bot, label: "AI Agents", path: "/ai-agents", category: "AI" },
-  { icon: Code2, label: "Widget Builder", path: "/widget-builder", category: "AI" },
-  { icon: Users, label: "Humans As Agents", path: "/haa", category: "AI" },
-  { icon: Crown, label: "HAA Leaderboard", path: "/haa/leaderboard", category: "AI" },
-  
-  // Tokens & Economy
-  { icon: Coins, label: "Tokens", path: "/tokens", category: "Economy" },
-  { icon: ShoppingCart, label: "Marketplace", path: "/marketplace", category: "Economy" },
-  { icon: ArrowRightLeft, label: "Migrate to Blockchain", path: "/migrate", category: "Economy" },
-  
-  // Analytics & Verification
-  { icon: BarChart3, label: "Premium Analytics", path: "/premium-analytics", category: "Advanced" },
-  { icon: BadgeCheck, label: "Creator Verification", path: "/creator-verification", category: "Advanced" },
-  { icon: Sparkles, label: "Advanced Features", path: "/advanced-features", category: "Advanced" },
-  
-  // Developer Tools
-  { icon: Code2, label: "Developer Hub", path: "/developer-hub", category: "Developer" },
-  
-  // Admin (only shown to admins)
-  { icon: ShieldCheck, label: "Admin Dashboard", path: "/admin", category: "Admin", adminOnly: true },
-  
-  // Africa Intelligence (Kenya deep-dive items)
-  { icon: Globe, label: "Kenya Overview", path: "/kenya", category: "Kenya" },
-  { icon: MapPin, label: "Sentiment Tracker", path: "/kenya/tracker", category: "Kenya" },
-  { icon: MapPin, label: "Regional Map", path: "/kenya/regional-map", category: "Kenya" },
-  { icon: AlertTriangle, label: "Balkanization Risk", path: "/kenya/balkanization", category: "Kenya" },
-  { icon: Scale, label: "ICC Hate Speech", path: "/kenya/icc-agent", category: "Kenya" },
-  { icon: Building2, label: "Executive Agent", path: "/kenya/executive", category: "Kenya" },
-  { icon: Landmark, label: "Parliament Agent", path: "/kenya/parliament", category: "Kenya" },
-  { icon: Vote, label: "Senate Agent", path: "/kenya/senate", category: "Kenya" },
-  { icon: Users, label: "Governors Agent", path: "/kenya/governors", category: "Kenya" },
-  { icon: Users, label: "Women Reps Agent", path: "/kenya/women-reps", category: "Kenya" },
-  { icon: Newspaper, label: "News Feed", path: "/kenya/newsfeed", category: "Kenya" },
-  { icon: Radio, label: "Breaking News", path: "/kenya/breaking-news", category: "Kenya" },
-  { icon: FileText, label: "Election Phases", path: "/kenya/election-phases", category: "Kenya" },
-  { icon: AlertTriangle, label: "Alerts", path: "/kenya/alerts", category: "Kenya" },
-  { icon: FileText, label: "Reports", path: "/kenya/reports", category: "Kenya" },
-  { icon: Users, label: "Civic Movements", path: "/kenya/movements", category: "Kenya" },
-  // Africa hub (single entry — rest rendered via AfricaNavSection)
+  // ── Intelligence Home ─────────────────────────────────────────────────────
+  { icon: LayoutDashboard, label: "Dashboard",    path: "/dashboard", category: "Core" },
+
+  // ── Africa hub (single entry — rest rendered via AfricaNavSection) ────────
   { icon: Globe, label: "Africa Hub", path: "/africa", category: "Africa" },
-  // Settings
-  { icon: SettingsIcon, label: "Settings", path: "/settings", category: "Settings" },
-  { icon: Shield, label: "Privacy Settings", path: "/privacy-settings", category: "Settings" },
+
+  // ── Kenya Deep-Dive ───────────────────────────────────────────────────────
+  { icon: Globe,         label: "Kenya Overview",      path: "/kenya",                  category: "Kenya" },
+  { icon: MapPin,        label: "Sentiment Tracker",   path: "/kenya/tracker",          category: "Kenya" },
+  { icon: MapPin,        label: "Regional Map",        path: "/kenya/regional-map",     category: "Kenya" },
+  { icon: AlertTriangle, label: "Balkanization Risk",  path: "/kenya/balkanization",    category: "Kenya" },
+  { icon: Scale,         label: "ICC Hate Speech",     path: "/kenya/icc-agent",        category: "Kenya" },
+  { icon: Building2,     label: "Executive Agent",     path: "/kenya/executive",        category: "Kenya" },
+  { icon: Landmark,      label: "Parliament Agent",    path: "/kenya/parliament",       category: "Kenya" },
+  { icon: Vote,          label: "Senate Agent",        path: "/kenya/senate",           category: "Kenya" },
+  { icon: Users,         label: "Governors Agent",     path: "/kenya/governors",        category: "Kenya" },
+  { icon: Users,         label: "Women Reps Agent",    path: "/kenya/women-reps",       category: "Kenya" },
+  { icon: Newspaper,     label: "News Feed",           path: "/kenya/newsfeed",         category: "Kenya" },
+  { icon: Radio,         label: "Breaking News",       path: "/kenya/breaking-news",    category: "Kenya" },
+  { icon: FileText,      label: "Election Phases",     path: "/kenya/election-phases",  category: "Kenya" },
+  { icon: AlertTriangle, label: "Alerts",              path: "/kenya/alerts",           category: "Kenya" },
+  { icon: FileText,      label: "Reports",             path: "/kenya/reports",          category: "Kenya" },
+  { icon: Users,         label: "Civic Movements",     path: "/kenya/movements",        category: "Kenya" },
+
+  // ── Creator Signal Network ────────────────────────────────────────────────
+  { icon: TrendingUp,   label: "Trends",               path: "/x-trends",              category: "Creator" },
+  { icon: Heart,        label: "Favorites",            path: "/favorites",             category: "Creator" },
+  { icon: Users,        label: "Humans As Agents",     path: "/haa",                   category: "Creator" },
+  { icon: Crown,        label: "HAA Leaderboard",      path: "/haa/leaderboard",       category: "Creator" },
+  { icon: MessageSquare,label: "ViralMind Assistant",  path: "/viralmind",             category: "Creator" },
+  { icon: Mail,         label: "Newsletter",           path: "/newsletter",            category: "Creator" },
+  { icon: Bot,          label: "AI Agents",            path: "/ai-agents",             category: "Creator" },
+  { icon: Code2,        label: "Widget Builder",       path: "/widget-builder",        category: "Creator" },
+
+  // ── Token Economy ─────────────────────────────────────────────────────────
+  { icon: Coins,         label: "Tokens",              path: "/tokens",                category: "Economy" },
+  { icon: ShoppingCart,  label: "Marketplace",         path: "/marketplace",           category: "Economy" },
+  { icon: ArrowRightLeft,label: "Migrate to Blockchain",path: "/migrate",             category: "Economy" },
+
+  // ── Analytics & Verification ──────────────────────────────────────────────
+  { icon: BarChart3,  label: "Premium Analytics",      path: "/premium-analytics",     category: "Advanced" },
+  { icon: BadgeCheck, label: "Creator Verification",   path: "/creator-verification",  category: "Advanced" },
+  { icon: Sparkles,   label: "Advanced Features",      path: "/advanced-features",     category: "Advanced" },
+
+  // ── Developer ─────────────────────────────────────────────────────────────
+  { icon: Code2,      label: "Developer Hub",          path: "/developer-hub",         category: "Developer" },
+
+  // ── Admin ─────────────────────────────────────────────────────────────────
+  { icon: ShieldCheck, label: "Admin Dashboard",       path: "/admin",                 category: "Admin", adminOnly: true },
+
+  // ── Settings ─────────────────────────────────────────────────────────────
+  { icon: SettingsIcon, label: "Settings",             path: "/settings",              category: "Settings" },
+  { icon: Shield,       label: "Privacy Settings",     path: "/privacy-settings",      category: "Settings" },
 ];
 
-// All non-Core categories are collapsible to keep sidebar manageable
-const COLLAPSIBLE_CATEGORIES = new Set(["AI & Content", "Economy", "Advanced", "Developer", "Admin", "Kenya Intelligence", "Africa Intelligence", "Settings"]);
+// Collapsible categories (start collapsed to keep sidebar clean)
+const COLLAPSIBLE_CATEGORIES = new Set(["Creator Signal Network", "Token Economy", "Advanced", "Developer", "Admin", "Kenya Intelligence", "Africa Intelligence", "Settings"]);
 
-// Group menu items by category
+// Category order — Intelligence first, Creator second
 const menuCategories = [
-  { name: "Core", items: menuItems.filter(item => item.category === "Core") },
-  { name: "AI & Content", items: menuItems.filter(item => item.category === "AI") },
-  { name: "Economy", items: menuItems.filter(item => item.category === "Economy") },
-  { name: "Advanced", items: menuItems.filter(item => item.category === "Advanced") },
-  { name: "Developer", items: menuItems.filter(item => item.category === "Developer") },
-  { name: "Admin", items: menuItems.filter(item => item.category === "Admin") },
-  { name: "Kenya Intelligence", items: menuItems.filter(item => item.category === "Kenya") },
-  { name: "Africa Intelligence", items: menuItems.filter(item => item.category === "Africa") },
-  { name: "Settings", items: menuItems.filter(item => item.category === "Settings") },
+  { name: "Core",                  items: menuItems.filter(item => item.category === "Core") },
+  { name: "Africa Intelligence",   items: menuItems.filter(item => item.category === "Africa") },
+  { name: "Kenya Intelligence",    items: menuItems.filter(item => item.category === "Kenya") },
+  { name: "Creator Signal Network",items: menuItems.filter(item => item.category === "Creator") },
+  { name: "Token Economy",         items: menuItems.filter(item => item.category === "Economy") },
+  { name: "Advanced",              items: menuItems.filter(item => item.category === "Advanced") },
+  { name: "Developer",             items: menuItems.filter(item => item.category === "Developer") },
+  { name: "Admin",                 items: menuItems.filter(item => item.category === "Admin") },
+  { name: "Settings",              items: menuItems.filter(item => item.category === "Settings") },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
