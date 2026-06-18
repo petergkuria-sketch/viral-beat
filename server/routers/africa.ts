@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure, protectedProcedure, analystProcedure, getCached, setCached } from "../_core/trpc";
 import { getDb } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { eq, desc, and } from "drizzle-orm";
@@ -19,25 +19,23 @@ import Parser from "rss-parser";
 
 const rssParser = new Parser({ timeout: 10000 });
 
+const BRIEF_TTL = 60 * 60 * 24;      // 24h — one Opus call per country per day
+const SENTIMENT_TTL = 60 * 60 * 6;   // 6h  — cheaper per-text analysis
+const NEWS_TTL = 60 * 30;            // 30m — RSS is fast; keep fresh
+
 // ── Geo-detection ─────────────────────────────────────────────────────────────
 
-// Detect country code from Cloudflare/Vercel/Railway headers or Accept-Language
 export function detectCountryFromRequest(req: any): string | null {
-  // Cloudflare sets CF-IPCountry; Railway / AWS CloudFront use CloudFront-Viewer-Country
   const cf = req.headers["cf-ipcountry"] as string | undefined;
   const cfFront = req.headers["cloudfront-viewer-country"] as string | undefined;
   const xCountry = req.headers["x-country-code"] as string | undefined;
-
   const raw = (cf || cfFront || xCountry || "").toUpperCase();
   if (raw && COUNTRY_CODES.has(raw)) return raw;
-
-  // Fallback: browser Accept-Language (e.g. "sw-KE,sw;q=0.9" → KE)
   const lang = req.headers["accept-language"] as string | undefined;
   if (lang) {
     const match = lang.match(/[a-z]{2}-([A-Z]{2})/);
     if (match && COUNTRY_CODES.has(match[1])) return match[1];
   }
-
   return null;
 }
 
@@ -135,9 +133,7 @@ async function fetchCountryNews(countryCode: string): Promise<any[]> {
           publishedAt: item.pubDate || item.isoDate,
         });
       }
-    } catch {
-      // Feed unavailable — skip silently
-    }
+    } catch { /* feed unavailable — skip */ }
   }
   return articles;
 }
@@ -145,56 +141,42 @@ async function fetchCountryNews(countryCode: string): Promise<any[]> {
 // ── Router ────────────────────────────────────────────────────────────────────
 
 export const africaRouter = router({
-  // All countries and regions catalogue
   catalogue: publicProcedure.query(() => ({
     countries: AFRICAN_COUNTRIES,
     regions: AFRICAN_REGIONS,
-    byRegion: Object.fromEntries(
-      AFRICAN_REGIONS.map(r => [r, getCountriesByRegion(r)])
-    ),
+    byRegion: Object.fromEntries(AFRICAN_REGIONS.map(r => [r, getCountriesByRegion(r)])),
   })),
 
-  // AI-powered country intelligence brief
+  // Country intelligence brief — cached 24h; Analyst+ can force-refresh
   getCountryBrief: publicProcedure
-    .input(z.object({ countryCode: z.string().length(2) }))
-    .query(async ({ input }) => {
-      const country = getCountry(input.countryCode.toUpperCase());
+    .input(z.object({
+      countryCode: z.string().length(2),
+      forceRefresh: z.boolean().optional().default(false),
+    }))
+    .query(async ({ input, ctx }) => {
+      const code = input.countryCode.toUpperCase();
+      const country = getCountry(code);
       if (!country) throw new Error("Unknown country code");
 
-      // Check if we have a cached sentiment from today
-      const db = await getDb();
-      if (db) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const [cached] = await db
-          .select()
-          .from(africaRegionSentiments)
-          .where(and(
-            eq(africaRegionSentiments.countryCode, country.code),
-          ))
-          .orderBy(desc(africaRegionSentiments.recordedAt))
-          .limit(1);
+      const cacheKey = `africa:brief:${code}`;
+      const userTier = (ctx as any).user?.subscriptionTier ?? "free";
+      const canRefresh = input.forceRefresh && (userTier === "analyst" || userTier === "enterprise");
 
-        if (cached && cached.recordedAt >= today) {
-          return {
-            country,
-            fromCache: true,
-            sentimentScore: Number(cached.sentimentScore),
-            stabilityScore: cached.stabilityScore ? Number(cached.stabilityScore) : null,
-            riskLevel: cached.riskLevel,
-            summary: cached.summary,
-            keyThemes: cached.keyThemes || [],
-          };
-        }
+      // Serve from llmCache unless caller has analyst+ and wants fresh data
+      if (!canRefresh) {
+        const cached = await getCached<Record<string, unknown>>(cacheKey);
+        if (cached) return { country, fromCache: true, ...cached };
       }
 
-      const brief = await generateCountryIntelligence(country.code);
+      const brief = await generateCountryIntelligence(code);
+      await setCached(cacheKey, brief, BRIEF_TTL);
 
-      // Cache to DB
+      // Also mirror key fields to africaRegionSentiments for the continent overview
+      const db = await getDb();
       if (db) {
         try {
           await db.insert(africaRegionSentiments).values({
-            countryCode: country.code,
+            countryCode: code,
             region: country.region,
             sentimentScore: String(brief.sentimentScore),
             stabilityScore: String(brief.stabilityScore),
@@ -203,31 +185,45 @@ export const africaRouter = router({
             keyThemes: brief.keyThemes,
             sourcedFrom: "ai",
           });
-        } catch { /* cache write failure is non-fatal */ }
+        } catch { /* non-fatal */ }
       }
 
       return { country, fromCache: false, ...brief };
     }),
 
-  // Live news for a country (from configured RSS feeds)
+  // Live news — cached 30 min
   getCountryNews: publicProcedure
     .input(z.object({ countryCode: z.string().length(2) }))
     .query(async ({ input }) => {
-      const country = getCountry(input.countryCode.toUpperCase());
+      const code = input.countryCode.toUpperCase();
+      const country = getCountry(code);
       if (!country) throw new Error("Unknown country code");
-      const articles = await fetchCountryNews(country.code);
-      return { country, articles, fetchedAt: new Date().toISOString() };
+
+      const cacheKey = `africa:news:${code}`;
+      const cached = await getCached<{ articles: any[] }>(cacheKey);
+      if (cached) return { country, fromCache: true, ...cached, fetchedAt: new Date().toISOString() };
+
+      const articles = await fetchCountryNews(code);
+      await setCached(cacheKey, { articles }, NEWS_TTL);
+      return { country, fromCache: false, articles, fetchedAt: new Date().toISOString() };
     }),
 
-  // AI sentiment analysis on any text in country context
-  analyzeSentiment: publicProcedure
+  // Sentiment analysis — Analyst+ only; cached 6h per (country, text hash)
+  analyzeSentiment: analystProcedure
     .input(z.object({
       countryCode: z.string().length(2),
-      text: z.string().min(1),
+      text: z.string().min(1).max(5000),
     }))
     .mutation(async ({ input }) => {
       const country = getCountry(input.countryCode.toUpperCase());
       const context = country ? `Political context: ${country.name}` : "";
+
+      // Short hash so similar texts share cache
+      const textKey = Buffer.from(input.text.slice(0, 200)).toString("base64").slice(0, 32);
+      const cacheKey = `africa:sentiment:${input.countryCode}:${textKey}`;
+      const cached = await getCached<Record<string, unknown>>(cacheKey);
+      if (cached) return { countryCode: input.countryCode, fromCache: true, ...cached };
+
       const response = await invokeLLM({
         messages: [
           {
@@ -257,11 +253,13 @@ export const africaRouter = router({
           },
         },
       });
+
       const content = response.choices[0].message.content;
-      return { countryCode: input.countryCode, ...JSON.parse(typeof content === "string" ? content : JSON.stringify(content)) };
+      const result = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+      await setCached(cacheKey, result, SENTIMENT_TTL);
+      return { countryCode: input.countryCode, fromCache: false, ...result };
     }),
 
-  // Historical sentiment records for a country
   getSentimentHistory: publicProcedure
     .input(z.object({ countryCode: z.string().length(2), limit: z.number().default(30) }))
     .query(async ({ input }) => {
@@ -275,7 +273,6 @@ export const africaRouter = router({
         .limit(input.limit);
     }),
 
-  // Continent-wide risk overview (one row per country, latest only)
   getContinentOverview: publicProcedure.query(async () => {
     const db = await getDb();
     if (!db) return { countries: AFRICAN_COUNTRIES, sentiments: [] };
@@ -284,7 +281,6 @@ export const africaRouter = router({
       .from(africaRegionSentiments)
       .orderBy(desc(africaRegionSentiments.recordedAt))
       .limit(200);
-    // Keep only latest per country
     const latest = new Map<string, typeof sentiments[0]>();
     for (const s of sentiments) {
       if (!latest.has(s.countryCode)) latest.set(s.countryCode, s);
@@ -292,7 +288,6 @@ export const africaRouter = router({
     return { countries: AFRICAN_COUNTRIES, sentiments: Array.from(latest.values()) };
   }),
 
-  // User country profile — read
   getMyCountry: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) return null;
@@ -304,7 +299,6 @@ export const africaRouter = router({
     return profile ? getCountry(profile.defaultCountryCode) : null;
   }),
 
-  // User country profile — set/update
   setMyCountry: protectedProcedure
     .input(z.object({
       countryCode: z.string().length(2),
@@ -315,16 +309,13 @@ export const africaRouter = router({
       if (!db) throw new Error("Database unavailable");
       const code = input.countryCode.toUpperCase();
       if (!COUNTRY_CODES.has(code)) throw new Error("Not a recognised African country code");
-
       const [existing] = await db
         .select()
         .from(userCountryProfiles)
         .where(eq(userCountryProfiles.userId, ctx.user.id))
         .limit(1);
-
       if (existing) {
-        await db
-          .update(userCountryProfiles)
+        await db.update(userCountryProfiles)
           .set({ defaultCountryCode: code, detectionMethod: input.method })
           .where(eq(userCountryProfiles.userId, ctx.user.id));
       } else {
@@ -338,7 +329,6 @@ export const africaRouter = router({
       return { success: true, countryCode: code };
     }),
 
-  // Auto-set country from request headers (called on first login)
   autoDetectCountry: protectedProcedure.mutation(async ({ ctx }) => {
     const db = await getDb();
     if (!db) return null;
@@ -347,16 +337,11 @@ export const africaRouter = router({
       .from(userCountryProfiles)
       .where(eq(userCountryProfiles.userId, ctx.user.id))
       .limit(1);
-
-    // Don't override a manual selection
     if (existing?.detectionMethod === "manual") return existing;
-
     const code = detectCountryFromRequest(ctx.req);
     if (!code) return existing || null;
-
     if (existing) {
-      await db
-        .update(userCountryProfiles)
+      await db.update(userCountryProfiles)
         .set({ defaultCountryCode: code, detectedCountryCode: code, detectionMethod: "ip" })
         .where(eq(userCountryProfiles.userId, ctx.user.id));
     } else {
@@ -367,6 +352,6 @@ export const africaRouter = router({
         detectionMethod: "ip",
       });
     }
-    return { countryCode: code };
+    return getCountry(code);
   }),
 });

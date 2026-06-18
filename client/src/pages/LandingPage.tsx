@@ -118,6 +118,9 @@ export default function LandingPage() {
                 {label}
               </button>
             ))}
+            <button onClick={() => setLocation("/pricing")} className="px-4 py-2 text-sm font-medium text-cyan-400 hover:text-cyan-300 rounded-lg hover:bg-white/5 transition-all">
+              Pricing
+            </button>
           </div>
 
           <div className="flex items-center gap-2">

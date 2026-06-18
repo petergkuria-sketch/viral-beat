@@ -35,6 +35,7 @@ const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const ViralMindPage = lazy(() => import("./pages/ViralMindPage"));
 const NewsletterSettings = lazy(() => import("./pages/NewsletterSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Pricing = lazy(() => import("./pages/Pricing"));
 
 // Kenya Intelligence Module
 const KenyaDashboard = lazy(() => import("./pages/KenyaDashboard"));
@@ -70,6 +71,7 @@ function Router() {
   // Public routes (no authentication required)
   const publicRoutes = [
     { path: "/", component: LandingPage },
+    { path: "/pricing", component: Pricing },
     { path: "/embed/widget", component: EmbedWidget },
     { path: "/onboarding", component: OnboardingPage },
   ];
