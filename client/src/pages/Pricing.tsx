@@ -46,7 +46,7 @@ const PLANS = [
     period: "/month",
     tagline: "For journalists, NGOs & researchers",
     icon: BarChart3,
-    color: "border-cyan-500/40",
+    color: "border-cyan-500/60",
     headerBg: "bg-cyan-500/[0.06]",
     badge: "Most Popular",
     cta: "Start Analyst Plan",
@@ -124,7 +124,7 @@ export default function Pricing() {
             Intelligence for every<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">use case</span>
           </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Start free and upgrade when you need live refresh and full API access. No contracts, cancel anytime.
           </p>
         </div>
@@ -154,7 +154,7 @@ export default function Pricing() {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className={`relative bg-[#0d1e36] border rounded-2xl overflow-hidden flex flex-col ${plan.color} ${isCurrent ? "ring-1 ring-cyan-500/40" : ""}`}
+                className={`relative bg-[#0f2240] border rounded-2xl overflow-hidden flex flex-col ${plan.color} ${isCurrent ? "ring-1 ring-cyan-500/40" : ""}`}
               >
                 {plan.badge && (
                   <div className="absolute top-4 right-4">
@@ -172,7 +172,7 @@ export default function Pricing() {
                     <plan.icon className="w-5 h-5 text-gray-300" />
                   </div>
                   <div className="text-lg font-bold text-white">{plan.name}</div>
-                  <div className="text-sm text-gray-400 mt-0.5 mb-4">{plan.tagline}</div>
+                  <div className="text-sm text-gray-300 mt-0.5 mb-4">{plan.tagline}</div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-black text-white">${plan.price}</span>
                     {plan.period && <span className="text-gray-400 text-sm">{plan.period}</span>}
@@ -226,7 +226,7 @@ export default function Pricing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.07 }}
                 viewport={{ once: true }}
-                className="bg-[#0d1e36] border border-[#1e3a5f] rounded-xl p-5"
+                className="bg-[#0f2240] border border-[#1e3a5f] rounded-xl p-5"
               >
                 <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center mb-3">
                   <uc.icon className="w-4 h-4 text-cyan-400" />
@@ -250,7 +250,7 @@ export default function Pricing() {
               ["What counts as an AI call?", "Generating a country intelligence brief, running sentiment analysis, or requesting a live brief refresh each count as one AI call."],
               ["Do you offer NGO or academic discounts?", "Yes. Email hello@viralbeat.io with your organisation details and we'll set you up on a discounted Analyst plan."],
             ].map(([q, a]) => (
-              <div key={q} className="bg-[#0d1e36] border border-[#1e3a5f] rounded-xl p-5">
+              <div key={q} className="bg-[#0f2240] border border-[#1e3a5f] rounded-xl p-5">
                 <div className="font-semibold text-sm text-white mb-2">{q}</div>
                 <div className="text-sm text-gray-400 leading-relaxed">{a}</div>
               </div>
