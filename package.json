@@ -17,6 +17,7 @@
     "cap:build": "pnpm build && npx cap sync"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
     "@aws-sdk/client-s3": "^3.693.0",
     "@aws-sdk/s3-request-presigner": "^3.693.0",
     "@capacitor/android": "^8.1.0",

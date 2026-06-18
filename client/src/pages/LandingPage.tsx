@@ -1,466 +1,439 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
-import { 
-  TrendingUp, 
-  Zap, 
-  Coins, 
-  BarChart3, 
-  Users, 
+import {
+  Globe,
+  Shield,
+  TrendingUp,
   ArrowRight,
-  Sparkles,
-  Brain,
-  Trophy,
-  Play,
   ChevronRight,
   X,
-  ArrowUp,
-  ArrowDown,
   Menu,
-  Flame,
-  Eye,
-  Star,
-  Target,
-  DollarSign,
-  Activity,
-  Globe,
+  Zap,
+  Users,
+  Brain,
+  Newspaper,
+  AlertTriangle,
+  BarChart3,
+  Coins,
   CheckCircle2,
+  Play,
+  Star,
+  Activity,
+  MapPin,
+  BookOpen,
+  Code2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkline, ViralityBar } from "@/components/Sparkline";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { toast } from "sonner";
 import { ThemeSelector } from "@/components/ThemeSelector";
 
-// Platform badge
-function PlatformBadge({ platform }: { platform: string }) {
-  const map: Record<string, { label: string; color: string }> = {
-    youtube: { label: "YT", color: "bg-red-500" },
-    tiktok: { label: "TK", color: "bg-pink-500" },
-    twitter: { label: "X", color: "bg-sky-500" },
-    instagram: { label: "IG", color: "bg-purple-500" },
-  };
-  const p = map[platform?.toLowerCase()] || { label: "?", color: "bg-gray-500" };
+// ── Risk badge colours ────────────────────────────────────────────────────────
+const RISK: Record<string, { label: string; cls: string }> = {
+  low:      { label: "Low Risk",      cls: "bg-green-500/20 text-green-400 border-green-500/30" },
+  medium:   { label: "Medium Risk",   cls: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
+  high:     { label: "High Risk",     cls: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
+  critical: { label: "Critical Risk", cls: "bg-red-500/20 text-red-400 border-red-500/30" },
+};
+
+// ── Static demo intelligence cards (shown in hero) ────────────────────────────
+const DEMO_INTEL = [
+  { flag: "🇰🇪", name: "Kenya",   code: "KE", stability: 68, risk: "medium", movement: "Gen Z Coalition" },
+  { flag: "🇳🇬", name: "Nigeria", code: "NG", stability: 54, risk: "high",   movement: "ENDSARS Revival" },
+  { flag: "🇿🇦", name: "S. Africa",code:"ZA", stability: 72, risk: "medium", movement: "MK Party Surge" },
+  { flag: "🇬🇭", name: "Ghana",   code: "GH", stability: 81, risk: "low",    movement: "Election Watch" },
+  { flag: "🇪🇹", name: "Ethiopia",code: "ET", stability: 41, risk: "critical",movement:"Tigray Monitor" },
+  { flag: "🇸🇳", name: "Senegal", code: "SN", stability: 77, risk: "low",    movement: "Youth Diaspora" },
+];
+
+// ── Stability bar ─────────────────────────────────────────────────────────────
+function StabilityBar({ score }: { score: number }) {
+  const color = score >= 70 ? "#34d399" : score >= 50 ? "#fbbf24" : "#f87171";
   return (
-    <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-white text-[9px] font-bold ${p.color}`}>
-      {p.label}
-    </span>
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-full rounded-full transition-all" style={{ width: `${score}%`, background: color }} />
+      </div>
+      <span className="text-[10px] font-bold tabular-nums" style={{ color }}>{score}</span>
+    </div>
   );
 }
 
+// ── Main component ────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const [, setLocation] = useLocation();
-  const { user, loading } = useAuth();
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [previousTopTrend, setPreviousTopTrend] = useState<string | null>(null);
-  const [lastNotificationTime, setLastNotificationTime] = useState<number>(0);
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const heroRef = useRef<HTMLDivElement>(null);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
 
-  // Fetch live trending topics
-  const { data: trendingTopics } = trpc.trends.search.useQuery(
-    { query: "" },
-    { refetchInterval: 30000 }
-  );
-
-  // Detect new trending topics and show notifications
-  useEffect(() => {
-    if (!trendingTopics?.youtube || trendingTopics.youtube.length === 0) return;
-    const topTrend = trendingTopics.youtube[0];
-    const currentTime = Date.now();
-    const oneMinute = 60000;
-    if (currentTime - lastNotificationTime < oneMinute) return;
-    if (previousTopTrend && topTrend.title !== previousTopTrend) {
-      const viralityScore = topTrend.viralityScore || 0;
-      if (viralityScore > 7.5) {
-        toast(
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-cyan-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm mb-1">🔥 New Hot Trend Detected!</p>
-              <p className="text-xs text-gray-400 line-clamp-2 mb-2">{topTrend.title}</p>
-              <Badge variant="outline" className="text-xs">{viralityScore.toFixed(1)}/10 Virality</Badge>
-            </div>
-          </div>,
-          { duration: 8000, action: { label: "View Now", onClick: () => user ? setLocation("/x-trends") : (window.location.href = getLoginUrl()) } }
-        );
-        setLastNotificationTime(currentTime);
-      }
-    }
-    if (topTrend) setPreviousTopTrend(topTrend.title);
-  }, [trendingTopics, previousTopTrend, lastNotificationTime, user, setLocation]);
-
-  const testimonials = [
-    { name: "Sarah Chen", role: "YouTube Creator", followers: "2.3M", quote: "Viral Beat helped me predict the AI art trend 3 days before it exploded. My video got 5M views!", earnings: "12,500 VBT", avatar: "SC", platform: "youtube", color: "from-red-500 to-orange-500" },
-    { name: "Marcus Johnson", role: "TikTok Influencer", followers: "1.8M", quote: "I earned 8,000 VBT just by sharing trending topics. The AI predictions are scary accurate.", earnings: "8,000 VBT", avatar: "MJ", platform: "tiktok", color: "from-pink-500 to-purple-500" },
-    { name: "Elena Rodriguez", role: "Instagram Creator", followers: "950K", quote: "Finally, a platform that rewards creators for being early. I'm making passive income from my trend insights!", earnings: "15,200 VBT", avatar: "ER", platform: "instagram", color: "from-purple-500 to-blue-500" }
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleGetStarted = () => {
-    if (user) setLocation("/onboarding");
+  const handleExplore = () => {
+    if (user) setLocation("/africa");
     else window.location.href = getLoginUrl();
   };
 
-  const scrollToSection = (id: string) => {
-    setMobileMenuOpen(false);
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  const handleCreator = () => {
+    if (user) setLocation("/dashboard");
+    else window.location.href = getLoginUrl();
   };
 
-  const trendColors = ["#22d3ee", "#a78bfa", "#34d399", "#fb923c", "#f472b6"];
+  const scrollTo = (id: string) => {
+    setMobileMenuOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
-  // Stable sparkline data — seeded so it doesn't re-randomize on every render
-  const stableSparklines = useMemo(() => {
-    return Array.from({ length: 5 }, (_, seed) => {
-      const pts: number[] = [];
-      let v = 50 + seed * 3;
-      // Use seed-based pseudo-random so values are stable across renders
-      const lcg = (n: number) => (1664525 * n + 1013904223) & 0xffffffff;
-      let rng = seed + 1;
-      for (let i = 0; i < 8; i++) {
-        rng = lcg(rng);
-        v += ((rng / 0x80000000) - 1.4) * 15;
-        pts.push(Math.max(20, Math.min(100, v)));
-      }
-      return pts;
-    });
+  const testimonials = [
+    { avatar: "AM", name: "Amara Mensah",     role: "Political Risk Analyst, Accra",        quote: "First platform I've found that gives me live stability scores and civic movement tracking across all 55 nations. We've replaced two expensive subscription services.", color: "from-cyan-500 to-blue-500" },
+    { avatar: "OJ", name: "Obiageli Johnson",  role: "Newsroom Editor, Lagos",               quote: "The breaking-news alerts from Viral Beat flagged the Kano protests 48 hours before the wire services. That's competitive advantage.", color: "from-emerald-500 to-teal-500" },
+    { avatar: "FK", name: "Fatou Kouyaté",     role: "NGO Programme Lead, Dakar",            quote: "The geo-defaulting to your country's intelligence is brilliant. My team opens the app and immediately sees what's relevant to their work.", color: "from-purple-500 to-pink-500" },
+  ];
+
+  useEffect(() => {
+    const t = setInterval(() => setActiveTestimonial(p => (p + 1) % testimonials.length), 5000);
+    return () => clearInterval(t);
   }, []);
 
-  const liveTrends = useMemo(() => {
-    return trendingTopics?.youtube?.slice(0, 5).map((t: any, i: number) => ({
-      ...t,
-      sparkline: stableSparklines[i],
-      color: trendColors[i % trendColors.length],
-      platform: "youtube",
-    })) || Array.from({ length: 5 }, (_, i) => ({
-      topic: `Trend ${i + 1}`,
-      viralityScore: 70 + i * 5,
-      sparkline: stableSparklines[i],
-      color: trendColors[i],
-      platform: "youtube",
-    }));
-  }, [trendingTopics, stableSparklines]);
-
   return (
-    <>
-      <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="min-h-screen bg-[#050b1a] text-white overflow-x-hidden">
 
-        {/* ── NAVIGATION ── */}
-        <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-xl border-b border-border/50 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-            <button
-              className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg group"
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              aria-label="The Viral Beat – scroll to top"
-            >
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-shadow">
-                <TrendingUp className="w-4.5 h-4.5 text-primary-foreground" />
-              </div>
-              <span className="font-bold text-lg tracking-tight">The Viral Beat</span>
-            </button>
-
-            <div className="hidden md:flex items-center gap-1">
-              {[["trends", "Live Trends"], ["how-it-works", "How It Works"], ["earn", "Earn VBT"], ["testimonials", "Creators"]].map(([id, label]) => (
-                <button key={id} onClick={() => scrollToSection(id)} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent/50 transition-all">
-                  {label}
-                </button>
-              ))}
+      {/* ── NAV ─────────────────────────────────────────────────────────────── */}
+      <nav className="fixed top-0 w-full bg-[#050b1a]/90 backdrop-blur-xl border-b border-white/5 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <button
+            className="flex items-center gap-2.5 focus:outline-none"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          >
+            <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/30">
+              <Globe className="w-4 h-4 text-black" />
             </div>
+            <span className="font-bold text-lg tracking-tight text-white">Viral Beat</span>
+            <Badge className="hidden sm:inline-flex bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px]">Africa Intelligence</Badge>
+          </button>
 
-            <div className="flex items-center gap-2">
-              <ThemeSelector />
-              {user ? (
-                <Button onClick={() => setLocation("/dashboard")} size="sm" className="shadow-lg shadow-primary/20">
-                  Go to Dashboard <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
-                </Button>
-              ) : (
-                <>
-                  <Button variant="ghost" size="sm" className="hidden sm:inline-flex" onClick={() => window.location.href = getLoginUrl()}>Sign In</Button>
-                  <Button size="sm" onClick={handleGetStarted} className="shadow-lg shadow-primary/20">Get Started Free</Button>
-                </>
-              )}
-              <Button variant="ghost" size="icon" className="md:hidden h-9 w-9" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-              </Button>
-            </div>
+          <div className="hidden md:flex items-center gap-1">
+            {[["intelligence", "Intelligence"], ["how-it-works", "How It Works"], ["creator-network", "Creator Network"], ["api", "API"]].map(([id, label]) => (
+              <button key={id} onClick={() => scrollTo(id)} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
+                {label}
+              </button>
+            ))}
           </div>
 
-          {mobileMenuOpen && (
-            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="md:hidden border-t border-border bg-background/98 backdrop-blur-xl px-4 py-4 flex flex-col gap-1">
-              {[["trends", "Live Trends"], ["how-it-works", "How It Works"], ["earn", "Earn VBT"], ["testimonials", "Creators"]].map(([id, label]) => (
-                <button key={id} onClick={() => scrollToSection(id)} className="text-left px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent/50 transition-all">{label}</button>
-              ))}
-              <div className="pt-3 border-t border-border flex flex-col gap-2 mt-1">
-                {!user && <Button variant="outline" className="w-full" onClick={() => { setMobileMenuOpen(false); window.location.href = getLoginUrl(); }}>Sign In</Button>}
-                <Button className="w-full" onClick={() => { setMobileMenuOpen(false); handleGetStarted(); }}>{user ? "Go to Dashboard" : "Get Started Free"}</Button>
+          <div className="flex items-center gap-2">
+            <ThemeSelector />
+            {user ? (
+              <Button onClick={() => setLocation("/africa")} size="sm" className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-lg shadow-cyan-500/20">
+                Open Dashboard <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" className="hidden sm:inline-flex text-gray-400 hover:text-white" onClick={() => window.location.href = getLoginUrl()}>Sign In</Button>
+                <Button size="sm" onClick={handleExplore} className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-lg shadow-cyan-500/20">Get Access</Button>
+              </>
+            )}
+            <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 text-gray-400" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+        {mobileMenuOpen && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="md:hidden border-t border-white/5 bg-[#050b1a] px-4 py-4 flex flex-col gap-1">
+            {[["intelligence", "Intelligence"], ["how-it-works", "How It Works"], ["creator-network", "Creator Network"], ["api", "API"]].map(([id, label]) => (
+              <button key={id} onClick={() => scrollTo(id)} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">{label}</button>
+            ))}
+            <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
+              {!user && <Button variant="outline" className="w-full border-white/10 text-white" onClick={() => { setMobileMenuOpen(false); window.location.href = getLoginUrl(); }}>Sign In</Button>}
+              <Button className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-semibold" onClick={() => { setMobileMenuOpen(false); handleExplore(); }}>Get Access</Button>
+            </div>
+          </motion.div>
+        )}
+      </nav>
+
+      {/* ── HERO ────────────────────────────────────────────────────────────── */}
+      <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
+        {/* Background glows */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl" />
+          <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-24 w-full">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+            {/* Left: copy */}
+            <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="space-y-8">
+              <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-2 text-sm font-medium text-cyan-400">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                Real-Time African Political Intelligence
+              </div>
+
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight">
+                The Intelligence<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400">
+                  Layer for Africa
+                </span>
+              </h1>
+
+              <p className="text-lg sm:text-xl text-gray-400 leading-relaxed max-w-lg">
+                AI-generated political briefings, live civic movement tracking, and stability scores for all <strong className="text-white">55 African nations</strong> — delivered in real time, personalised to your country.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button size="lg" className="text-base px-7 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/25" onClick={handleExplore}>
+                  Explore Intelligence
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+                <Button size="lg" variant="outline" className="text-base px-7 py-5 border-white/10 text-gray-300 hover:text-white hover:border-cyan-500/40" onClick={() => scrollTo("api")}>
+                  <Code2 className="mr-2 w-4 h-4" />
+                  View API Docs
+                </Button>
+              </div>
+
+              {/* Stats */}
+              <div className="flex flex-wrap gap-8 pt-2">
+                {[["55", "Nations Covered"], ["6", "African Regions"], ["Live", "RSS Feeds"], ["AI", "Briefings on Demand"]].map(([val, label]) => (
+                  <div key={label} className="flex flex-col">
+                    <span className="text-2xl font-black text-cyan-400">{val}</span>
+                    <span className="text-xs text-gray-500">{label}</span>
+                  </div>
+                ))}
               </div>
             </motion.div>
-          )}
-        </nav>
 
-        {/* ── HERO ── */}
-        <section ref={heroRef} className="relative min-h-screen flex items-center pt-16 overflow-hidden">
-          {/* Animated gradient background */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
-            {/* Grid overlay */}
-            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
-          </div>
+            {/* Right: live intelligence cards */}
+            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="relative">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Live Intelligence Feed</span>
+              </div>
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 w-full">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* Left: Text */}
-              <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="space-y-8">
-                <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 text-sm font-medium text-primary">
-                  <Sparkles className="w-4 h-4" />
-                  AI-Powered Trend Intelligence
-                  <span className="ml-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+              <div className="bg-[#0d1e36] border border-[#1e3a5f] rounded-2xl overflow-hidden">
+                {/* Header bar */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e3a5f]">
+                  <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+                    <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                    Africa Political Monitor
+                  </div>
+                  <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Live</Badge>
                 </div>
 
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight">
-                  Predict Viral<br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-cyan-300 to-purple-400">
-                    Trends Early
-                  </span>
-                </h1>
-
-                <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-lg">
-                  Discover trending topics <strong className="text-foreground">3–7 days before they explode</strong>. Create viral content and earn VBT tokens for your insights.
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button size="lg" className="text-base px-7 py-5 shadow-xl shadow-primary/25 font-semibold" onClick={handleGetStarted}>
-                    Start Predicting Free
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
-                  <Button size="lg" variant="outline" className="text-base px-7 py-5 border-border/60 hover:border-primary/50" onClick={() => setShowVideoModal(true)}>
-                    <Play className="mr-2 w-4 h-4 fill-current" />
-                    Watch Demo
-                  </Button>
-                </div>
-
-                {/* Stats row */}
-                <div className="flex flex-wrap gap-6 pt-2">
-                  {[["10K+", "Active Creators"], ["2.5M+", "Trends Predicted"], ["87%", "Accuracy Rate"]].map(([val, label]) => (
-                    <div key={label} className="flex flex-col">
-                      <span className="text-2xl font-black text-primary">{val}</span>
-                      <span className="text-xs text-muted-foreground">{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-
-              {/* Right: Live Trend Cards */}
-              <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="relative">
-                {/* Floating label */}
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Live Trending Now</span>
-                </div>
-
-                <div className="space-y-3">
-                  {liveTrends.slice(0, 4).map((trend: any, i: number) => (
+                <div className="divide-y divide-[#1e3a5f]">
+                  {DEMO_INTEL.map((c, i) => (
                     <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: 20 }}
+                      key={c.code}
+                      initial={{ opacity: 0, x: 15 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + i * 0.1 }}
-                      className="group relative bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-4 hover:border-primary/40 hover:bg-card/80 transition-all cursor-pointer"
-                      onClick={handleGetStarted}
+                      transition={{ delay: 0.4 + i * 0.08 }}
+                      className="px-4 py-3 hover:bg-white/[0.02] transition-colors cursor-pointer"
+                      onClick={handleExplore}
                     >
-                      <div className="flex items-center gap-4">
-                        {/* Rank */}
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0" style={{ background: `${trend.color}20`, color: trend.color }}>
-                          #{i + 1}
-                        </div>
-
-                        {/* Content */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl leading-none">{c.flag}</span>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <PlatformBadge platform={trend.platform} />
-                            <span className="text-sm font-semibold truncate">
-                              {trend.topic || trend.name || `Trending Topic ${i + 1}`}
-                            </span>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-sm font-semibold text-white">{c.name}</span>
+                            <Badge variant="outline" className={`text-[9px] px-1.5 py-0 capitalize border ${RISK[c.risk]?.cls}`}>
+                              {RISK[c.risk]?.label}
+                            </Badge>
                           </div>
-                          <ViralityBar score={trend.viralityScore || 75 + i * 4} color={trend.color} />
-                        </div>
-
-                        {/* Sparkline */}
-                        <div className="shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">
-                          <Sparkline values={trend.sparkline} color={trend.color} />
-                        </div>
-
-                        {/* Score */}
-                        <div className="shrink-0 text-right">
-                          <div className="text-sm font-bold" style={{ color: trend.color }}>
-                            {Math.round(trend.viralityScore || 75 + i * 4)}%
+                          <StabilityBar score={c.stability} />
+                          <div className="mt-1 text-[10px] text-gray-500 flex items-center gap-1">
+                            <Activity className="w-2.5 h-2.5" />
+                            {c.movement}
                           </div>
-                          <div className="text-[10px] text-muted-foreground">viral</div>
                         </div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
 
-                {/* CTA overlay at bottom */}
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mt-4 text-center">
-                  <button onClick={handleGetStarted} className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-1 mx-auto transition-colors">
-                    See all live trends <ChevronRight className="w-4 h-4" />
-                  </button>
-                </motion.div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── LIVE TRENDS SECTION ── */}
-        <section id="trends" className="py-20 px-4 bg-muted/20" style={{ scrollMarginTop: "4rem" }}>
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-10">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Live Feed</span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-black">Trending Right Now</h2>
-                <p className="text-muted-foreground mt-1 text-sm">Real-time trends our AI is tracking · Updates every 30 seconds</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={handleGetStarted} className="hidden sm:flex items-center gap-1.5">
-                View All <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <AnimatePresence mode="popLayout">
-                {liveTrends.map((trend: any, i: number) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.08 }}
-                    className="group relative bg-card border border-border/50 rounded-2xl p-5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer overflow-hidden"
-                    onClick={handleGetStarted}
-                  >
-                    {/* Background glow */}
-                    <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-10 transition-opacity group-hover:opacity-20" style={{ background: trend.color }} />
-
-                    <div className="relative">
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <PlatformBadge platform={trend.platform} />
-                          <span className="text-xs font-bold text-muted-foreground">#{i + 1}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: trend.color }}>
-                          <Flame className="w-3 h-3" />
-                          {Math.round(trend.viralityScore || 75 + i * 4)}%
-                        </div>
-                      </div>
-
-                      {/* Topic */}
-                      <h3 className="font-bold text-sm leading-snug mb-3 line-clamp-2 group-hover:text-primary transition-colors">
-                        {trend.topic || trend.name || `Trending Topic ${i + 1}`}
-                      </h3>
-
-                      {/* Sparkline */}
-                      <div className="mb-3">
-                        <Sparkline values={trend.sparkline} color={trend.color} height={28} />
-                      </div>
-
-                      {/* Virality bar */}
-                      <ViralityBar score={trend.viralityScore || 75 + i * 4} color={trend.color} />
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-
-            <div className="text-center mt-8 sm:hidden">
-              <Button variant="outline" onClick={handleGetStarted}>
-                See All Trends <ChevronRight className="ml-1 w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* ── HOW IT WORKS ── */}
-        <section id="how-it-works" className="py-20 px-4" style={{ scrollMarginTop: "4rem" }}>
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-14">
-              <h2 className="text-4xl sm:text-5xl font-black mb-3">How It Works</h2>
-              <p className="text-muted-foreground text-lg">Three steps to viral success</p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { icon: Brain, step: "01", title: "AI Scans Millions of Posts", description: "Our AI monitors YouTube, TikTok, X, and Instagram in real-time to detect emerging patterns before they trend.", color: "from-cyan-500 to-blue-500", glow: "shadow-cyan-500/20" },
-                { icon: Target, step: "02", title: "Get 3–7 Day Early Predictions", description: "Receive personalised trend forecasts with virality scores, sentiment analysis, and growth trajectories.", color: "from-purple-500 to-pink-500", glow: "shadow-purple-500/20" },
-                { icon: Coins, step: "03", title: "Create Content & Earn VBT", description: "Post on trending topics early, share insights, and earn VBT tokens. Convert to crypto or spend in the marketplace.", color: "from-orange-500 to-yellow-500", glow: "shadow-orange-500/20" },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.15 }}
-                  viewport={{ once: true }}
-                  className={`relative bg-card border border-border/50 rounded-3xl p-8 hover:shadow-2xl ${item.glow} transition-all group overflow-hidden`}
+                <button
+                  onClick={handleExplore}
+                  className="w-full py-3 text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center justify-center gap-1 border-t border-[#1e3a5f] hover:bg-cyan-500/5 transition-all"
                 >
-                  {/* Step number watermark */}
-                  <div className="absolute top-4 right-6 text-7xl font-black text-foreground/5 leading-none select-none">
-                    {item.step}
-                  </div>
-
-                  {/* Icon */}
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
-                    <item.icon className="w-7 h-7 text-white" />
-                  </div>
-
-                  <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed text-sm">{item.description}</p>
-
-                  {/* Connector arrow (not on last) */}
-                  {i < 2 && (
-                    <div className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
-                      <div className="w-6 h-6 bg-background border border-border rounded-full flex items-center justify-center">
-                        <ChevronRight className="w-3 h-3 text-muted-foreground" />
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
+                  View all 55 nations <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── EARN VBT ── */}
-        <section id="earn" className="py-20 px-4 bg-muted/20" style={{ scrollMarginTop: "4rem" }}>
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-14">
-              <h2 className="text-4xl sm:text-5xl font-black mb-3">Multiple Ways to Earn</h2>
-              <p className="text-muted-foreground text-lg">Turn your creator insights into real VBT rewards</p>
+      {/* ── SOCIAL PROOF BAR ────────────────────────────────────────────────── */}
+      <div className="border-y border-white/5 bg-white/[0.02] py-4 px-4">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-8 text-xs text-gray-500 font-medium uppercase tracking-wider">
+          {[["55", "Nations"], ["6", "Regions"], ["Real-Time", "News Feeds"], ["AI", "Political Briefings"], ["Open", "Developer API"]].map(([val, label]) => (
+            <div key={label} className="flex items-center gap-2">
+              <span className="text-cyan-400 font-black">{val}</span>
+              <span>{label}</span>
             </div>
+          ))}
+        </div>
+      </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* ── INTELLIGENCE SECTION ────────────────────────────────────────────── */}
+      <section id="intelligence" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Core Intelligence</Badge>
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">Political Intelligence at Scale</h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              What used to require expensive consultancies is now available on demand, for every African country, every day.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            {[
+              {
+                icon: Brain,
+                color: "#22d3ee",
+                title: "AI Country Briefings",
+                desc: "On-demand intelligence briefs for all 55 nations covering government structure, stability scores, key political figures, recent events, and economic outlook. Updated as news breaks.",
+                bullets: ["Stability score 0–100", "Head of State + key figures", "Risk classification", "Economic outlook"],
+              },
+              {
+                icon: Activity,
+                color: "#a78bfa",
+                title: "Civic Movement Tracker",
+                desc: "Live tracking of active and emerging civic movements across Africa — from protest networks to diaspora coalitions — with RSS-backed news and sentiment signals.",
+                bullets: ["Active / emerging / dormant status", "Movement leadership & demands", "RSS news integration", "Cross-border linkages"],
+              },
+              {
+                icon: MapPin,
+                color: "#34d399",
+                title: "Geo-Personalised Default",
+                desc: "The platform detects your country on signup and makes it your default intelligence profile. An analyst in Lagos opens to Nigeria. A researcher in Nairobi opens to Kenya.",
+                bullets: ["IP & language detection", "Per-user country profile", "55 country coverage", "Instant onboarding"],
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.12 }}
+                viewport={{ once: true }}
+                className="bg-[#0d1e36] border border-[#1e3a5f] rounded-2xl p-7 hover:border-cyan-500/30 transition-all group"
+              >
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: `${item.color}15` }}>
+                  <item.icon className="w-6 h-6" style={{ color: item.color }} />
+                </div>
+                <h3 className="font-bold text-lg text-white mb-3">{item.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-4">{item.desc}</p>
+                <ul className="space-y-1.5">
+                  {item.bullets.map(b => (
+                    <li key={b} className="flex items-center gap-2 text-xs text-gray-400">
+                      <CheckCircle2 className="w-3 h-3 shrink-0" style={{ color: item.color }} />
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Kenya deep-dive callout */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-r from-cyan-500/10 to-blue-600/10 border border-cyan-500/20 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6"
+          >
+            <div>
+              <div className="text-lg font-bold text-white mb-1">🇰🇪 Kenya — Deep Intelligence Module</div>
+              <p className="text-gray-400 text-sm max-w-xl">
+                Kenya has our most comprehensive coverage: live parliament tracker, all 47 county sentiment scores, ICC/hate-speech monitoring, governors & senators, civic movements, regional balkanisation risk, and breaking-news alerts.
+              </p>
+            </div>
+            <Button onClick={() => user ? setLocation("/kenya") : (window.location.href = getLoginUrl())} className="shrink-0 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold">
+              Open Kenya Intelligence <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ────────────────────────────────────────────────────── */}
+      <section id="how-it-works" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-white/5 text-gray-400 border-white/10">How It Works</Badge>
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">Intelligence in Three Layers</h2>
+            <p className="text-gray-400 text-lg">From raw news signal to actionable political insight</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: Newspaper, step: "01", color: "#22d3ee", title: "Signal Collection", desc: "Live RSS feeds from 100+ African media outlets, official government sources, and social media scanners feed a continuous real-time signal stream per country." },
+              { icon: Brain,     step: "02", color: "#a78bfa", title: "AI Analysis",       desc: "Claude AI processes the signal stream to generate structured intelligence: stability scores, sentiment classification, movement status, and key figure tracking — refreshed daily." },
+              { icon: Shield,    step: "03", color: "#34d399", title: "Actionable Brief",  desc: "You receive a clean structured brief — risk level, overview, key figures, civic movements, recent events — via dashboard or API. Personalised to your country by default." },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.12 }}
+                viewport={{ once: true }}
+                className="relative bg-[#0d1e36] border border-[#1e3a5f] rounded-2xl p-8 overflow-hidden group hover:border-cyan-500/20 transition-all"
+              >
+                <div className="absolute top-4 right-6 text-7xl font-black opacity-5 leading-none select-none" style={{ color: item.color }}>{item.step}</div>
+                <div className="w-13 h-13 w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: `${item.color}15` }}>
+                  <item.icon className="w-6 h-6" style={{ color: item.color }} />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-3">{item.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                {i < 2 && (
+                  <div className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-6 h-6 bg-[#050b1a] border border-[#1e3a5f] rounded-full items-center justify-center">
+                    <ChevronRight className="w-3 h-3 text-gray-500" />
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CREATOR NETWORK ─────────────────────────────────────────────────── */}
+      <section id="creator-network" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Creator Signal Network</Badge>
+              <h2 className="text-4xl sm:text-5xl font-black mb-5">
+                Creators Validate<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">the Intelligence</span>
+              </h2>
+              <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                African creators and journalists on the ground submit viral content, civic signals, and local observations. This crowd-sourced layer validates and enriches the AI intelligence — and rewards contributors with VBT tokens.
+              </p>
+              <ul className="space-y-4 mb-8">
+                {[
+                  ["Humans As Agents", "Submit viral local content with analysis. First-movers earn the highest rewards."],
+                  ["Trend Engine", "Cross-platform trend tracking (YouTube, TikTok, X) surfaces emerging narratives before they go mainstream."],
+                  ["VBT Token Rewards", "Contributors earn VBT tokens redeemable in the marketplace — turning local knowledge into real value."],
+                  ["Creator Verification", "Verified creators get credibility badges and premium placement in the intelligence feed."],
+                ].map(([title, desc]) => (
+                  <li key={title} className="flex gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-white text-sm">{title}</div>
+                      <div className="text-gray-400 text-sm">{desc}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <Button onClick={handleCreator} variant="outline" className="border-purple-500/30 text-purple-300 hover:text-white hover:border-purple-400/50">
+                Join as a Creator <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </motion.div>
+
+            {/* Earn cards */}
+            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="grid grid-cols-2 gap-4">
               {[
-                { icon: TrendingUp, title: "Share Trends", reward: "50–200", unit: "VBT", description: "Submit trending topics early. Higher rewards for first movers.", color: "#22d3ee", bg: "from-cyan-500/10 to-cyan-500/5" },
-                { icon: BarChart3, title: "Rate Content", reward: "10–50", unit: "VBT", description: "Vote on trend virality. Accurate predictions earn bonus tokens.", color: "#a78bfa", bg: "from-purple-500/10 to-purple-500/5" },
-                { icon: Users, title: "Humans As Agents", reward: "500–2000", unit: "VBT", description: "Premium rewards for human-sourced viral data with verified links.", color: "#34d399", bg: "from-emerald-500/10 to-emerald-500/5" },
-                { icon: Trophy, title: "Create Content", reward: "100–1000", unit: "VBT", description: "Generate AI content or share your own. Top performers get multipliers.", color: "#fb923c", bg: "from-orange-500/10 to-orange-500/5" },
+                { icon: Users, title: "Humans As Agents", reward: "500–2000", color: "#a78bfa", desc: "Verified local submissions" },
+                { icon: TrendingUp, title: "Submit Trends", reward: "50–200",   color: "#22d3ee", desc: "Early first-mover rewards" },
+                { icon: BarChart3, title: "Rate Virality",  reward: "10–50",    color: "#34d399", desc: "Accurate prediction bonus" },
+                { icon: Coins,     title: "VBT Tokens",    reward: "Tradeable", color: "#fb923c", desc: "Marketplace & crypto bridge" },
               ].map((item, i) => (
                 <motion.div
                   key={i}
@@ -468,157 +441,182 @@ export default function LandingPage() {
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.1 }}
                   viewport={{ once: true }}
-                  className={`relative bg-gradient-to-br ${item.bg} border border-border/50 rounded-3xl p-6 hover:border-primary/30 transition-all group`}
+                  className="bg-[#0d1e36] border border-[#1e3a5f] rounded-xl p-5 hover:border-purple-500/30 transition-all"
                 >
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5" style={{ background: `${item.color}20` }}>
-                    <item.icon className="w-5 h-5" style={{ color: item.color }} />
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ background: `${item.color}15` }}>
+                    <item.icon className="w-4 h-4" style={{ color: item.color }} />
                   </div>
-                  <h3 className="font-bold text-base mb-1">{item.title}</h3>
-                  <div className="text-3xl font-black mb-1" style={{ color: item.color }}>
-                    {item.reward}
-                    <span className="text-sm font-semibold ml-1 text-muted-foreground">{item.unit}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
+                  <div className="text-xs text-gray-500 mb-0.5">{item.title}</div>
+                  <div className="text-xl font-black mb-1" style={{ color: item.color }}>{item.reward}</div>
+                  <div className="text-xs text-gray-500">{item.desc}</div>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── TESTIMONIALS ── */}
-        <section id="testimonials" className="py-20 px-4" style={{ scrollMarginTop: "4rem" }}>
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-14">
-              <h2 className="text-4xl sm:text-5xl font-black mb-3">Creators Love Viral Beat</h2>
-              <p className="text-muted-foreground text-lg">Real success stories from our community</p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {testimonials.map((t, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  viewport={{ once: true }}
-                  className={`relative bg-card border rounded-3xl p-7 transition-all ${i === activeTestimonial ? "border-primary/50 shadow-xl shadow-primary/10 scale-[1.02]" : "border-border/50"}`}
-                  onClick={() => setActiveTestimonial(i)}
-                >
-                  {/* Avatar + name */}
-                  <div className="flex items-center gap-4 mb-5">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white font-black text-lg shadow-lg`}>
-                      {t.avatar}
-                    </div>
-                    <div>
-                      <div className="font-bold">{t.name}</div>
-                      <div className="text-xs text-muted-foreground">{t.role} · {t.followers} followers</div>
-                      <div className="mt-1 inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">
-                        <Coins className="w-3 h-3" /> {t.earnings}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stars */}
-                  <div className="flex gap-0.5 mb-3">
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-
-                  <p className="text-sm leading-relaxed text-muted-foreground">"{t.quote}"</p>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="flex justify-center gap-2 mt-8">
-              {testimonials.map((_, i) => (
-                <button key={i} onClick={() => setActiveTestimonial(i)} className={`rounded-full transition-all ${i === activeTestimonial ? "bg-primary w-8 h-2" : "bg-muted-foreground/30 w-2 h-2"}`} />
-              ))}
-            </div>
+      {/* ── TESTIMONIALS ────────────────────────────────────────────────────── */}
+      <section className="py-24 px-4 bg-white/[0.015] border-y border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-4xl font-black mb-3">Who Uses Viral Beat</h2>
+            <p className="text-gray-400">Analysts, newsrooms, NGOs, and creators across Africa</p>
           </div>
-        </section>
-
-        {/* ── CTA SECTION ── */}
-        <section className="py-20 px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="relative bg-gradient-to-br from-primary via-cyan-400 to-purple-500 rounded-3xl p-12 sm:p-16 text-center overflow-hidden">
-              {/* Background decoration */}
-              <div className="absolute top-0 left-0 w-full h-full opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-              <div className="relative">
-                <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 text-sm font-semibold text-white mb-6">
-                  <Zap className="w-4 h-4" /> Join 10,000+ creators
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className={`bg-[#0d1e36] border rounded-2xl p-7 transition-all cursor-pointer ${i === activeTestimonial ? "border-cyan-500/40 shadow-xl shadow-cyan-500/5" : "border-[#1e3a5f]"}`}
+                onClick={() => setActiveTestimonial(i)}
+              >
+                <div className="flex items-center gap-4 mb-5">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white font-black`}>{t.avatar}</div>
+                  <div>
+                    <div className="font-bold text-white text-sm">{t.name}</div>
+                    <div className="text-xs text-gray-500">{t.role}</div>
+                  </div>
                 </div>
-                <h2 className="text-4xl sm:text-5xl font-black text-white mb-5">Ready to Go Viral?</h2>
-                <p className="text-lg text-white/85 mb-8 max-w-lg mx-auto">
-                  Start predicting trends and earning VBT tokens today. No credit card required.
-                </p>
-                <Button size="lg" variant="secondary" className="text-base px-8 py-5 font-bold shadow-2xl hover:scale-105 transition-transform" onClick={handleGetStarted}>
-                  Start Free Now <ChevronRight className="ml-2 w-4 h-4" />
-                </Button>
-                <p className="text-sm text-white/60 mt-4">Free forever · No hidden fees · Cancel anytime</p>
+                <div className="flex gap-0.5 mb-3">{Array.from({length:5}).map((_,j)=><Star key={j} className="w-3 h-3 fill-yellow-400 text-yellow-400"/>)}</div>
+                <p className="text-sm leading-relaxed text-gray-400">"{t.quote}"</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── API / DEVELOPER ──────────────────────────────────────────────────── */}
+      <section id="api" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/20">Developer API</Badge>
+              <h2 className="text-4xl font-black mb-5 text-white">Embed Africa Intelligence in Your Product</h2>
+              <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                A clean REST API gives your app real-time stability scores, country briefs, civic movement data, and trend forecasts — ready to integrate in minutes.
+              </p>
+              <div className="space-y-3 mb-8">
+                {[
+                  ["GET /v1/africa/:code/brief",        "Full country intelligence brief"],
+                  ["GET /v1/africa/:code/news",         "Live news articles by country"],
+                  ["GET /v1/trends/virality?topic=",    "Virality score for any topic"],
+                  ["POST /v1/africa/:code/sentiment",   "Sentiment analysis on any text"],
+                  ["GET /v1/ai/forecast",               "AI-powered 24–72h trend forecast"],
+                ].map(([endpoint, desc]) => (
+                  <div key={endpoint} className="flex items-center gap-3 bg-[#0d1e36] border border-[#1e3a5f] rounded-lg px-4 py-2.5">
+                    <code className="text-xs text-cyan-400 font-mono flex-1 truncate">{endpoint}</code>
+                    <span className="text-[10px] text-gray-500 shrink-0">{desc}</span>
+                  </div>
+                ))}
               </div>
-            </div>
-          </div>
-        </section>
+              <Button onClick={() => user ? setLocation("/developer-hub") : (window.location.href = getLoginUrl())} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold">
+                <Code2 className="mr-2 w-4 h-4" />
+                Get API Keys
+              </Button>
+            </motion.div>
 
-        {/* ── FOOTER ── */}
-        <footer className="py-14 px-4 border-t border-border/50">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-primary-foreground" />
-                  </div>
-                  <span className="font-bold text-lg">The Viral Beat</span>
+            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <div className="bg-[#0d1e36] border border-[#1e3a5f] rounded-2xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1e3a5f] bg-white/[0.02]">
+                  <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-500/60"/><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60"/><div className="w-2.5 h-2.5 rounded-full bg-green-500/60"/></div>
+                  <span className="text-xs text-gray-500 font-mono ml-1">GET /v1/africa/NG/brief</span>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">AI-powered trend prediction for creators who want to stay ahead of the curve.</p>
-              </div>
-              {[
-                { title: "Product", links: ["Features", "Pricing", "API"] },
-                { title: "Company", links: ["About", "Blog", "Careers"] },
-                { title: "Legal", links: ["Privacy", "Terms", "Security"] },
-              ].map((col) => (
-                <div key={col.title}>
-                  <h4 className="font-semibold mb-4 text-sm">{col.title}</h4>
-                  <ul className="space-y-2.5">
-                    {col.links.map((link) => (
-                      <li key={link}><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{link}</a></li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            <div className="pt-8 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-              <p>© 2026 The Viral Beat. All rights reserved.</p>
-              <div className="flex items-center gap-2">
-                <Globe className="w-3.5 h-3.5" />
-                <span>Available worldwide</span>
-              </div>
-            </div>
-          </div>
-        </footer>
-
-        {/* Video Modal */}
-        {showVideoModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowVideoModal(false)}>
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-4xl aspect-video bg-card rounded-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => setShowVideoModal(false)} className="absolute top-4 right-4 z-10 w-9 h-9 bg-background/80 rounded-full flex items-center justify-center hover:bg-background transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Play className="w-10 h-10 text-primary fill-primary" />
-                  </div>
-                  <p className="text-lg font-semibold">Video Demo Coming Soon</p>
-                  <p className="text-sm text-muted-foreground mt-2">We're putting the finishing touches on it.</p>
-                </div>
+                <pre className="p-5 text-xs font-mono text-gray-300 leading-relaxed overflow-x-auto">{`{
+  "country": "Nigeria",
+  "stabilityScore": 54,
+  "riskLevel": "high",
+  "headOfState": "Bola Tinubu",
+  "governmentType": "Federal Republic",
+  "economicOutlook": "moderate",
+  "keyFigures": [
+    { "name": "Peter Obi",
+      "title": "Opposition Leader",
+      "sentiment": "positive" }
+  ],
+  "civicMovements": [
+    { "name": "ENDSARS Revival",
+      "status": "active",
+      "summary": "Youth-led accountability..." }
+  ],
+  "recentEvents": [
+    "Naira stabilisation policy...",
+    "Port Harcourt security..."
+  ]
+}`}</pre>
               </div>
             </motion.div>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      </section>
+
+      {/* ── CTA ─────────────────────────────────────────────────────────────── */}
+      <section className="py-24 px-4 bg-white/[0.015] border-t border-white/5">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="relative bg-gradient-to-br from-cyan-500/20 via-blue-600/15 to-purple-600/20 border border-cyan-500/20 rounded-3xl p-14 overflow-hidden">
+            <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+            <div className="relative">
+              <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-2 text-sm font-semibold text-cyan-400 mb-6">
+                <Zap className="w-4 h-4" />
+                Free to explore · API access available
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-black text-white mb-5">Start with Your Country</h2>
+              <p className="text-lg text-gray-400 mb-8 max-w-lg mx-auto">
+                Sign up and the platform geo-detects your country. Your intelligence dashboard is ready in seconds.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button size="lg" className="text-base px-8 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-2xl shadow-cyan-500/20" onClick={handleExplore}>
+                  Open Intelligence Dashboard <ChevronRight className="ml-2 w-4 h-4" />
+                </Button>
+                <Button size="lg" variant="outline" className="text-base px-8 py-5 border-white/10 text-gray-300 hover:text-white" onClick={handleCreator}>
+                  Join as Creator
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
+      <footer className="py-14 px-4 border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center">
+                  <Globe className="w-4 h-4 text-black" />
+                </div>
+                <span className="font-bold text-lg text-white">Viral Beat</span>
+              </div>
+              <p className="text-sm text-gray-500 leading-relaxed">The intelligence layer for Africa — political briefings, civic movements, and trend signals for all 55 nations.</p>
+            </div>
+            {[
+              { title: "Intelligence", links: ["Africa Hub", "Kenya Deep-Dive", "Country Briefs", "Civic Movements"] },
+              { title: "Platform",     links: ["Trend Engine", "Creator Network", "Developer API", "Pricing"] },
+              { title: "Legal",        links: ["Privacy", "Terms", "Security", "Data Policy"] },
+            ].map(col => (
+              <div key={col.title}>
+                <h4 className="font-semibold mb-4 text-sm text-white">{col.title}</h4>
+                <ul className="space-y-2.5">
+                  {col.links.map(link => (
+                    <li key={link}><a href="#" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">{link}</a></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-600">
+            <p>© 2026 Viral Beat. All rights reserved.</p>
+            <div className="flex items-center gap-2 text-gray-500">
+              <Globe className="w-3.5 h-3.5" />
+              <span>55 African Nations</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
