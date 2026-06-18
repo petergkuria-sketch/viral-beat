@@ -22,6 +22,7 @@ export function Breadcrumb() {
     "/developer-agent": "Developer Agent",
     "/settings": "Settings",
     "/privacy-settings": "Privacy Settings",
+    "/api-keys-settings": "API Keys",
     "/favorites": "Favorites",
     "/admin-dashboard": "Admin Dashboard",
     "/x-trends": "X Trends",

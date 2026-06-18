@@ -1,7 +1,8 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getDb } from "./db";
-import { users } from "../drizzle/schema";
-import { eq, sql } from "drizzle-orm";
+import { users, apiKeys } from "../drizzle/schema";
+import { eq, sql, and } from "drizzle-orm";
+import { createApiKey } from "./api/apiKeys";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
@@ -50,6 +51,8 @@ import { aiAssistantRouter } from "./routers/aiAssistant";
 import { newsletterRouter } from "./routers/newsletter";
 import { pushNotificationsRouter } from "./routers/pushNotifications";
 import { kenyaRouter } from "./routers/kenya";
+import { africaRouter } from "./routers/africa";
+import { subscriptionRouter } from "./routers/subscription";
 
 // Types for API responses
 interface YouTubeVideo {
@@ -1834,6 +1837,54 @@ Be concise, technical, and actionable. When discussing features, consider:
   newsletter: newsletterRouter,
   pushNotifications: pushNotificationsRouter,
   kenya: kenyaRouter,
+  africa: africaRouter,
+  subscription: subscriptionRouter,
+
+  developerKeys: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const rows = await db
+        .select({
+          id: apiKeys.id,
+          name: apiKeys.name,
+          keyPreview: apiKeys.key,
+          scopes: apiKeys.scopes,
+          dailyLimit: apiKeys.dailyLimit,
+          requestsToday: apiKeys.requestsToday,
+          requestsTotal: apiKeys.requestsTotal,
+          isActive: apiKeys.isActive,
+          lastUsedAt: apiKeys.lastUsedAt,
+          createdAt: apiKeys.createdAt,
+        })
+        .from(apiKeys)
+        .where(eq(apiKeys.userId, ctx.user.id));
+      // Mask key: show first 8 chars then ••••••••
+      return rows.map(r => ({
+        ...r,
+        keyPreview: r.keyPreview.slice(0, 10) + "••••••••••••••",
+      }));
+    }),
+
+    create: protectedProcedure
+      .input(z.object({ name: z.string().min(1).max(80) }))
+      .mutation(async ({ ctx, input }) => {
+        const key = await createApiKey(ctx.user.id, input.name);
+        return { key }; // returned once — client must copy it now
+      }),
+
+    revoke: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        await db
+          .update(apiKeys)
+          .set({ isActive: false })
+          .where(and(eq(apiKeys.id, input.id), eq(apiKeys.userId, ctx.user.id)));
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

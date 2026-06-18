@@ -16,6 +16,8 @@ const WidgetBuilder = lazy(() => import("./pages/WidgetBuilder"));
 const EmbedWidget = lazy(() => import("./pages/EmbedWidget"));
 const AIAgentsHub = lazy(() => import("./pages/AIAgentsHub"));
 const PrivacySettings = lazy(() => import("./pages/PrivacySettings"));
+const ApiKeysSettings = lazy(() => import("./pages/ApiKeysSettings"));
+const AfricaIntelligence = lazy(() => import("./pages/AfricaIntelligence"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const DeveloperHub = lazy(() => import("./pages/DeveloperHub"));
@@ -33,6 +35,7 @@ const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const ViralMindPage = lazy(() => import("./pages/ViralMindPage"));
 const NewsletterSettings = lazy(() => import("./pages/NewsletterSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Pricing = lazy(() => import("./pages/Pricing"));
 
 // Kenya Intelligence Module
 const KenyaDashboard = lazy(() => import("./pages/KenyaDashboard"));
@@ -68,6 +71,7 @@ function Router() {
   // Public routes (no authentication required)
   const publicRoutes = [
     { path: "/", component: LandingPage },
+    { path: "/pricing", component: Pricing },
     { path: "/embed/widget", component: EmbedWidget },
     { path: "/onboarding", component: OnboardingPage },
   ];
@@ -82,6 +86,9 @@ function Router() {
     { path: "/ai-agents", component: AIAgentsHub },
     { path: "/settings", component: Settings },
     { path: "/privacy-settings", component: PrivacySettings },
+    { path: "/api-keys-settings", component: ApiKeysSettings },
+    { path: "/africa", component: AfricaIntelligence },
+    { path: "/africa/:code", component: AfricaIntelligence },
     { path: "/admin", component: AdminDashboard },
     { path: "/developer-hub", component: DeveloperHub },
     { path: "/developer-hub/agent", component: DeveloperAgent },

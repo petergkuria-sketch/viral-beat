@@ -1,4 +1,4 @@
-import { int, mysqlTable, text, timestamp, varchar, mysqlEnum, boolean, bigint, json, decimal } from "drizzle-orm/mysql-core";
+import { int, mysqlTable, text, timestamp, varchar, mysqlEnum, boolean, bigint, json, decimal, index } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -17,6 +17,10 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  // Subscription tier — gates LLM features and API limits
+  subscriptionTier: mysqlEnum("subscriptionTier", ["free", "analyst", "enterprise"]).default("free").notNull(),
+  subscriptionExpiresAt: timestamp("subscriptionExpiresAt"),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 64 }),
   // Privacy settings
   profileVisibility: mysqlEnum("profileVisibility", ["public", "private"]).default("public").notNull(),
   showStats: boolean("showStats").default(true).notNull(),
@@ -1122,3 +1126,113 @@ export const constituencies = mysqlTable("constituencies", {
 });
 export type Constituency = typeof constituencies.$inferSelect;
 export type InsertConstituency = typeof constituencies.$inferInsert;
+
+/**
+ * Public API keys for third-party developer access.
+ */
+export const apiKeys = mysqlTable("apiKeys", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 64 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  userId: int("userId").notNull(),
+  scopes: json("scopes").$type<string[]>().notNull().default(["trends", "kenya", "ai"]),
+  requestsToday: int("requestsToday").notNull().default(0),
+  requestsTotal: int("requestsTotal").notNull().default(0),
+  dailyLimit: int("dailyLimit").notNull().default(1000),
+  lastUsedAt: timestamp("lastUsedAt"),
+  resetAt: timestamp("resetAt").defaultNow().notNull(),
+  isActive: boolean("isActive").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+/**
+ * User country profile — stores geo-detected default country and manual override.
+ */
+export const userCountryProfiles = mysqlTable("user_country_profiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  defaultCountryCode: varchar("defaultCountryCode", { length: 2 }).notNull(),
+  detectedCountryCode: varchar("detectedCountryCode", { length: 2 }),
+  detectionMethod: mysqlEnum("detectionMethod", ["ip", "browser", "manual"]).default("browser"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type UserCountryProfile = typeof userCountryProfiles.$inferSelect;
+export type InsertUserCountryProfile = typeof userCountryProfiles.$inferInsert;
+
+/**
+ * Africa-wide region sentiment snapshots (one row per country per day).
+ */
+export const africaRegionSentiments = mysqlTable("africa_region_sentiments", {
+  id: int("id").autoincrement().primaryKey(),
+  countryCode: varchar("countryCode", { length: 2 }).notNull(),
+  region: varchar("region", { length: 50 }).notNull(),
+  sentimentScore: decimal("sentimentScore", { precision: 5, scale: 2 }).notNull(),
+  stabilityScore: decimal("stabilityScore", { precision: 5, scale: 2 }),
+  riskLevel: mysqlEnum("riskLevel", ["low", "medium", "high", "critical"]).default("low").notNull(),
+  summary: text("summary"),
+  keyThemes: json("keyThemes").$type<string[]>(),
+  sourcedFrom: varchar("sourcedFrom", { length: 50 }).default("ai"),
+  recordedAt: timestamp("recordedAt").defaultNow().notNull(),
+});
+export type AfricaRegionSentiment = typeof africaRegionSentiments.$inferSelect;
+export type InsertAfricaRegionSentiment = typeof africaRegionSentiments.$inferInsert;
+
+/**
+ * Africa-wide content sources (news articles, social posts) per country.
+ */
+export const africaContentSources = mysqlTable("africa_content_sources", {
+  id: int("id").autoincrement().primaryKey(),
+  countryCode: varchar("countryCode", { length: 2 }).notNull(),
+  sourceType: mysqlEnum("sourceType", ["news", "rss", "twitter", "manual"]).notNull(),
+  title: varchar("title", { length: 500 }),
+  content: text("content").notNull(),
+  url: text("url"),
+  author: varchar("author", { length: 255 }),
+  publishedAt: timestamp("publishedAt"),
+  sentimentScore: decimal("sentimentScore", { precision: 5, scale: 2 }),
+  riskLevel: mysqlEnum("riskLevel", ["Low", "Moderate", "High", "Critical"]),
+  processedAt: timestamp("processedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AfricaContentSource = typeof africaContentSources.$inferSelect;
+export type InsertAfricaContentSource = typeof africaContentSources.$inferInsert;
+
+/**
+ * LLM response cache — prevents redundant AI calls.
+ * Key: "router:operation:params" e.g. "africa:brief:KE".
+ * TTL enforced by expiresAt.
+ */
+export const llmCache = mysqlTable("llmCache", {
+  id: int("id").autoincrement().primaryKey(),
+  cacheKey: varchar("cacheKey", { length: 128 }).notNull().unique(),
+  payload: json("payload").$type<Record<string, unknown>>().notNull(),
+  model: varchar("model", { length: 64 }).notNull().default("claude-opus-4-8"),
+  inputTokens: int("inputTokens").default(0),
+  outputTokens: int("outputTokens").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+}, table => ({
+  keyIdx: index("llmCache_key_idx").on(table.cacheKey),
+  expiryIdx: index("llmCache_expiry_idx").on(table.expiresAt),
+}));
+export type LlmCache = typeof llmCache.$inferSelect;
+export type InsertLlmCache = typeof llmCache.$inferInsert;
+
+/**
+ * Subscription events — audit log for tier changes.
+ */
+export const subscriptionEvents = mysqlTable("subscriptionEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  event: mysqlEnum("event", ["upgraded", "downgraded", "renewed", "cancelled", "trial_started"]).notNull(),
+  fromTier: mysqlEnum("fromTier", ["free", "analyst", "enterprise"]),
+  toTier: mysqlEnum("toTier", ["free", "analyst", "enterprise"]).notNull(),
+  stripeEventId: varchar("stripeEventId", { length: 128 }),
+  metadata: json("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SubscriptionEvent = typeof subscriptionEvents.$inferSelect;
+export type InsertSubscriptionEvent = typeof subscriptionEvents.$inferInsert;
