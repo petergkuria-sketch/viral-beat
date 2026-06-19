@@ -15,6 +15,7 @@ import { openapiSpec } from "../api/openapi";
 import { startMigrationService } from "../migrationService";
 import { sdk } from "./sdk";
 import * as db from "../db";
+import { ENV } from "./env";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -57,16 +58,18 @@ async function startServer() {
   // Temporary debug endpoint — remove after auth is confirmed working
   app.get("/api/debug/session", async (req, res) => {
     const { parse } = await import("cookie");
+    const { jwtVerify } = await import("jose");
     const cookies = parse(req.headers.cookie || "");
     const raw = cookies["app_session_id"];
     if (!raw) return res.json({ cookie: null });
+    const secretKey = new TextEncoder().encode(ENV.cookieSecret || "");
     try {
-      const session = await sdk.verifySession(raw);
-      if (!session) return res.json({ cookie: "present", session: null });
-      const user = await db.getUserByOpenId(session.openId);
-      return res.json({ session, userInDb: !!user, userEmail: (user as any)?.email });
+      const { payload } = await jwtVerify(raw, secretKey, { algorithms: ["HS256"] });
+      const { openId, appId, name } = payload as any;
+      const user = await db.getUserByOpenId(openId);
+      return res.json({ openId, appId, name, userInDb: !!user, userEmail: (user as any)?.email, secretLength: (ENV.cookieSecret || "").length });
     } catch (e: any) {
-      return res.json({ error: e.message });
+      return res.json({ cookie: "present", jwtError: e.message, secretLength: (ENV.cookieSecret || "").length, cookiePrefix: raw.substring(0, 20) });
     }
   });
   // tRPC API
