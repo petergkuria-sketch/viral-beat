@@ -13,6 +13,8 @@ import swaggerUi from "swagger-ui-express";
 import v1Router from "../api/v1";
 import { openapiSpec } from "../api/openapi";
 import { startMigrationService } from "../migrationService";
+import { sdk } from "./sdk";
+import * as db from "../db";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -51,6 +53,22 @@ async function startServer() {
   app.use("/api", authenticatedApiLimiter);
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+
+  // Temporary debug endpoint — remove after auth is confirmed working
+  app.get("/api/debug/session", async (req, res) => {
+    const { parse } = await import("cookie");
+    const cookies = parse(req.headers.cookie || "");
+    const raw = cookies["app_session_id"];
+    if (!raw) return res.json({ cookie: null });
+    try {
+      const session = await sdk.verifySession(raw);
+      if (!session) return res.json({ cookie: "present", session: null });
+      const user = await db.getUserByOpenId(session.openId);
+      return res.json({ session, userInDb: !!user, userEmail: (user as any)?.email });
+    } catch (e: any) {
+      return res.json({ error: e.message });
+    }
+  });
   // tRPC API
   app.use(
     "/api/trpc",
