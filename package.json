@@ -10,7 +10,7 @@
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest run",
-    "db:push": "drizzle-kit generate && drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
     "cap:sync": "pnpm build && npx cap sync",
     "cap:ios": "pnpm build && npx cap sync && npx cap open ios",
     "cap:android": "pnpm build && npx cap sync && npx cap open android",
