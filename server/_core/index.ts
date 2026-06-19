@@ -58,18 +58,21 @@ async function startServer() {
   // Temporary debug endpoint — remove after auth is confirmed working
   app.get("/api/debug/session", async (req, res) => {
     const { parse } = await import("cookie");
-    const { jwtVerify } = await import("jose");
+    const { jwtVerify, decodeJwt } = await import("jose");
     const cookies = parse(req.headers.cookie || "");
     const raw = cookies["app_session_id"];
     if (!raw) return res.json({ cookie: null });
+    // Decode without verifying to see payload
+    let decoded: any = null;
+    try { decoded = decodeJwt(raw); } catch {}
     const secretKey = new TextEncoder().encode(ENV.cookieSecret || "");
     try {
       const { payload } = await jwtVerify(raw, secretKey, { algorithms: ["HS256"] });
-      const { openId, appId, name } = payload as any;
-      const user = await db.getUserByOpenId(openId);
-      return res.json({ openId, appId, name, userInDb: !!user, userEmail: (user as any)?.email, secretLength: (ENV.cookieSecret || "").length });
+      const { openId } = payload as any;
+      const user = await db.getUserByOpenId(openId as string);
+      return res.json({ verified: true, decoded, userInDb: !!user, userEmail: (user as any)?.email, secretLength: (ENV.cookieSecret || "").length });
     } catch (e: any) {
-      return res.json({ cookie: "present", jwtError: e.message, secretLength: (ENV.cookieSecret || "").length, cookiePrefix: raw.substring(0, 20) });
+      return res.json({ verified: false, decoded, jwtError: e.message, secretLength: (ENV.cookieSecret || "").length });
     }
   });
   // tRPC API
