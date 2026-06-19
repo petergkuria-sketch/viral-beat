@@ -144,7 +144,7 @@ function CountryPage({ code }: { code: string }) {
             <Button
               size="sm"
               className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold ml-4 shrink-0"
-              onClick={() => setLocation("/kenya")}
+              onClick={() => setLocation("/country/ke")}
             >
               Open Kenya Intelligence
             </Button>

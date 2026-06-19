@@ -38,6 +38,10 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 
+// Country Intelligence — generic templates
+const CountryDashboard = lazy(() => import("./pages/country/CountryDashboard"));
+const CountryNewsfeed = lazy(() => import("./pages/country/CountryNewsfeed"));
+
 // Kenya Intelligence Module
 const KenyaDashboard = lazy(() => import("./pages/KenyaDashboard"));
 const KenyaTracker = lazy(() => import("./pages/KenyaTracker"));
@@ -105,7 +109,10 @@ function Router() {
     { path: "/haa/leaderboard", component: HaaLeaderboard },
     { path: "/viralmind", component: ViralMindPage },
     { path: "/newsletter", component: NewsletterSettings },
-    // Kenya Intelligence Module routes
+    // Generic country intelligence routes
+    { path: "/country/:code", component: CountryDashboard },
+    { path: "/country/:code/newsfeed", component: CountryNewsfeed },
+    // Kenya Intelligence Module routes (legacy — kept for deep pages)
     { path: "/kenya", component: KenyaDashboard },
     { path: "/kenya/tracker", component: KenyaTracker },
     { path: "/kenya/regional-map", component: KenyaRegionalMap },

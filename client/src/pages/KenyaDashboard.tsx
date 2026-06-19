@@ -123,7 +123,7 @@ export default function KenyaDashboard() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-black text-base">Political Sentiment Tracker</h2>
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setLocation("/kenya/sentiment")}>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setLocation("/kenya/tracker")}>
               View All <ChevronRight className="w-3 h-3 ml-1" />
             </Button>
           </div>
@@ -137,7 +137,7 @@ export default function KenyaDashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08 }}
                   className="group relative bg-card border border-border/50 rounded-2xl p-4 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer overflow-hidden"
-                  onClick={() => setLocation("/kenya/sentiment")}
+                  onClick={() => setLocation("/kenya/tracker")}
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity" style={{ background: sentColor }} />
 
@@ -270,10 +270,10 @@ export default function KenyaDashboard() {
           <h3 className="font-bold text-sm mb-3 text-muted-foreground">Quick Access</h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { label: "Sentiment Tracker", icon: TrendingUp, href: "/kenya/sentiment", color: "#22d3ee", desc: "Live political sentiment" },
-              { label: "ICC Hate Speech", icon: AlertTriangle, href: "/kenya/icc", color: "#f87171", desc: "ICC Rabat Plan monitor" },
-              { label: "Breaking News", icon: Radio, href: "/kenya/breaking", color: "#fb923c", desc: "Live Kenya news feed" },
-              { label: "Election Phases", icon: Eye, href: "/kenya/elections", color: "#a78bfa", desc: "Electoral cycle tracker" },
+              { label: "Sentiment Tracker", icon: TrendingUp, href: "/kenya/tracker", color: "#22d3ee", desc: "Live political sentiment" },
+              { label: "ICC Hate Speech", icon: AlertTriangle, href: "/kenya/icc-agent", color: "#f87171", desc: "ICC Rabat Plan monitor" },
+              { label: "Breaking News", icon: Radio, href: "/kenya/breaking-news", color: "#fb923c", desc: "Live Kenya news feed" },
+              { label: "Election Phases", icon: Eye, href: "/kenya/election-phases", color: "#a78bfa", desc: "Electoral cycle tracker" },
             ].map((item, i) => (
               <motion.button
                 key={i}
