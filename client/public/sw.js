@@ -1,7 +1,7 @@
-// Viral Beat Service Worker v1.2
+// Viral Beat Service Worker v1.3
 // Handles offline caching, background sync, and push notifications
 
-const CACHE_VERSION = 'vb-v3';
+const CACHE_VERSION = 'vb-v4';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -59,6 +59,11 @@ self.addEventListener('fetch', (event) => {
     url.searchParams.has('t')
   ) {
     return; // Let the browser handle it normally (network only)
+  }
+
+  // Auth checks: always network, never cache
+  if (url.pathname.startsWith('/api/trpc/auth')) {
+    return; // pass through to network
   }
 
   // API routes: Network first, cache fallback (5 min TTL)
