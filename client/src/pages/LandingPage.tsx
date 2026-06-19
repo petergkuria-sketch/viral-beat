@@ -120,7 +120,7 @@ export default function LandingPage() {
               </Button>
             ) : (
               <>
-                <Button variant="ghost" size="sm" className="hidden sm:inline-flex text-gray-400 hover:text-white" onClick={() => window.location.href = getLoginUrl()}>Sign In</Button>
+                <Button variant="ghost" size="sm" className="hidden sm:inline-flex text-gray-400 hover:text-white" onClick={() => window.location.href = getLoginUrl()}>Sign In / Register</Button>
                 <Button size="sm" onClick={handleExplore} className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-lg shadow-cyan-500/20">Get Access</Button>
               </>
             )}
@@ -135,7 +135,7 @@ export default function LandingPage() {
               <button key={id} onClick={() => scrollTo(id)} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
             <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
-              {!user && <Button variant="outline" className="w-full border-white/10 text-white" onClick={() => { setMobileMenuOpen(false); window.location.href = getLoginUrl(); }}>Sign In</Button>}
+              {!user && <Button variant="outline" className="w-full border-white/10 text-white" onClick={() => { setMobileMenuOpen(false); window.location.href = getLoginUrl(); }}>Sign In / Register</Button>}
               <Button className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-semibold" onClick={() => { setMobileMenuOpen(false); handleExplore(); }}>Get Access</Button>
             </div>
           </motion.div>
