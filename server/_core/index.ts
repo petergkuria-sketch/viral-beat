@@ -55,26 +55,6 @@ async function startServer() {
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 
-  // Temporary debug endpoint — remove after auth is confirmed working
-  app.get("/api/debug/session", async (req, res) => {
-    const { parse } = await import("cookie");
-    const { jwtVerify, decodeJwt } = await import("jose");
-    const cookies = parse(req.headers.cookie || "");
-    const raw = cookies["app_session_id"];
-    if (!raw) return res.json({ cookie: null });
-    // Decode without verifying to see payload
-    let decoded: any = null;
-    try { decoded = decodeJwt(raw); } catch {}
-    const secretKey = new TextEncoder().encode(ENV.cookieSecret || "");
-    try {
-      const { payload } = await jwtVerify(raw, secretKey, { algorithms: ["HS256"] });
-      const { openId } = payload as any;
-      const user = await db.getUserByOpenId(openId as string);
-      return res.json({ verified: true, decoded, userInDb: !!user, userEmail: (user as any)?.email, secretLength: (ENV.cookieSecret || "").length });
-    } catch (e: any) {
-      return res.json({ verified: false, decoded, jwtError: e.message, secretLength: (ENV.cookieSecret || "").length });
-    }
-  });
   // tRPC API
   app.use(
     "/api/trpc",
