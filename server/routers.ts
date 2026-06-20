@@ -1775,6 +1775,41 @@ ${input.originalContent}`
         for (const stmt of [
           `ALTER TABLE users ADD COLUMN isBanned TINYINT(1) NOT NULL DEFAULT 0`,
           `ALTER TABLE users ADD COLUMN banReason TEXT NULL`,
+          `CREATE TABLE IF NOT EXISTS aiAssistantProfiles (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            userId INT NOT NULL UNIQUE,
+            assistantName VARCHAR(255) DEFAULT 'ViralMind',
+            niche VARCHAR(255),
+            primaryPlatform VARCHAR(100),
+            contentStyle VARCHAR(255),
+            targetAudience TEXT,
+            goals TEXT,
+            onboardingCompleted TINYINT(1) DEFAULT 0,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+          )`,
+          `CREATE TABLE IF NOT EXISTS assistantConversations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            userId INT NOT NULL,
+            sessionId VARCHAR(255) NOT NULL,
+            role VARCHAR(50) NOT NULL,
+            message TEXT NOT NULL,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_session (userId, sessionId)
+          )`,
+          `CREATE TABLE IF NOT EXISTS assistantTasks (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            userId INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            description TEXT,
+            status VARCHAR(50) DEFAULT 'pending',
+            priority VARCHAR(50) DEFAULT 'medium',
+            dueDate DATETIME,
+            completedAt DATETIME,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_user (userId)
+          )`,
         ]) {
           try {
             await db.execute(sql.raw(stmt));
