@@ -25,6 +25,14 @@ import { ThemeSelector } from "@/components/ThemeSelector";
 import { useIsMobile } from "@/hooks/useMobile";
 import { trpc } from "@/lib/trpc";
 import { AFRICAN_COUNTRIES, AFRICAN_REGIONS, getCountriesByRegion } from "../../../shared/africanCountries";
+import { COUNTRY_CONFIGS } from "../../../shared/countryConfig";
+
+// Returns the best deep-link path for a country code
+function countryPath(code: string, hasRichData?: boolean): string {
+  if (hasRichData) return "/kenya";
+  if (COUNTRY_CONFIGS[code.toLowerCase()]) return `/country/${code.toLowerCase()}`;
+  return `/africa/${code}`;
+}
 import { 
   LayoutDashboard, 
   LogOut, 
@@ -334,7 +342,7 @@ function AfricaNavSection({
       {myCountryCode && (() => {
         const c = AFRICAN_COUNTRIES.find(x => x.code === myCountryCode);
         if (!c) return null;
-        const path = c.hasRichData ? "/kenya" : `/africa/${c.code}`;
+        const path = countryPath(c.code, c.hasRichData);
         const isActive = location === path || location.startsWith(path + "/");
         return (
           <SidebarMenu>
@@ -359,7 +367,7 @@ function AfricaNavSection({
         const countries = getCountriesByRegion(region);
         const isExpanded = expandedRegions.has(region);
         const hasActive = countries.some(c => {
-          const p = c.hasRichData ? "/kenya" : `/africa/${c.code}`;
+          const p = countryPath(c.code, c.hasRichData);
           return location === p || location.startsWith(p + "/");
         });
 
@@ -378,7 +386,7 @@ function AfricaNavSection({
             {isExpanded && (
               <SidebarMenu className="pl-2">
                 {countries.map(c => {
-                  const path = c.hasRichData ? "/kenya" : `/africa/${c.code}`;
+                  const path = countryPath(c.code, c.hasRichData);
                   const isActive = location === path || (path !== "/dashboard" && location.startsWith(path + "/"));
                   return (
                     <SidebarMenuItem key={c.code}>
@@ -392,7 +400,7 @@ function AfricaNavSection({
                         <span className={`text-xs truncate ${isActive ? "text-foreground font-medium" : "text-muted-foreground"}`}>
                           {c.name}
                         </span>
-                        {c.hasRichData && (
+                        {(c.hasRichData || !!COUNTRY_CONFIGS[c.code.toLowerCase()]) && (
                           <span className="ml-auto text-[9px] text-cyan-400 shrink-0">★</span>
                         )}
                       </SidebarMenuButton>

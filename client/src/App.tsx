@@ -41,6 +41,13 @@ const AboutPage = lazy(() => import("./pages/AboutPage"));
 // Country Intelligence — generic templates
 const CountryDashboard = lazy(() => import("./pages/country/CountryDashboard"));
 const CountryNewsfeed = lazy(() => import("./pages/country/CountryNewsfeed"));
+const CountryTracker = lazy(() => import("./pages/country/CountryTracker"));
+const CountryParliament = lazy(() => import("./pages/country/CountryParliament"));
+const CountrySenate = lazy(() => import("./pages/country/CountrySenate"));
+const CountryBreakingNews = lazy(() => import("./pages/country/CountryBreakingNews"));
+const CountryMovements = lazy(() => import("./pages/country/CountryMovements"));
+const CountryAlerts = lazy(() => import("./pages/country/CountryAlerts"));
+const CountryReports = lazy(() => import("./pages/country/CountryReports"));
 
 // Kenya Intelligence Module
 const KenyaDashboard = lazy(() => import("./pages/KenyaDashboard"));
@@ -112,6 +119,13 @@ function Router() {
     // Generic country intelligence routes
     { path: "/country/:code", component: CountryDashboard },
     { path: "/country/:code/newsfeed", component: CountryNewsfeed },
+    { path: "/country/:code/tracker", component: CountryTracker },
+    { path: "/country/:code/parliament", component: CountryParliament },
+    { path: "/country/:code/senate", component: CountrySenate },
+    { path: "/country/:code/breaking-news", component: CountryBreakingNews },
+    { path: "/country/:code/movements", component: CountryMovements },
+    { path: "/country/:code/alerts", component: CountryAlerts },
+    { path: "/country/:code/reports", component: CountryReports },
     // Kenya Intelligence Module routes (legacy — kept for deep pages)
     { path: "/kenya", component: KenyaDashboard },
     { path: "/kenya/tracker", component: KenyaTracker },

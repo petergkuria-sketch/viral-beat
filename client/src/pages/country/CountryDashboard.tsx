@@ -1,6 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { getCountryConfig, hasModule } from "@/lib/countries/config";
+import { getCountryConfig, hasModule } from "@shared/countryConfig";
 import {
   Shield, Radio, AlertTriangle, Activity, Users, MapPin,
   TrendingUp, Eye, ChevronRight, FileText, Bell, Globe,

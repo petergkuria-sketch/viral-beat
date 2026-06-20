@@ -67,7 +67,7 @@ export default function LandingPage() {
   };
 
   const handleCountry = (code: string) => {
-    if (user) setLocation(`/africa/${code}`);
+    if (user) setLocation(`/country/${code.toLowerCase()}`);
     else window.location.href = getLoginUrl();
   };
 
@@ -205,7 +205,7 @@ export default function LandingPage() {
                 <div className="divide-y divide-[#1e3a5f]">
                   {DEMO_INTEL.map((c, i) => (
                     <motion.div key={c.code} initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 + i * 0.08 }}
-                      className="px-4 py-3 hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={handleExplore}>
+                      className="px-4 py-3 hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={() => handleCountry(c.code)}>
                       <div className="flex items-center gap-3">
                         <span className="text-xl leading-none">{c.flag}</span>
                         <div className="flex-1 min-w-0">
@@ -360,7 +360,7 @@ export default function LandingPage() {
                 Kenya has our most comprehensive coverage: live parliament tracker, all 47 county sentiment scores, ICC monitoring, governors & senators, civic movements, regional risk, and breaking-news alerts.
               </p>
             </div>
-            <Button onClick={() => user ? setLocation("/kenya") : (window.location.href = getLoginUrl())} className="shrink-0 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold">
+            <Button onClick={() => user ? setLocation("/country/ke") : (window.location.href = getLoginUrl())} className="shrink-0 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold">
               Open Kenya Intelligence <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
             </Button>
           </motion.div>
