@@ -316,6 +316,10 @@ export default function AdminUsers() {
   const runMigrations = trpc.admin.runMigrations.useMutation({
     onSuccess: (d) => setMigrationLog(d.results),
   });
+  const [seedLog, setSeedLog] = useState<string | null>(null);
+  const seedKenyaFigures = trpc.admin.seedKenyaFigures.useMutation({
+    onSuccess: (d) => setSeedLog(`Seeded ${d.inserted} figures (${d.skipped} skipped) of ${d.total} total`),
+  });
 
   const { data, isLoading, refetch } = trpc.admin.listUsers.useQuery({
     page,
@@ -390,7 +394,22 @@ export default function AdminUsers() {
             {runMigrations.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
             Run DB Migrations
           </Button>
+          <Button size="sm" variant="outline"
+            disabled={seedKenyaFigures.isPending}
+            onClick={() => seedKenyaFigures.mutate()}
+            className="border-emerald-700 text-emerald-400 hover:bg-emerald-950/30 gap-2">
+            {seedKenyaFigures.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
+            Seed Kenya Figures
+          </Button>
         </div>
+
+        {/* Seed log */}
+        {seedLog && (
+          <div className="bg-[#0d1e36] border border-emerald-800/50 rounded-xl p-4 flex items-center justify-between">
+            <span className="text-xs font-mono text-emerald-400">{seedLog}</span>
+            <button onClick={() => setSeedLog(null)} className="text-gray-500 hover:text-white"><X className="w-3.5 h-3.5" /></button>
+          </div>
+        )}
 
         {/* Migration log */}
         {migrationLog && (

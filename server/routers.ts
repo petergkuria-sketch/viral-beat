@@ -1,6 +1,6 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getDb } from "./db";
-import { users, apiKeys } from "../drizzle/schema";
+import { users, apiKeys, politicalFigures } from "../drizzle/schema";
 import { eq, sql, and, asc, desc, type SQL } from "drizzle-orm";
 import { createApiKey } from "./api/apiKeys";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -1462,6 +1462,87 @@ ${input.originalContent}`
 
   // ============ ADMIN ============
   admin: router({
+    seedKenyaFigures: protectedProcedure.mutation(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const figures: Array<{ name: string; title: string; party: string; imageUrl: string }> = [
+        // Executive
+        { name: "William Ruto", title: "President", party: "UDA / Kenya Kwanza", imageUrl: "/images/ruto.jpg" },
+        { name: "Kithure Kindiki", title: "Deputy President", party: "UDA / Kenya Kwanza", imageUrl: "/images/kindiki.jpg" },
+        { name: "Kalonzo Musyoka", title: "Opposition Leader", party: "Wiper / Azimio", imageUrl: "/images/kalonzo.jpg" },
+        { name: "Moses Wetangula", title: "National Assembly Speaker", party: "Ford Kenya / Kenya Kwanza", imageUrl: "/images/wetangula.jpg" },
+        { name: "Raila Odinga", title: "Former Prime Minister / AU Commission Chair", party: "ODM / Azimio", imageUrl: "/images/raila.jpg" },
+        { name: "Rigathi Gachagua", title: "Former Deputy President", party: "UDA / Kenya Kwanza", imageUrl: "/images/gachagua.jpg" },
+        // Governors (47 counties)
+        { name: "Abdulswamad Shariff Nassir", title: "Governor, Mombasa County", party: "ODM", imageUrl: "" },
+        { name: "Fatuma Mohamed Achani", title: "Governor, Kwale County", party: "ODM", imageUrl: "" },
+        { name: "Gideon Mung'aro", title: "Governor, Kilifi County", party: "ODM", imageUrl: "" },
+        { name: "Issa Timamy", title: "Governor, Lamu County", party: "ODM", imageUrl: "" },
+        { name: "Ali Roba", title: "Governor, Mandera County", party: "ODM", imageUrl: "" },
+        { name: "Mohamed Mohamud Abdi", title: "Governor, Wajir County", party: "Jubilee", imageUrl: "" },
+        { name: "Abdi Mohamud Omar", title: "Governor, Garissa County", party: "UDA", imageUrl: "" },
+        { name: "Mohamud Ali Saleh", title: "Governor, Marsabit County", party: "UDA", imageUrl: "" },
+        { name: "Isiolo Governor", title: "Governor, Isiolo County", party: "UDA", imageUrl: "" },
+        { name: "Kawira Mwangaza", title: "Governor, Meru County", party: "Independent", imageUrl: "" },
+        { name: "Tharaka Nithi Governor", title: "Governor, Tharaka Nithi County", party: "UDA", imageUrl: "" },
+        { name: "Embu Governor", title: "Governor, Embu County", party: "UDA", imageUrl: "" },
+        { name: "Machakos Governor", title: "Governor, Machakos County", party: "Wiper", imageUrl: "" },
+        { name: "Alfred Mutua", title: "Governor, Machakos County", party: "Maendeleo Chap Chap", imageUrl: "" },
+        { name: "Kitui Governor", title: "Governor, Kitui County", party: "Wiper", imageUrl: "" },
+        { name: "Julius Malombe", title: "Governor, Kitui County", party: "Wiper", imageUrl: "" },
+        { name: "Makueni Governor", title: "Governor, Makueni County", party: "Wiper", imageUrl: "" },
+        { name: "Nyandarua Governor", title: "Governor, Nyandarua County", party: "UDA", imageUrl: "" },
+        { name: "Kirinyaga Governor", title: "Governor, Kirinyaga County", party: "UDA", imageUrl: "" },
+        { name: "Murang'a Governor", title: "Governor, Murang'a County", party: "UDA", imageUrl: "" },
+        { name: "Kiambu Governor", title: "Governor, Kiambu County", party: "UDA", imageUrl: "" },
+        { name: "Turkana Governor", title: "Governor, Turkana County", party: "ODM", imageUrl: "" },
+        { name: "West Pokot Governor", title: "Governor, West Pokot County", party: "UDA", imageUrl: "" },
+        { name: "Samburu Governor", title: "Governor, Samburu County", party: "UDA", imageUrl: "" },
+        { name: "Trans Nzoia Governor", title: "Governor, Trans Nzoia County", party: "UDA", imageUrl: "" },
+        { name: "Uasin Gishu Governor", title: "Governor, Uasin Gishu County", party: "UDA", imageUrl: "" },
+        { name: "Elgeyo Marakwet Governor", title: "Governor, Elgeyo Marakwet County", party: "UDA", imageUrl: "" },
+        { name: "Nandi Governor", title: "Governor, Nandi County", party: "UDA", imageUrl: "" },
+        { name: "Baringo Governor", title: "Governor, Baringo County", party: "UDA", imageUrl: "" },
+        { name: "Laikipia Governor", title: "Governor, Laikipia County", party: "UDA", imageUrl: "" },
+        { name: "Nakuru Governor", title: "Governor, Nakuru County", party: "UDA", imageUrl: "" },
+        { name: "Narok Governor", title: "Governor, Narok County", party: "KANU", imageUrl: "" },
+        { name: "Kajiado Governor", title: "Governor, Kajiado County", party: "ODM", imageUrl: "" },
+        { name: "Kericho Governor", title: "Governor, Kericho County", party: "UDA", imageUrl: "" },
+        { name: "Bomet Governor", title: "Governor, Bomet County", party: "UDA", imageUrl: "" },
+        { name: "Kakamega Governor", title: "Governor, Kakamega County", party: "ANC", imageUrl: "" },
+        { name: "Vihiga Governor", title: "Governor, Vihiga County", party: "ANC", imageUrl: "" },
+        { name: "Bungoma Governor", title: "Governor, Bungoma County", party: "Ford Kenya", imageUrl: "" },
+        { name: "Busia Governor", title: "Governor, Busia County", party: "ODM", imageUrl: "" },
+        { name: "Siaya Governor", title: "Governor, Siaya County", party: "ODM", imageUrl: "" },
+        { name: "Kisumu Governor", title: "Governor, Kisumu County", party: "ODM", imageUrl: "" },
+        { name: "Homa Bay Governor", title: "Governor, Homa Bay County", party: "ODM", imageUrl: "" },
+        { name: "Migori Governor", title: "Governor, Migori County", party: "ODM", imageUrl: "" },
+        { name: "Kisii Governor", title: "Governor, Kisii County", party: "Jubilee", imageUrl: "" },
+        { name: "Nyamira Governor", title: "Governor, Nyamira County", party: "UDA", imageUrl: "" },
+        { name: "Nairobi Governor", title: "Governor, Nairobi County", party: "ODM", imageUrl: "" },
+      ];
+
+      let inserted = 0;
+      let skipped = 0;
+      for (const fig of figures) {
+        try {
+          await db.execute(
+            sql.raw(
+              `INSERT INTO political_figures (name, title, party, imageUrl, isActive)
+               VALUES (${JSON.stringify(fig.name)}, ${JSON.stringify(fig.title)}, ${JSON.stringify(fig.party)}, ${JSON.stringify(fig.imageUrl)}, 'yes')
+               ON DUPLICATE KEY UPDATE title=${JSON.stringify(fig.title)}, party=${JSON.stringify(fig.party)}`
+            )
+          );
+          inserted++;
+        } catch {
+          skipped++;
+        }
+      }
+      return { inserted, skipped, total: figures.length };
+    }),
+
     getSystemStats: protectedProcedure.query(async ({ ctx }) => {
       // Check if user is admin
       if (ctx.user.role !== "admin") {
