@@ -2,9 +2,37 @@ import React from "react";
 import { trpc } from "@/lib/trpc";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Minus, RefreshCw, Database, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, RefreshCw, Database, AlertCircle, ShieldCheck, ShieldAlert, Shield } from "lucide-react";
 
 const SENT_COLOR = (v: number) => v >= 60 ? "#34d399" : v >= 40 ? "#fbbf24" : "#f87171";
+
+type ConfidenceLevel = "high" | "medium" | "low" | "none";
+
+const CONFIDENCE_CONFIG: Record<ConfidenceLevel, {
+  label: string; color: string; bg: string; border: string; Icon: React.ElementType;
+}> = {
+  high:   { label: "High confidence",   color: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-500/30", Icon: ShieldCheck },
+  medium: { label: "Medium confidence", color: "text-amber-400",   bg: "bg-amber-400/10",   border: "border-amber-500/30",   Icon: Shield },
+  low:    { label: "Low confidence",    color: "text-orange-400",  bg: "bg-orange-400/10",  border: "border-orange-500/30",  Icon: ShieldAlert },
+  none:   { label: "No signal yet",     color: "text-slate-500",   bg: "bg-white/5",         border: "border-white/10",       Icon: ShieldAlert },
+};
+
+function ConfidenceBadge({ level, articleCount, compact = false }: {
+  level: ConfidenceLevel; articleCount: number; compact?: boolean;
+}) {
+  const cfg = CONFIDENCE_CONFIG[level];
+  return (
+    <span className={cn(
+      "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
+      cfg.bg, cfg.border
+    )}>
+      <cfg.Icon className={cn("shrink-0", compact ? "w-3 h-3" : "w-3.5 h-3.5", cfg.color)} />
+      <span className={cn("font-semibold", compact ? "text-[9px]" : "text-[10px]", cfg.color)}>
+        {cfg.label}{articleCount > 0 && !compact ? ` · ${articleCount} articles` : ""}
+      </span>
+    </span>
+  );
+}
 
 // Placeholder history for figures that have no DB records yet
 function placeholderHistory() {
@@ -129,9 +157,12 @@ export default function Tracker() {
                       <p className="text-[10px] text-slate-500 truncate">{fig.title}</p>
                     </div>
                   </div>
-                  <span className="text-xs font-black shrink-0" style={{ color: sc }}>
-                    {fig.score !== null ? `${Math.round(fig.score)}%` : "—"}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className="text-xs font-black" style={{ color: sc }}>
+                      {fig.score !== null ? `${Math.round(fig.score)}%` : "—"}
+                    </span>
+                    <ConfidenceBadge level={fig.confidenceLevel as ConfidenceLevel} articleCount={fig.articleCount} compact />
+                  </div>
                 </button>
               );
             })}
@@ -175,6 +206,12 @@ export default function Tracker() {
                         : <><Minus className="w-3.5 h-3.5 text-slate-400" /><span className="text-[11px] text-slate-400">Stable</span></>
                       }
                     </div>
+                    <div className="mt-2">
+                      <ConfidenceBadge
+                        level={(selected.confidenceLevel ?? "none") as ConfidenceLevel}
+                        articleCount={selected.articleCount ?? 0}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -198,13 +235,18 @@ export default function Tracker() {
 
             {/* Chart */}
             <div className="bg-card border border-border/50 rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <h3 className="text-sm font-bold text-slate-300">Sentiment History</h3>
-                {!hasData && (
+                {!hasData ? (
                   <span className="text-[10px] text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-full px-2 py-0.5">
                     No signal data yet
                   </span>
-                )}
+                ) : (selected.scoreDelta ?? 0) > 20 ? (
+                  <span className="text-[10px] text-orange-400 bg-orange-400/10 border border-orange-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
+                    <ShieldAlert className="w-3 h-3" />
+                    Conflicted signal · ±{Math.round(selected.scoreDelta ?? 0)}pt swing
+                  </span>
+                ) : null}
               </div>
               <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">

@@ -392,6 +392,23 @@ export const kenyaRouter = router({
               ? "down"
               : "stable";
 
+          // Parse article count from source field e.g. "rss:12articles"
+          const articleCount = latest?.source
+            ? parseInt(latest.source.replace(/[^0-9]/g, "") || "0", 10)
+            : 0;
+
+          // Confidence: high ≥10 articles, medium 4-9, low 1-3, none 0
+          const confidenceLevel: "high" | "medium" | "low" | "none" =
+            articleCount >= 10 ? "high"
+            : articleCount >= 4 ? "medium"
+            : articleCount >= 1 ? "low"
+            : "none";
+
+          // Score delta between current and previous reading
+          const scoreDelta = score !== null && prevScore !== null
+            ? Math.abs(score - prevScore)
+            : null;
+
           return {
             id: fig.id,
             name: fig.name,
@@ -402,6 +419,9 @@ export const kenyaRouter = router({
             trend,
             hasData: !!latest,
             lastUpdated: latest?.recordedAt ?? null,
+            articleCount,
+            confidenceLevel,
+            scoreDelta,
           };
         })
       );
