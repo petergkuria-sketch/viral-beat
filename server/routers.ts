@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getDb } from "./db";
 import { users, apiKeys } from "../drizzle/schema";
-import { eq, sql, and } from "drizzle-orm";
+import { eq, sql, and, asc, desc, type SQL } from "drizzle-orm";
 import { createApiKey } from "./api/apiKeys";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -1671,6 +1671,64 @@ ${input.originalContent}`
           datasets,
           totalsByMethod,
           totalRegistrations: Object.values(totalsByMethod).reduce((sum, val) => sum + val, 0),
+        };
+      }),
+
+    listUsers: protectedProcedure
+      .input(z.object({
+        page: z.number().min(1).default(1),
+        limit: z.number().min(1).max(100).default(20),
+        search: z.string().optional(),
+        role: z.enum(["all", "user", "admin"]).default("all"),
+        tier: z.enum(["all", "free", "analyst", "enterprise"]).default("all"),
+        sortBy: z.enum(["createdAt", "lastSignedIn", "name"]).default("createdAt"),
+        sortDir: z.enum(["asc", "desc"]).default("desc"),
+      }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+
+        const conditions: SQL[] = [];
+        if (input.search) {
+          const q = `%${input.search}%`;
+          conditions.push(sql`(${users.name} LIKE ${q} OR ${users.email} LIKE ${q})`);
+        }
+        if (input.role !== "all") {
+          conditions.push(eq(users.role, input.role as "user" | "admin"));
+        }
+        if (input.tier !== "all") {
+          conditions.push(eq(users.subscriptionTier, input.tier as "free" | "analyst" | "enterprise"));
+        }
+
+        const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+        const orderCol =
+          input.sortBy === "lastSignedIn" ? users.lastSignedIn
+          : input.sortBy === "name" ? users.name
+          : users.createdAt;
+        const order = input.sortDir === "asc" ? asc(orderCol) : desc(orderCol);
+
+        const [rows, [{ count }]] = await Promise.all([
+          db.select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            role: users.role,
+            subscriptionTier: users.subscriptionTier,
+            loginMethod: users.loginMethod,
+            createdAt: users.createdAt,
+            lastSignedIn: users.lastSignedIn,
+          }).from(users).where(where).orderBy(order)
+            .limit(input.limit).offset((input.page - 1) * input.limit),
+          db.select({ count: sql<number>`COUNT(*)` }).from(users).where(where),
+        ]);
+
+        return {
+          users: rows,
+          total: Number(count),
+          page: input.page,
+          pages: Math.ceil(Number(count) / input.limit),
         };
       }),
   }),

@@ -4,9 +4,11 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Shield, Activity, Users, Database, Server, AlertTriangle, 
-  CheckCircle, Clock, TrendingUp, Loader2, RefreshCw 
+import { Input } from "@/components/ui/input";
+import {
+  Shield, Activity, Users, Database, Server, AlertTriangle,
+  CheckCircle, Clock, TrendingUp, Loader2, RefreshCw,
+  Search, ChevronLeft, ChevronRight, UserCog, Crown, LayoutDashboard
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -14,10 +16,177 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { RegistrationTrendsChart } from "@/components/RegistrationTrendsChart";
 import { RegistrationSourceChart } from "@/components/RegistrationSourceChart";
+import { formatDistanceToNow } from "date-fns";
+
+type Tab = "overview" | "users";
+
+const TIER_STYLE: Record<string, { label: string; color: string }> = {
+  free:       { label: "Free",       color: "text-gray-400 border-gray-600" },
+  analyst:    { label: "Analyst",    color: "text-blue-400 border-blue-600" },
+  enterprise: { label: "Enterprise", color: "text-purple-400 border-purple-600" },
+};
+
+const ROLE_STYLE: Record<string, { label: string; color: string }> = {
+  user:  { label: "User",  color: "text-gray-300 border-gray-600" },
+  admin: { label: "Admin", color: "text-yellow-400 border-yellow-600" },
+};
+
+function UsersTab() {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [role, setRole] = useState<"all" | "user" | "admin">("all");
+  const [tier, setTier] = useState<"all" | "free" | "analyst" | "enterprise">("all");
+  const [sortBy, setSortBy] = useState<"createdAt" | "lastSignedIn" | "name">("createdAt");
+
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const { data, isLoading } = trpc.admin.listUsers.useQuery({
+    page, limit: 20, search: debouncedSearch || undefined, role, tier, sortBy, sortDir: "desc",
+  });
+
+  const users = data?.users ?? [];
+  const total = data?.total ?? 0;
+  const pages = data?.pages ?? 1;
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search name or email…"
+            className="pl-9 bg-[#050b1a] border-[#1e3a5f] text-white"
+          />
+        </div>
+        <div className="flex gap-2">
+          {(["all","user","admin"] as const).map(r => (
+            <button key={r} onClick={() => { setRole(r); setPage(1); }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all capitalize
+                ${role === r ? "bg-purple-600 border-purple-500 text-white" : "border-[#1e3a5f] text-gray-400 hover:border-purple-500/50"}`}>
+              {r === "all" ? "All Roles" : r}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          {(["all","free","analyst","enterprise"] as const).map(t => (
+            <button key={t} onClick={() => { setTier(t); setPage(1); }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all capitalize
+                ${tier === t ? "bg-blue-600 border-blue-500 text-white" : "border-[#1e3a5f] text-gray-400 hover:border-blue-500/50"}`}>
+              {t === "all" ? "All Plans" : t}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 ml-auto">
+          {(["createdAt","lastSignedIn","name"] as const).map(s => (
+            <button key={s} onClick={() => setSortBy(s)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all
+                ${sortBy === s ? "bg-cyan-700 border-cyan-500 text-white" : "border-[#1e3a5f] text-gray-400"}`}>
+              {s === "createdAt" ? "Joined" : s === "lastSignedIn" ? "Last Active" : "Name"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className="text-sm text-gray-400">
+        {total.toLocaleString()} user{total !== 1 ? "s" : ""} found
+      </div>
+
+      {/* Table */}
+      <Card className="bg-[#0d1e36] border-[#1e3a5f]">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+            </div>
+          ) : users.length === 0 ? (
+            <div className="text-center text-gray-400 py-16">No users found.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#1e3a5f] text-gray-400 text-xs uppercase tracking-wide">
+                    <th className="text-left px-4 py-3">User</th>
+                    <th className="text-left px-4 py-3">Role</th>
+                    <th className="text-left px-4 py-3">Plan</th>
+                    <th className="text-left px-4 py-3">Login Method</th>
+                    <th className="text-left px-4 py-3">Joined</th>
+                    <th className="text-left px-4 py-3">Last Active</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((u, i) => (
+                    <tr key={u.id}
+                      className={`border-b border-[#1e3a5f]/50 hover:bg-[#050b1a]/60 transition-colors ${i % 2 === 0 ? "" : "bg-[#050b1a]/20"}`}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-xs font-bold shrink-0">
+                            {(u.name ?? u.email ?? "?")[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-medium text-white truncate max-w-[180px]">{u.name ?? "—"}</div>
+                            <div className="text-xs text-gray-400 truncate max-w-[180px]">{u.email ?? "—"}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant="outline" className={`text-xs ${ROLE_STYLE[u.role]?.color ?? ""}`}>
+                          {u.role === "admin" && <Crown className="w-3 h-3 mr-1 inline" />}
+                          {ROLE_STYLE[u.role]?.label ?? u.role}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant="outline" className={`text-xs ${TIER_STYLE[u.subscriptionTier]?.color ?? ""}`}>
+                          {TIER_STYLE[u.subscriptionTier]?.label ?? u.subscriptionTier}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-gray-300 capitalize">{u.loginMethod ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
+                        {formatDistanceToNow(new Date(u.createdAt), { addSuffix: true })}
+                      </td>
+                      <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
+                        {formatDistanceToNow(new Date(u.lastSignedIn), { addSuffix: true })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pagination */}
+      {pages > 1 && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-400">Page {page} of {pages}</span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="border-[#1e3a5f]"
+              disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button size="sm" variant="outline" className="border-[#1e3a5f]"
+              disabled={page >= pages} onClick={() => setPage(p => p + 1)}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
@@ -111,29 +280,47 @@ export default function AdminDashboard() {
               <p className="text-gray-400">System monitoring and analytics</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-gray-400">
-              Last updated: {lastRefresh.toLocaleTimeString()}
+          {activeTab === "overview" && (
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-400">
+                Last updated: {lastRefresh.toLocaleTimeString()}
+              </div>
+              <Button variant="outline" size="sm" onClick={() => refetch()} className="border-[#1e3a5f]">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+              <Button
+                variant={autoRefresh ? "default" : "outline"}
+                size="sm"
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                className={autoRefresh ? "bg-green-600" : "border-[#1e3a5f]"}
+              >
+                {autoRefresh ? "Auto-refresh ON" : "Auto-refresh OFF"}
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              className="border-[#1e3a5f]"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-            <Button
-              variant={autoRefresh ? "default" : "outline"}
-              size="sm"
-              onClick={() => setAutoRefresh(!autoRefresh)}
-              className={autoRefresh ? "bg-green-600" : "border-[#1e3a5f]"}
-            >
-              {autoRefresh ? "Auto-refresh ON" : "Auto-refresh OFF"}
-            </Button>
-          </div>
+          )}
         </div>
+
+        {/* Tab Bar */}
+        <div className="flex gap-1 border-b border-[#1e3a5f] pb-0">
+          {([
+            { id: "overview", label: "Overview",   icon: LayoutDashboard },
+            { id: "users",    label: "Users",       icon: UserCog },
+          ] as { id: Tab; label: string; icon: any }[]).map(({ id, label, icon: Icon }) => (
+            <button key={id} onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all
+                ${activeTab === id
+                  ? "border-purple-500 text-purple-400"
+                  : "border-transparent text-gray-400 hover:text-gray-200"}`}>
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "users" && <UsersTab />}
+
+        {activeTab === "overview" && <>
 
         {/* System Health */}
         <div className="grid gap-4 md:grid-cols-3">
@@ -316,6 +503,8 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        </> /* end overview */}
       </div>
     </div>
   );
