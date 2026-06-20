@@ -27,10 +27,10 @@ export const KENYA_NEWS_FEEDS = {
     url: 'https://www.standardmedia.co.ke/rss/business.php',
     category: 'business'
   },
-  standardCounties: {
-    name: 'The Standard - Counties',
-    url: 'https://www.standardmedia.co.ke/rss/counties.php',
-    category: 'counties'
+  citizenDigital: {
+    name: 'Citizen Digital',
+    url: 'https://www.citizentv.co.ke/feed/',
+    category: 'general'
   }
 };
 
