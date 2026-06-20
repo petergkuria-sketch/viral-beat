@@ -1,0 +1,7 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"NAME":"Kigali"},"geometry":{"type":"Polygon","coordinates":[[[30.0,-1.9],[30.2,-1.9],[30.2,-1.8],[30.0,-1.8],[30.0,-1.9]]]}},
+{"type":"Feature","properties":{"NAME":"Northern Province"},"geometry":{"type":"Polygon","coordinates":[[[29.5,-1.5],[30.5,-1.5],[30.5,-1.0],[29.5,-1.0],[29.5,-1.5]]]}},
+{"type":"Feature","properties":{"NAME":"Southern Province"},"geometry":{"type":"Polygon","coordinates":[[[29.0,-2.8],[30.3,-2.8],[30.3,-2.0],[29.0,-2.0],[29.0,-2.8]]]}},
+{"type":"Feature","properties":{"NAME":"Eastern Province"},"geometry":{"type":"Polygon","coordinates":[[[30.0,-2.3],[30.9,-2.3],[30.9,-1.0],[30.0,-1.0],[30.0,-2.3]]]}},
+{"type":"Feature","properties":{"NAME":"Western Province"},"geometry":{"type":"Polygon","coordinates":[[[28.8,-2.8],[29.5,-2.8],[29.5,-1.0],[28.8,-1.0],[28.8,-2.8]]]}}
+]}

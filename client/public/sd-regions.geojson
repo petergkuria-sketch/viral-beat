@@ -1,0 +1,20 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"NAME":"Khartoum"},"geometry":{"type":"Polygon","coordinates":[[[32.0,15.0],[33.5,15.0],[33.5,16.5],[32.0,16.5],[32.0,15.0]]]}},
+{"type":"Feature","properties":{"NAME":"North Khartoum"},"geometry":{"type":"Polygon","coordinates":[[[31.5,15.5],[33.0,15.5],[33.0,17.0],[31.5,17.0],[31.5,15.5]]]}},
+{"type":"Feature","properties":{"NAME":"River Nile"},"geometry":{"type":"Polygon","coordinates":[[[32.5,17.0],[35.0,17.0],[35.0,21.5],[32.5,21.5],[32.5,17.0]]]}},
+{"type":"Feature","properties":{"NAME":"Northern"},"geometry":{"type":"Polygon","coordinates":[[[29.0,19.5],[37.5,19.5],[37.5,22.0],[29.0,22.0],[29.0,19.5]]]}},
+{"type":"Feature","properties":{"NAME":"Red Sea"},"geometry":{"type":"Polygon","coordinates":[[[35.0,18.0],[38.5,18.0],[38.5,22.0],[35.0,22.0],[35.0,18.0]]]}},
+{"type":"Feature","properties":{"NAME":"Kassala"},"geometry":{"type":"Polygon","coordinates":[[[35.0,14.5],[37.5,14.5],[37.5,17.5],[35.0,17.5],[35.0,14.5]]]}},
+{"type":"Feature","properties":{"NAME":"Gedaref"},"geometry":{"type":"Polygon","coordinates":[[[33.5,13.0],[36.5,13.0],[36.5,16.0],[33.5,16.0],[33.5,13.0]]]}},
+{"type":"Feature","properties":{"NAME":"Al Qadarif"},"geometry":{"type":"Polygon","coordinates":[[[34.0,12.5],[36.5,12.5],[36.5,15.0],[34.0,15.0],[34.0,12.5]]]}},
+{"type":"Feature","properties":{"NAME":"Sinnar"},"geometry":{"type":"Polygon","coordinates":[[[32.0,12.0],[35.0,12.0],[35.0,15.0],[32.0,15.0],[32.0,12.0]]]}},
+{"type":"Feature","properties":{"NAME":"Blue Nile"},"geometry":{"type":"Polygon","coordinates":[[[33.0,10.5],[35.5,10.5],[35.5,13.5],[33.0,13.5],[33.0,10.5]]]}},
+{"type":"Feature","properties":{"NAME":"Gezira"},"geometry":{"type":"Polygon","coordinates":[[[32.0,14.0],[34.0,14.0],[34.0,15.5],[32.0,15.5],[32.0,14.0]]]}},
+{"type":"Feature","properties":{"NAME":"White Nile"},"geometry":{"type":"Polygon","coordinates":[[[31.0,12.5],[33.5,12.5],[33.5,15.5],[31.0,15.5],[31.0,12.5]]]}},
+{"type":"Feature","properties":{"NAME":"North Kordofan"},"geometry":{"type":"Polygon","coordinates":[[[27.5,12.5],[32.5,12.5],[32.5,16.5],[27.5,16.5],[27.5,12.5]]]}},
+{"type":"Feature","properties":{"NAME":"South Kordofan"},"geometry":{"type":"Polygon","coordinates":[[[27.5,9.5],[32.5,9.5],[32.5,13.0],[27.5,13.0],[27.5,9.5]]]}},
+{"type":"Feature","properties":{"NAME":"West Kordofan"},"geometry":{"type":"Polygon","coordinates":[[[24.0,10.5],[28.5,10.5],[28.5,14.5],[24.0,14.5],[24.0,10.5]]]}},
+{"type":"Feature","properties":{"NAME":"North Darfur"},"geometry":{"type":"Polygon","coordinates":[[[22.0,14.0],[27.5,14.0],[27.5,20.0],[22.0,20.0],[22.0,14.0]]]}},
+{"type":"Feature","properties":{"NAME":"West Darfur"},"geometry":{"type":"Polygon","coordinates":[[[22.0,10.5],[25.5,10.5],[25.5,14.5],[22.0,14.5],[22.0,10.5]]]}},
+{"type":"Feature","properties":{"NAME":"South Darfur"},"geometry":{"type":"Polygon","coordinates":[[[24.0,8.0],[28.5,8.0],[28.5,11.5],[24.0,11.5],[24.0,8.0]]]}}
+]}

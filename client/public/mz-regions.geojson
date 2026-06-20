@@ -1,0 +1,13 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"NAME":"Niassa"},"geometry":{"type":"Polygon","coordinates":[[[34.0,-10.0],[36.5,-10.0],[36.5,-12.5],[34.0,-12.5],[34.0,-10.0]]]}},
+{"type":"Feature","properties":{"NAME":"Cabo Delgado"},"geometry":{"type":"Polygon","coordinates":[[[36.5,-10.0],[40.5,-10.0],[40.5,-11.5],[36.5,-11.5],[36.5,-10.0]]]}},
+{"type":"Feature","properties":{"NAME":"Nampula"},"geometry":{"type":"Polygon","coordinates":[[[36.0,-12.5],[40.5,-12.5],[40.5,-15.0],[36.0,-15.0],[36.0,-12.5]]]}},
+{"type":"Feature","properties":{"NAME":"Zambezia"},"geometry":{"type":"Polygon","coordinates":[[[33.5,-14.5],[37.5,-14.5],[37.5,-17.0],[33.5,-17.0],[33.5,-14.5]]]}},
+{"type":"Feature","properties":{"NAME":"Tete"},"geometry":{"type":"Polygon","coordinates":[[[30.0,-14.0],[34.0,-14.0],[34.0,-16.5],[30.0,-16.5],[30.0,-14.0]]]}},
+{"type":"Feature","properties":{"NAME":"Manica"},"geometry":{"type":"Polygon","coordinates":[[[32.0,-17.0],[34.5,-17.0],[34.5,-19.5],[32.0,-19.5],[32.0,-17.0]]]}},
+{"type":"Feature","properties":{"NAME":"Sofala"},"geometry":{"type":"Polygon","coordinates":[[[34.0,-17.5],[35.5,-17.5],[35.5,-20.5],[34.0,-20.5],[34.0,-17.5]]]}},
+{"type":"Feature","properties":{"NAME":"Inhambane"},"geometry":{"type":"Polygon","coordinates":[[[33.0,-20.5],[35.5,-20.5],[35.5,-24.0],[33.0,-24.0],[33.0,-20.5]]]}},
+{"type":"Feature","properties":{"NAME":"Gaza"},"geometry":{"type":"Polygon","coordinates":[[[31.0,-22.0],[34.0,-22.0],[34.0,-25.0],[31.0,-25.0],[31.0,-22.0]]]}},
+{"type":"Feature","properties":{"NAME":"Maputo Province"},"geometry":{"type":"Polygon","coordinates":[[[32.0,-25.0],[33.5,-25.0],[33.5,-26.5],[32.0,-26.5],[32.0,-25.0]]]}},
+{"type":"Feature","properties":{"NAME":"Maputo City"},"geometry":{"type":"Polygon","coordinates":[[[32.4,-25.8],[32.7,-25.8],[32.7,-26.0],[32.4,-26.0],[32.4,-25.8]]]}}
+]}

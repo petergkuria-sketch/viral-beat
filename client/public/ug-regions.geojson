@@ -1,0 +1,7 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"NAME":"Central Region"},"geometry":{"type":"Polygon","coordinates":[[[30.0,0.5],[33.0,0.5],[33.0,-1.5],[30.0,-1.5],[30.0,0.5]]]}},
+{"type":"Feature","properties":{"NAME":"Northern Region"},"geometry":{"type":"Polygon","coordinates":[[[30.0,0.5],[35.5,0.5],[35.5,4.2],[30.0,4.2],[30.0,0.5]]]}},
+{"type":"Feature","properties":{"NAME":"Eastern Region"},"geometry":{"type":"Polygon","coordinates":[[[33.0,-1.5],[35.5,-1.5],[35.5,2.5],[33.0,2.5],[33.0,-1.5]]]}},
+{"type":"Feature","properties":{"NAME":"Western Region"},"geometry":{"type":"Polygon","coordinates":[[[29.5,-1.5],[31.5,-1.5],[31.5,2.0],[29.5,2.0],[29.5,-1.5]]]}},
+{"type":"Feature","properties":{"NAME":"Kampala"},"geometry":{"type":"Polygon","coordinates":[[[32.4,0.2],[32.7,0.2],[32.7,0.4],[32.4,0.4],[32.4,0.2]]]}}
+]}

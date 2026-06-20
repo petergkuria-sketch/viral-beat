@@ -1,0 +1,11 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"NAME":"Limpopo"},"geometry":{"type":"Polygon","coordinates":[[[26.5,22.1],[31.5,22.1],[31.5,25.0],[26.5,25.0],[26.5,22.1]]]}},
+{"type":"Feature","properties":{"NAME":"Mpumalanga"},"geometry":{"type":"Polygon","coordinates":[[[29.0,24.0],[32.5,24.0],[32.5,27.0],[29.0,27.0],[29.0,24.0]]]}},
+{"type":"Feature","properties":{"NAME":"Gauteng"},"geometry":{"type":"Polygon","coordinates":[[[27.5,25.0],[29.0,25.0],[29.0,26.5],[27.5,26.5],[27.5,25.0]]]}},
+{"type":"Feature","properties":{"NAME":"North West"},"geometry":{"type":"Polygon","coordinates":[[[22.5,24.0],[27.5,24.0],[27.5,27.5],[22.5,27.5],[22.5,24.0]]]}},
+{"type":"Feature","properties":{"NAME":"Free State"},"geometry":{"type":"Polygon","coordinates":[[[24.0,26.5],[30.0,26.5],[30.0,30.5],[24.0,30.5],[24.0,26.5]]]}},
+{"type":"Feature","properties":{"NAME":"KwaZulu-Natal"},"geometry":{"type":"Polygon","coordinates":[[[29.0,27.0],[32.9,27.0],[32.9,31.5],[29.0,31.5],[29.0,27.0]]]}},
+{"type":"Feature","properties":{"NAME":"Northern Cape"},"geometry":{"type":"Polygon","coordinates":[[[16.5,26.0],[25.0,26.0],[25.0,29.5],[16.5,29.5],[16.5,26.0]]]}},
+{"type":"Feature","properties":{"NAME":"Eastern Cape"},"geometry":{"type":"Polygon","coordinates":[[[22.0,30.0],[30.0,30.0],[30.0,34.5],[22.0,34.5],[22.0,30.0]]]}},
+{"type":"Feature","properties":{"NAME":"Western Cape"},"geometry":{"type":"Polygon","coordinates":[[[17.0,31.5],[22.5,31.5],[22.5,34.8],[17.0,34.8],[17.0,31.5]]]}}
+]}

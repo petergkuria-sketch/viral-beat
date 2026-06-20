@@ -1,0 +1,12 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"NAME":"Lusaka"},"geometry":{"type":"Polygon","coordinates":[[[27.5,-14.5],[29.0,-14.5],[29.0,-16.0],[27.5,-16.0],[27.5,-14.5]]]}},
+{"type":"Feature","properties":{"NAME":"Copperbelt"},"geometry":{"type":"Polygon","coordinates":[[[26.0,-12.0],[29.5,-12.0],[29.5,-13.5],[26.0,-13.5],[26.0,-12.0]]]}},
+{"type":"Feature","properties":{"NAME":"Central"},"geometry":{"type":"Polygon","coordinates":[[[26.5,-12.5],[30.5,-12.5],[30.5,-15.5],[26.5,-15.5],[26.5,-12.5]]]}},
+{"type":"Feature","properties":{"NAME":"Eastern"},"geometry":{"type":"Polygon","coordinates":[[[30.5,-11.5],[33.5,-11.5],[33.5,-15.0],[30.5,-15.0],[30.5,-11.5]]]}},
+{"type":"Feature","properties":{"NAME":"Northern"},"geometry":{"type":"Polygon","coordinates":[[[28.0,-7.5],[32.5,-7.5],[32.5,-11.5],[28.0,-11.5],[28.0,-7.5]]]}},
+{"type":"Feature","properties":{"NAME":"Luapula"},"geometry":{"type":"Polygon","coordinates":[[[27.5,-8.5],[30.5,-8.5],[30.5,-12.0],[27.5,-12.0],[27.5,-8.5]]]}},
+{"type":"Feature","properties":{"NAME":"Muchinga"},"geometry":{"type":"Polygon","coordinates":[[[30.0,-9.0],[33.0,-9.0],[33.0,-12.5],[30.0,-12.5],[30.0,-9.0]]]}},
+{"type":"Feature","properties":{"NAME":"Western"},"geometry":{"type":"Polygon","coordinates":[[[21.5,-14.0],[25.5,-14.0],[25.5,-18.0],[21.5,-18.0],[21.5,-14.0]]]}},
+{"type":"Feature","properties":{"NAME":"North-Western"},"geometry":{"type":"Polygon","coordinates":[[[21.5,-8.5],[26.5,-8.5],[26.5,-13.5],[21.5,-13.5],[21.5,-8.5]]]}},
+{"type":"Feature","properties":{"NAME":"Southern"},"geometry":{"type":"Polygon","coordinates":[[[25.0,-15.5],[30.0,-15.5],[30.0,-18.5],[25.0,-18.5],[25.0,-15.5]]]}}
+]}

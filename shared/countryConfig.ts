@@ -99,7 +99,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "High",
     stabilityScore: 42,
     modules: [
-      "tracker", "parliament", "senate", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "senate", "newsfeed", "breaking-news",
       "social-media", "election-phases", "movements", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -131,7 +131,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Moderate",
     stabilityScore: 55,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "social-media", "election-phases", "movements", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -162,7 +162,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Low",
     stabilityScore: 72,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "social-media", "election-phases", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -191,7 +191,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "High",
     stabilityScore: 35,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "social-media", "election-phases", "movements", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -220,7 +220,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Moderate",
     stabilityScore: 62,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "election-phases", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -248,7 +248,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Moderate",
     stabilityScore: 54,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "election-phases", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -276,7 +276,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Moderate",
     stabilityScore: 58,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "election-phases", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -305,7 +305,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Moderate",
     stabilityScore: 50,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "social-media", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -335,7 +335,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Moderate",
     stabilityScore: 44,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "election-phases", "movements", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -364,7 +364,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "High",
     stabilityScore: 38,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "movements", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -393,7 +393,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "High",
     stabilityScore: 35,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "movements", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -421,7 +421,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Moderate",
     stabilityScore: 52,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "election-phases", "movements", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -450,7 +450,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Moderate",
     stabilityScore: 48,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "movements", "alerts", "reports", "executive",
     ],
     legislature: {
@@ -506,7 +506,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     riskLevel: "Low",
     stabilityScore: 75,
     modules: [
-      "tracker", "parliament", "newsfeed", "breaking-news",
+      "tracker", "regional-map", "parliament", "newsfeed", "breaking-news",
       "election-phases", "alerts", "reports", "executive",
     ],
     legislature: {

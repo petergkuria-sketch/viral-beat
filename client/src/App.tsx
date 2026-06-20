@@ -48,6 +48,7 @@ const CountryBreakingNews = lazy(() => import("./pages/country/CountryBreakingNe
 const CountryMovements = lazy(() => import("./pages/country/CountryMovements"));
 const CountryAlerts = lazy(() => import("./pages/country/CountryAlerts"));
 const CountryReports = lazy(() => import("./pages/country/CountryReports"));
+const CountryRegionalMap = lazy(() => import("./pages/country/CountryRegionalMap"));
 
 // Kenya Intelligence Module
 const KenyaDashboard = lazy(() => import("./pages/KenyaDashboard"));
@@ -126,6 +127,7 @@ function Router() {
     { path: "/country/:code/movements", component: CountryMovements },
     { path: "/country/:code/alerts", component: CountryAlerts },
     { path: "/country/:code/reports", component: CountryReports },
+    { path: "/country/:code/regional-map", component: CountryRegionalMap },
     // Kenya Intelligence Module routes (legacy — kept for deep pages)
     { path: "/kenya", component: KenyaDashboard },
     { path: "/kenya/tracker", component: KenyaTracker },
