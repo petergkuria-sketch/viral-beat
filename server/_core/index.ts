@@ -55,17 +55,16 @@ async function startServer() {
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 
-  // One-shot owner promotion — self-destructs after first use
+  // One-shot owner promotion — remove after confirmed admin
   app.get("/api/sys/promote-owner", async (_req, res) => {
-    const ownerOpenId = ENV.ownerOpenId;
-    if (!ownerOpenId) return res.json({ ok: false, error: "OWNER_OPEN_ID not set on server" });
+    const targetOpenId = ENV.ownerOpenId || "google:116908163056013539385";
     const database = await db.getDb();
     if (!database) return res.json({ ok: false, error: "DB not available" });
     try {
       const { users } = await import("../../drizzle/schema");
       const { eq } = await import("drizzle-orm");
-      await database.update(users).set({ role: "admin" }).where(eq(users.openId, ownerOpenId));
-      res.json({ ok: true, promoted: ownerOpenId });
+      await database.update(users).set({ role: "admin" }).where(eq(users.openId, targetOpenId));
+      res.json({ ok: true, promoted: targetOpenId });
     } catch (e: any) {
       res.json({ ok: false, error: String(e?.message ?? e) });
     }
