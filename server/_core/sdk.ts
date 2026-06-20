@@ -218,8 +218,8 @@ class SDKServer {
       }
 
       return {
-        openId,
-        appId,
+        openId: openId as string,
+        appId: typeof appId === "string" ? appId : "",
         name: typeof name === "string" ? name : "",
       };
     } catch (error) {
