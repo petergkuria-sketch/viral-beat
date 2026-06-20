@@ -13,6 +13,7 @@ import swaggerUi from "swagger-ui-express";
 import v1Router from "../api/v1";
 import { openapiSpec } from "../api/openapi";
 import { startMigrationService } from "../migrationService";
+import { startSentimentPipeline } from "../services/sentimentPipeline";
 import { sdk } from "./sdk";
 import * as db from "../db";
 import { ENV } from "./env";
@@ -89,6 +90,9 @@ async function startServer() {
     
     // Start migration monitoring service
     startMigrationService();
+
+    // Start RSS sentiment ingestion pipeline (runs immediately then every 4h)
+    startSentimentPipeline();
 
     // Pre-warm Vite dep optimization so the first browser load is instant
     // (Vite in middleware mode does lazy dep bundling on first request)
