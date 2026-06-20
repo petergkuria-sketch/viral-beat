@@ -74,7 +74,13 @@ export default function LandingPage() {
 
   const scrollTo = (id: string) => {
     setMobileMenuOpen(false);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      // Not on the landing page — navigate there with hash
+      window.location.href = `/#${id}`;
+    }
   };
 
   const testimonials = [
@@ -86,6 +92,16 @@ export default function LandingPage() {
   useEffect(() => {
     const t = setInterval(() => setActiveTestimonial(p => (p + 1) % testimonials.length), 5000);
     return () => clearInterval(t);
+  }, []);
+
+  // Scroll to hash section on mount (e.g. navigating to /#methodology from another page)
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash) {
+      setTimeout(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
   }, []);
 
   // Surface auth errors passed back from OAuth redirect
@@ -643,7 +659,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── METHODOLOGY SUMMARY ──────────────────────────────────────────────── */}
-      <section id="methodology" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+      <section id="methodology" className="py-24 px-4" style={{ scrollMarginTop: "5rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
