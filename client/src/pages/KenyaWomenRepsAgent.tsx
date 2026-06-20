@@ -315,7 +315,7 @@ export default function WomenRepsAgent() {
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredReps.map((rep) => (
-              <Link key={rep.id} href={`/women-reps/${getCountySlug(rep.county)}`}>
+              <Link key={rep.id} href={`/kenya/woman-rep/${getCountySlug(rep.county)}`}>
                 <Card className="border-2 border-black hover:border-pink-500 hover:shadow-lg transition-all cursor-pointer h-full">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-3">
@@ -427,7 +427,7 @@ export default function WomenRepsAgent() {
                       <td className="p-3 text-center font-mono">{rep.approvalRating}%</td>
                       <td className="p-3 text-center">{getTrendIcon(rep.trend)}</td>
                       <td className="p-3 text-center">
-                        <Link href={`/women-reps/${getCountySlug(rep.county)}`}>
+                        <Link href={`/kenya/woman-rep/${getCountySlug(rep.county)}`}>
                           <Button variant="ghost" size="sm" className="h-7 px-2">
                             <ArrowUpRight className="w-4 h-4" />
                           </Button>

@@ -213,7 +213,7 @@ export default function WomanRepDetail() {
                 <p className="font-mono font-bold text-foreground">{governor.name}</p>
                 <p className="text-sm text-muted-foreground font-mono">{governor.party} • {governor.coalition}</p>
               </div>
-              <Link href={`/governors/${county}`} className="px-4 py-2 border-2 border-pink-500 text-pink-600 font-mono text-sm hover:bg-pink-500 hover:text-white transition-colors">
+              <Link href={`/kenya/governor/${county}`} className="px-4 py-2 border-2 border-pink-500 text-pink-600 font-mono text-sm hover:bg-pink-500 hover:text-white transition-colors">
                 View Governor Profile →
               </Link>
             </div>

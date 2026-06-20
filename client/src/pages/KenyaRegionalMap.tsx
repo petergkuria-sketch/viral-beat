@@ -416,7 +416,7 @@ export default function RegionalMap() {
                         </div>
 
                         <Link
-                          href={`/governors/${getGovernorSlug(activeGovernor.county)}`}
+                          href={`/kenya/governor/${getGovernorSlug(activeGovernor.county)}`}
                           className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-foreground text-background font-mono text-xs uppercase hover:bg-foreground/90 transition-colors"
                         >
                           View Full Profile

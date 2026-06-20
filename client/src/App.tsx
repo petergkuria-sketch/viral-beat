@@ -71,6 +71,7 @@ const KenyaReports = lazy(() => import("./pages/KenyaReports"));
 const KenyaConstituencyDetail = lazy(() => import("./pages/KenyaConstituencyDetail"));
 const KenyaSenatorDetail = lazy(() => import("./pages/KenyaSenatorDetail"));
 const KenyaWomanRepDetail = lazy(() => import("./pages/KenyaWomanRepDetail"));
+const KenyaGovernorDetail = lazy(() => import("./pages/KenyaGovernorDetail"));
 const KenyaMovements = lazy(() => import("./pages/KenyaMovements"));
 const KenyaMovementDetail = lazy(() => import("./pages/KenyaMovementDetail"));
 
@@ -150,6 +151,7 @@ function Router() {
     { path: "/kenya/constituency/:id", component: KenyaConstituencyDetail },
     { path: "/kenya/senator/:id", component: KenyaSenatorDetail },
     { path: "/kenya/woman-rep/:id", component: KenyaWomanRepDetail },
+    { path: "/kenya/governor/:county", component: KenyaGovernorDetail },
     { path: "/kenya/movements", component: KenyaMovements },
     { path: "/kenya/movements/:id", component: KenyaMovementDetail },
   ];

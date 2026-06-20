@@ -320,12 +320,12 @@ export default function ParliamentAgent() {
                     <tr key={mp.id} className={i % 2 === 0 ? "bg-background" : "bg-secondary/30"}>
                       <td className="p-3 font-mono text-sm">
                         {mp.constituency ? (
-                          <Link href={`/parliament/${mp.constituency.toLowerCase().replace(/\s+/g, "-")}`} className="hover:underline hover:text-primary transition-colors">{mp.name}</Link>
+                          <Link href={`/kenya/constituency/${mp.constituency.toLowerCase().replace(/\s+/g, "-")}`} className="hover:underline hover:text-primary transition-colors">{mp.name}</Link>
                         ) : mp.name}
                       </td>
                       <td className="p-3 font-mono text-sm text-muted-foreground">
                         {mp.constituency ? (
-                          <Link href={`/parliament/${mp.constituency.toLowerCase().replace(/\s+/g, "-")}`} className="hover:underline hover:text-primary transition-colors">{mp.constituency}</Link>
+                          <Link href={`/kenya/constituency/${mp.constituency.toLowerCase().replace(/\s+/g, "-")}`} className="hover:underline hover:text-primary transition-colors">{mp.constituency}</Link>
                         ) : "-"}
                       </td>
                       <td className="p-3 font-mono text-sm">{mp.county}</td>

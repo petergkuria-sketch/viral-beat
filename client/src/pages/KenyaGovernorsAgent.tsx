@@ -370,7 +370,7 @@ export default function GovernorsAgent() {
             {filteredGovernors.map((gov) => (
               <Link 
                 key={gov.id} 
-                href={`/governors/${gov.county.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                href={`/kenya/governor/${gov.county.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
                 className="brutalist-card group hover:bg-secondary transition-colors cursor-pointer block"
               >
                 <div className="flex justify-between items-start mb-3">

@@ -158,7 +158,7 @@ export default function SenateAgent() {
             </h3>
             <div className="space-y-3">
               {topPerformers.map((senator, i) => (
-                <Link key={senator.id} href={`/senate/${senator.id}`}>
+                <Link key={senator.id} href={`/kenya/senator/${senator.id}`}>
                   <div className="flex items-center gap-3 p-2 bg-white hover:bg-green-100 cursor-pointer transition-colors">
                     <span className="w-6 h-6 bg-green-500 text-white flex items-center justify-center text-xs font-bold">
                       {i + 1}
@@ -182,7 +182,7 @@ export default function SenateAgent() {
             </h3>
             <div className="space-y-3">
               {bottomPerformers.map((senator, i) => (
-                <Link key={senator.id} href={`/senate/${senator.id}`}>
+                <Link key={senator.id} href={`/kenya/senator/${senator.id}`}>
                   <div className="flex items-center gap-3 p-2 bg-white hover:bg-red-100 cursor-pointer transition-colors">
                     <span className="w-6 h-6 bg-red-500 text-white flex items-center justify-center text-xs font-bold">
                       {i + 1}
@@ -236,7 +236,7 @@ export default function SenateAgent() {
         {/* Senators Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredSenators.map(senator => (
-            <Link key={senator.id} href={`/senate/${senator.id}`}>
+            <Link key={senator.id} href={`/kenya/senator/${senator.id}`}>
               <div
                 className="brutalist-card bg-background cursor-pointer hover:bg-secondary/50 hover:border-[#dc2626] transition-colors"
               >
@@ -356,7 +356,7 @@ export default function SenateAgent() {
               </div>
 
               <div className="flex gap-3">
-                <Link href={`/senate/${selectedSenator.id}`} className="flex-1">
+                <Link href={`/kenya/senator/${selectedSenator.id}`} className="flex-1">
                   <button className="w-full py-3 bg-[#dc2626] text-white font-mono text-sm hover:bg-[#b91c1c] transition-colors">
                     View Full Profile
                   </button>
