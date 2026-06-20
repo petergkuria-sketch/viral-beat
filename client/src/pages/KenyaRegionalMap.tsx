@@ -202,17 +202,17 @@ export default function RegionalMap() {
                   {viewMode === 'risk' ? 'Risk Level' : 'Sentiment'}
                 </div>
                 <div className="space-y-1.5">
-                  {viewMode === 'risk' ? [
+                  {(viewMode === 'risk' ? [
                     { label: 'Critical', color: '#dc2626' },
                     { label: 'High',     color: '#f97316' },
                     { label: 'Medium',   color: '#eab308' },
                     { label: 'Low',      color: '#22c55e' },
                   ] : [
-                    { label: 'Positive (70+)',  color: '#22c55e' },
-                    { label: 'Neutral (50–69)', color: '#eab308' },
-                    { label: 'Negative (30–49)',color: '#f97316' },
-                    { label: 'Critical (<30)',  color: '#dc2626' },
-                  ].map(({ label, color }) => (
+                    { label: 'Positive (70+)',   color: '#22c55e' },
+                    { label: 'Neutral (50-69)',  color: '#eab308' },
+                    { label: 'Negative (30-49)', color: '#f97316' },
+                    { label: 'Critical (<30)',   color: '#dc2626' },
+                  ]).map(({ label, color }) => (
                     <div key={label} className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-sm shrink-0" style={{ background: color }} />
                       <span className="text-[10px] text-slate-300">{label}</span>
