@@ -312,6 +312,11 @@ export default function AdminUsers() {
   const isBannedFilter =
     banned === "banned" ? true : banned === "active" ? false : undefined;
 
+  const [migrationLog, setMigrationLog] = useState<string[] | null>(null);
+  const runMigrations = trpc.admin.runMigrations.useMutation({
+    onSuccess: (d) => setMigrationLog(d.results),
+  });
+
   const { data, isLoading, refetch } = trpc.admin.listUsers.useQuery({
     page,
     limit: 25,
@@ -378,7 +383,27 @@ export default function AdminUsers() {
           <Button variant="outline" size="sm" onClick={() => refetch()} className="border-[#1e3a5f] gap-2">
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </Button>
+          <Button size="sm" variant="outline"
+            disabled={runMigrations.isPending}
+            onClick={() => runMigrations.mutate()}
+            className="border-yellow-700 text-yellow-400 hover:bg-yellow-950/30 gap-2">
+            {runMigrations.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
+            Run DB Migrations
+          </Button>
         </div>
+
+        {/* Migration log */}
+        {migrationLog && (
+          <div className="bg-[#0d1e36] border border-yellow-800/50 rounded-xl p-4 space-y-1">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-yellow-400 uppercase tracking-wide">Migration Results</span>
+              <button onClick={() => setMigrationLog(null)} className="text-gray-500 hover:text-white"><X className="w-3.5 h-3.5" /></button>
+            </div>
+            {migrationLog.map((line, i) => (
+              <div key={i} className={`text-xs font-mono ${line.startsWith("OK") ? "text-green-400" : "text-gray-400"}`}>{line}</div>
+            ))}
+          </div>
+        )}
 
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

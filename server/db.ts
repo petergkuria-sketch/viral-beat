@@ -25,26 +25,12 @@ export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       _db = drizzle(process.env.DATABASE_URL);
-      await migrateNewColumns(_db);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
     }
   }
   return _db;
-}
-
-// Add new columns without a full migration runner — safe to run multiple times.
-async function migrateNewColumns(db: ReturnType<typeof drizzle>) {
-  try {
-    await db.execute(
-      `ALTER TABLE users
-         ADD COLUMN IF NOT EXISTS isBanned TINYINT(1) NOT NULL DEFAULT 0,
-         ADD COLUMN IF NOT EXISTS banReason TEXT NULL`
-    );
-  } catch {
-    // Column already exists or DB doesn't support IF NOT EXISTS — ignore.
-  }
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {

@@ -1766,6 +1766,26 @@ ${input.originalContent}`
         return { success: true };
       }),
 
+    runMigrations: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const results: string[] = [];
+        for (const stmt of [
+          `ALTER TABLE users ADD COLUMN isBanned TINYINT(1) NOT NULL DEFAULT 0`,
+          `ALTER TABLE users ADD COLUMN banReason TEXT NULL`,
+        ]) {
+          try {
+            await db.execute(sql.raw(stmt));
+            results.push(`OK: ${stmt.slice(0, 50)}`);
+          } catch (e: any) {
+            results.push(`SKIP: ${String(e.message ?? e).slice(0, 80)}`);
+          }
+        }
+        return { results };
+      }),
+
     banUser: protectedProcedure
       .input(z.object({ id: z.number(), reason: z.string().min(1).max(500) }))
       .mutation(async ({ ctx, input }) => {
