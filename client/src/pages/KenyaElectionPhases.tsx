@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from "react";
 
 import { electionPhases, kenyaRegions, senateMembers, executiveMembers } from "@/lib/kenya/political-data";
-import { 
-  Calendar, 
-  TrendingUp, 
+import {
+  Calendar,
+  TrendingUp,
   TrendingDown,
   Minus,
   Users,
@@ -17,13 +17,13 @@ import {
   Vote,
   Flag
 } from "lucide-react";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   AreaChart,
   Area,
@@ -78,16 +78,16 @@ const phaseIcons: Record<string, React.ReactNode> = {
 const getMobilizationColor = (level: number) => {
   if (level >= 80) return "bg-red-500";
   if (level >= 60) return "bg-orange-500";
-  if (level >= 40) return "bg-yellow-500";
-  return "bg-green-500";
+  if (level >= 40) return "bg-amber-500";
+  return "bg-emerald-500";
 };
 
-const getHateSpeechColor = (intensity: string) => {
+const getHateSpeechBadgeStyle = (intensity: string) => {
   switch (intensity) {
-    case "critical": return "bg-red-600 text-white";
-    case "high": return "bg-red-400 text-white";
-    case "medium": return "bg-yellow-500 text-black";
-    default: return "bg-green-500 text-white";
+    case "critical": return "bg-red-500/10 border-red-500/20 text-red-300";
+    case "high": return "bg-orange-500/10 border-orange-500/20 text-orange-300";
+    case "medium": return "bg-amber-500/10 border-amber-500/20 text-amber-300";
+    default: return "bg-emerald-500/10 border-emerald-500/20 text-emerald-300";
   }
 };
 
@@ -101,40 +101,49 @@ export default function ElectionPhases() {
 
   const currentPhase = electionPhases.find(p => p.id === selectedPhase);
 
-  return (
-    <div className="space-y-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="border-b-2 border-border pb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Calendar className="w-8 h-8" />
-            <h2 className="text-3xl md:text-4xl font-mono font-bold uppercase">Election Phase Tracker</h2>
-          </div>
-          <p className="text-muted-foreground font-mono">
-            Track sentiment across Pre-election, Campaign, and Local Mobilization phases.
-          </p>
-        </div>
+  const chartTooltipStyle = {
+    backgroundColor: '#0d1525',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '12px',
+    color: '#e2e8f0'
+  };
 
+  return (
+    <div className="flex-1 overflow-y-auto">
+      {/* Page Header */}
+      <div className="border-b border-border/50 px-4 sm:px-6 py-5 bg-card/40">
+        <div className="flex items-center gap-3">
+          <Calendar className="w-6 h-6 text-slate-400" />
+          <div>
+            <h1 className="text-xl font-black text-slate-100">Election Phase Tracker</h1>
+            <p className="text-slate-400 text-sm mt-0.5">
+              Track sentiment across Pre-election, Campaign, and Local Mobilization phases.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-6 space-y-5">
         {/* Phase Selector */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {electionPhases.map(phase => (
             <button
               key={phase.id}
               onClick={() => setSelectedPhase(phase.id)}
-              className={`brutalist-card text-left transition-all ${
-                selectedPhase === phase.id 
-                  ? "bg-foreground text-background border-foreground" 
-                  : "bg-background hover:bg-secondary"
+              className={`bg-card border rounded-2xl p-4 text-left transition-all ${
+                selectedPhase === phase.id
+                  ? "border-white/20 bg-white/10"
+                  : "border-border/50 hover:bg-white/5"
               }`}
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 text-slate-400">
                 {phaseIcons[phase.type]}
                 {phase.isActive && (
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                 )}
               </div>
-              <div className="font-mono text-sm font-bold">{phase.name}</div>
-              <div className={`text-xs mt-1 ${selectedPhase === phase.id ? "opacity-70" : "text-muted-foreground"}`}>
+              <div className={`text-sm font-bold ${selectedPhase === phase.id ? 'text-slate-100' : 'text-slate-300'}`}>{phase.name}</div>
+              <div className={`text-xs mt-1 ${selectedPhase === phase.id ? "text-slate-300" : "text-slate-500"}`}>
                 {phase.isActive ? "Active" : "Inactive"}
               </div>
             </button>
@@ -143,17 +152,17 @@ export default function ElectionPhases() {
 
         {/* Current Phase Details */}
         {currentPhase && (
-          <div className="brutalist-card bg-secondary">
-            <div className="flex items-start justify-between mb-4">
+          <div className="bg-card border border-border/50 rounded-2xl p-5">
+            <div className="flex items-start justify-between mb-2">
               <div>
-                <h3 className="text-xl font-bold flex items-center gap-2">
-                  {phaseIcons[currentPhase.type]}
+                <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                  <span className="text-slate-400">{phaseIcons[currentPhase.type]}</span>
                   {currentPhase.name}
                   {currentPhase.isActive && (
-                    <span className="px-2 py-1 bg-green-500 text-white text-xs font-mono">ACTIVE</span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs">Active</span>
                   )}
                 </h3>
-                <p className="text-muted-foreground mt-1">{currentPhase.description}</p>
+                <p className="text-slate-400 mt-1">{currentPhase.description}</p>
               </div>
             </div>
           </div>
@@ -163,24 +172,24 @@ export default function ElectionPhases() {
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode("overview")}
-            className={`px-4 py-2 font-mono text-sm border-2 border-border transition-colors ${
-              viewMode === "overview" ? "bg-foreground text-background" : "bg-background hover:bg-secondary"
+            className={`px-4 py-2 text-sm rounded-xl border transition-colors ${
+              viewMode === "overview" ? "bg-white/10 border-white/20 text-slate-100" : "bg-card border-border/50 text-slate-400 hover:bg-white/5"
             }`}
           >
             Overview
           </button>
           <button
             onClick={() => setViewMode("timeline")}
-            className={`px-4 py-2 font-mono text-sm border-2 border-border transition-colors ${
-              viewMode === "timeline" ? "bg-foreground text-background" : "bg-background hover:bg-secondary"
+            className={`px-4 py-2 text-sm rounded-xl border transition-colors ${
+              viewMode === "timeline" ? "bg-white/10 border-white/20 text-slate-100" : "bg-card border-border/50 text-slate-400 hover:bg-white/5"
             }`}
           >
             Timeline
           </button>
           <button
             onClick={() => setViewMode("regional")}
-            className={`px-4 py-2 font-mono text-sm border-2 border-border transition-colors ${
-              viewMode === "regional" ? "bg-foreground text-background" : "bg-background hover:bg-secondary"
+            className={`px-4 py-2 text-sm rounded-xl border transition-colors ${
+              viewMode === "regional" ? "bg-white/10 border-white/20 text-slate-100" : "bg-card border-border/50 text-slate-400 hover:bg-white/5"
             }`}
           >
             Regional Mobilization
@@ -189,31 +198,24 @@ export default function ElectionPhases() {
 
         {/* Overview Mode */}
         {viewMode === "overview" && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* Coalition Sentiment by Phase */}
-            <div className="brutalist-card bg-background">
-              <h3 className="font-mono font-bold uppercase mb-4 flex items-center gap-2">
+            <div className="bg-card border border-border/50 rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
                 Coalition Sentiment by Phase
               </h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={phaseSentimentData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-                    <XAxis dataKey="phase" tick={{ fontSize: 12, fontFamily: 'monospace' }} />
-                    <YAxis tick={{ fontSize: 12, fontFamily: 'monospace' }} domain={[0, 100]} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        fontFamily: 'monospace', 
-                        fontSize: '12px',
-                        border: '2px solid #000',
-                        borderRadius: 0
-                      }} 
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="phase" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                    <YAxis tick={{ fill: '#64748b', fontSize: 12 }} domain={[0, 100]} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                    <Tooltip contentStyle={chartTooltipStyle} />
                     <Legend />
-                    <Bar dataKey="kenyaKwanza" name="Kenya Kwanza" fill="#EAB308" />
-                    <Bar dataKey="azimio" name="Azimio" fill="#F97316" />
-                    <Bar dataKey="overall" name="Overall" fill="#374151" />
+                    <Bar dataKey="kenyaKwanza" name="Kenya Kwanza" fill="#fbbf24" />
+                    <Bar dataKey="azimio" name="Azimio" fill="#f97316" />
+                    <Bar dataKey="overall" name="Overall" fill="#818cf8" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -221,34 +223,34 @@ export default function ElectionPhases() {
 
             {/* Phase Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="brutalist-card bg-yellow-50">
-                <div className="text-xs font-mono uppercase text-yellow-800">Kenya Kwanza Support</div>
-                <div className="text-3xl font-bold text-yellow-900">52%</div>
-                <div className="flex items-center gap-1 text-xs text-yellow-700">
+              <div className="bg-card border border-amber-500/20 rounded-2xl p-5">
+                <div className="text-xs text-slate-400 mb-1">Kenya Kwanza Support</div>
+                <div className="text-3xl font-bold text-amber-300">52%</div>
+                <div className="flex items-center gap-1 text-xs text-emerald-400">
                   <TrendingUp className="w-3 h-3" />
                   +3% from last phase
                 </div>
               </div>
-              <div className="brutalist-card bg-orange-50">
-                <div className="text-xs font-mono uppercase text-orange-800">Azimio Support</div>
-                <div className="text-3xl font-bold text-orange-900">45%</div>
-                <div className="flex items-center gap-1 text-xs text-orange-700">
+              <div className="bg-card border border-orange-500/20 rounded-2xl p-5">
+                <div className="text-xs text-slate-400 mb-1">Azimio Support</div>
+                <div className="text-3xl font-bold text-orange-300">45%</div>
+                <div className="flex items-center gap-1 text-xs text-red-400">
                   <TrendingDown className="w-3 h-3" />
                   -2% from last phase
                 </div>
               </div>
-              <div className="brutalist-card bg-red-50">
-                <div className="text-xs font-mono uppercase text-red-800">Hate Speech Alerts</div>
-                <div className="text-3xl font-bold text-red-900">127</div>
-                <div className="flex items-center gap-1 text-xs text-red-700">
+              <div className="bg-card border border-red-500/20 rounded-2xl p-5">
+                <div className="text-xs text-slate-400 mb-1">Hate Speech Alerts</div>
+                <div className="text-3xl font-bold text-red-300">127</div>
+                <div className="flex items-center gap-1 text-xs text-red-400">
                   <AlertTriangle className="w-3 h-3" />
                   23 critical
                 </div>
               </div>
-              <div className="brutalist-card bg-green-50">
-                <div className="text-xs font-mono uppercase text-green-800">Voter Engagement</div>
-                <div className="text-3xl font-bold text-green-900">68%</div>
-                <div className="flex items-center gap-1 text-xs text-green-700">
+              <div className="bg-card border border-emerald-500/20 rounded-2xl p-5">
+                <div className="text-xs text-slate-400 mb-1">Voter Engagement</div>
+                <div className="text-3xl font-bold text-emerald-300">68%</div>
+                <div className="flex items-center gap-1 text-xs text-emerald-400">
                   <Activity className="w-3 h-3" />
                   High activity
                 </div>
@@ -256,8 +258,8 @@ export default function ElectionPhases() {
             </div>
 
             {/* Key Issues by Phase */}
-            <div className="brutalist-card bg-background">
-              <h3 className="font-mono font-bold uppercase mb-4">Key Issues Driving Sentiment</h3>
+            <div className="bg-card border border-border/50 rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-slate-300 mb-4">Key Issues Driving Sentiment</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                   { issue: "Cost of Living", score: 85, trend: "up" },
@@ -267,20 +269,20 @@ export default function ElectionPhases() {
                   { issue: "Education", score: 58, trend: "stable" },
                   { issue: "Infrastructure", score: 52, trend: "up" }
                 ].map((item, i) => (
-                  <div key={i} className="p-3 bg-secondary">
+                  <div key={i} className="p-3 bg-white/5 rounded-xl">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-mono text-sm font-bold">{item.issue}</span>
-                      {item.trend === "up" && <TrendingUp className="w-4 h-4 text-red-500" />}
-                      {item.trend === "down" && <TrendingDown className="w-4 h-4 text-green-500" />}
-                      {item.trend === "stable" && <Minus className="w-4 h-4 text-gray-500" />}
+                      <span className="text-sm font-bold text-slate-200">{item.issue}</span>
+                      {item.trend === "up" && <TrendingUp className="w-4 h-4" style={{ color: '#f87171' }} />}
+                      {item.trend === "down" && <TrendingDown className="w-4 h-4" style={{ color: '#34d399' }} />}
+                      {item.trend === "stable" && <Minus className="w-4 h-4 text-slate-500" />}
                     </div>
-                    <div className="h-2 bg-background">
-                      <div 
-                        className="h-full bg-foreground"
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-indigo-500 rounded-full"
                         style={{ width: `${item.score}%` }}
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1 font-mono">{item.score}% concern level</div>
+                    <div className="text-xs text-slate-400 mt-1">{item.score}% concern level</div>
                   </div>
                 ))}
               </div>
@@ -290,61 +292,47 @@ export default function ElectionPhases() {
 
         {/* Timeline Mode */}
         {viewMode === "timeline" && (
-          <div className="space-y-6">
-            <div className="brutalist-card bg-background">
-              <h3 className="font-mono font-bold uppercase mb-4 flex items-center gap-2">
+          <div className="space-y-5">
+            <div className="bg-card border border-border/50 rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
                 <Activity className="w-5 h-5" />
                 Sentiment Timeline (2024)
               </h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={timelineData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fontFamily: 'monospace' }} />
-                    <YAxis tick={{ fontSize: 12, fontFamily: 'monospace' }} domain={[0, 100]} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        fontFamily: 'monospace', 
-                        fontSize: '12px',
-                        border: '2px solid #000',
-                        borderRadius: 0
-                      }} 
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                    <YAxis tick={{ fill: '#64748b', fontSize: 12 }} domain={[0, 100]} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                    <Tooltip contentStyle={chartTooltipStyle} />
                     <Legend />
-                    <Area type="monotone" dataKey="preElection" name="Pre-Election" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
-                    <Area type="monotone" dataKey="campaign" name="Campaign" stroke="#10B981" fill="#10B981" fillOpacity={0.3} />
-                    <Area type="monotone" dataKey="mobilization" name="Mobilization" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.3} />
+                    <Area type="monotone" dataKey="preElection" name="Pre-Election" stroke="#818cf8" fill="#818cf8" fillOpacity={0.2} />
+                    <Area type="monotone" dataKey="campaign" name="Campaign" stroke="#34d399" fill="#34d399" fillOpacity={0.2} />
+                    <Area type="monotone" dataKey="mobilization" name="Mobilization" stroke="#fbbf24" fill="#fbbf24" fillOpacity={0.2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            <div className="brutalist-card bg-background">
-              <h3 className="font-mono font-bold uppercase mb-4 flex items-center gap-2">
+            <div className="bg-card border border-border/50 rounded-2xl p-5">
+              <h3 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5" />
                 Hate Speech Incidents Over Time
               </h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={timelineData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fontFamily: 'monospace' }} />
-                    <YAxis tick={{ fontSize: 12, fontFamily: 'monospace' }} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        fontFamily: 'monospace', 
-                        fontSize: '12px',
-                        border: '2px solid #000',
-                        borderRadius: 0
-                      }} 
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="hateSpeech" 
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                    <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
+                    <Tooltip contentStyle={chartTooltipStyle} />
+                    <Line
+                      type="monotone"
+                      dataKey="hateSpeech"
                       name="Hate Speech Incidents"
-                      stroke="#EF4444" 
+                      stroke="#f87171"
                       strokeWidth={2}
-                      dot={{ fill: '#EF4444' }}
+                      dot={{ fill: '#f87171' }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -355,72 +343,72 @@ export default function ElectionPhases() {
 
         {/* Regional Mobilization Mode */}
         {viewMode === "regional" && (
-          <div className="space-y-6">
-            <div className="brutalist-card bg-foreground text-background">
-              <h3 className="font-mono font-bold uppercase mb-2">Regional Mobilization Index</h3>
-              <p className="text-sm opacity-70 mb-4">
+          <div className="space-y-5">
+            <div className="bg-card border border-border/50 rounded-2xl p-5">
+              <h3 className="font-bold text-slate-200 mb-2">Regional Mobilization Index</h3>
+              <p className="text-sm text-slate-400">
                 Tracking grassroots political activity and support balkanization across Kenya's 8 regions.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {regionalData.map((region, i) => (
-                <div key={i} className="brutalist-card bg-background">
+                <div key={i} className="bg-card border border-border/50 rounded-2xl p-5">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h4 className="font-bold flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
+                      <h4 className="font-bold text-slate-100 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-slate-400" />
                         {region.region} Region
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className={`px-2 py-1 text-xs font-mono ${
-                          region.dominantCoalition === "Kenya Kwanza" ? "bg-yellow-100 text-yellow-800" :
-                          region.dominantCoalition === "Azimio" ? "bg-orange-100 text-orange-800" :
-                          "bg-gray-100 text-gray-800"
+                        <span className={`px-2 py-0.5 rounded-full text-xs border ${
+                          region.dominantCoalition === "Kenya Kwanza" ? "bg-amber-500/10 border-amber-500/20 text-amber-300" :
+                          region.dominantCoalition === "Azimio" ? "bg-orange-500/10 border-orange-500/20 text-orange-300" :
+                          "bg-white/5 border-white/10 text-slate-400"
                         }`}>
                           {region.dominantCoalition}
                         </span>
-                        <span className={`px-2 py-1 text-xs font-mono ${getHateSpeechColor(region.hateSpeechIntensity)}`}>
-                          {region.hateSpeechIntensity.toUpperCase()} RISK
+                        <span className={`px-2 py-0.5 rounded-full text-xs border ${getHateSpeechBadgeStyle(region.hateSpeechIntensity)}`}>
+                          {region.hateSpeechIntensity.toUpperCase()} Risk
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold">{region.mobilizationLevel}%</div>
-                      <div className="text-xs text-muted-foreground font-mono">Mobilization</div>
+                      <div className="text-2xl font-bold text-slate-100">{region.mobilizationLevel}%</div>
+                      <div className="text-xs text-slate-400">Mobilization</div>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div>
-                      <div className="flex justify-between text-xs font-mono mb-1">
-                        <span>Mobilization Level</span>
-                        <span>{region.mobilizationLevel}%</span>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-slate-400">Mobilization Level</span>
+                        <span className="text-slate-200">{region.mobilizationLevel}%</span>
                       </div>
-                      <div className="h-3 bg-secondary">
-                        <div 
-                          className={`h-full ${getMobilizationColor(region.mobilizationLevel)}`}
+                      <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${getMobilizationColor(region.mobilizationLevel)}`}
                           style={{ width: `${region.mobilizationLevel}%` }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <div className="flex justify-between text-xs font-mono mb-1">
-                        <span>Projected Voter Turnout</span>
-                        <span>{region.voterTurnout}%</span>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-slate-400">Projected Voter Turnout</span>
+                        <span className="text-slate-200">{region.voterTurnout}%</span>
                       </div>
-                      <div className="h-3 bg-secondary">
-                        <div 
-                          className="h-full bg-blue-500"
+                      <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-cyan-500 rounded-full"
                           style={{ width: `${region.voterTurnout}%` }}
                         />
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-border">
-                      <span className="text-xs font-mono text-muted-foreground">Key Issue: </span>
-                      <span className="text-xs font-mono font-bold">{region.keyIssues}</span>
+                    <div className="pt-2 border-t border-border/50">
+                      <span className="text-xs text-slate-400">Key Issue: </span>
+                      <span className="text-xs font-bold text-slate-200">{region.keyIssues}</span>
                     </div>
                   </div>
                 </div>
@@ -428,19 +416,19 @@ export default function ElectionPhases() {
             </div>
 
             {/* Balkanization Alert */}
-            <div className="brutalist-card bg-red-50 border-red-500">
+            <div className="bg-card border border-red-500/30 rounded-2xl p-5">
               <div className="flex items-start gap-4">
-                <AlertTriangle className="w-8 h-8 text-red-600 flex-shrink-0" />
+                <AlertTriangle className="w-8 h-8 flex-shrink-0" style={{ color: '#f87171' }} />
                 <div>
-                  <h4 className="font-bold text-red-800">Support Balkanization Alert</h4>
-                  <p className="text-sm text-red-700 mt-1">
-                    Strong regional polarization detected. Nyanza and Western regions show 85%+ Azimio support, 
-                    while Rift Valley and Central show 80%+ Kenya Kwanza support. This pattern mirrors 
+                  <h4 className="font-bold text-red-300">Support Balkanization Alert</h4>
+                  <p className="text-sm text-red-400 mt-1">
+                    Strong regional polarization detected. Nyanza and Western regions show 85%+ Azimio support,
+                    while Rift Valley and Central show 80%+ Kenya Kwanza support. This pattern mirrors
                     historical ethnic voting blocs and increases risk of post-election tensions.
                   </p>
                   <div className="flex gap-2 mt-3">
-                    <span className="px-2 py-1 bg-red-200 text-red-800 text-xs font-mono">HIGH POLARIZATION</span>
-                    <span className="px-2 py-1 bg-red-200 text-red-800 text-xs font-mono">ETHNIC BLOC VOTING</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-red-500/10 border border-red-500/20 text-red-300">High Polarization</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-red-500/10 border border-red-500/20 text-red-300">Ethnic Bloc Voting</span>
                   </div>
                 </div>
               </div>
