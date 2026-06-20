@@ -1891,6 +1891,37 @@ ${input.originalContent}`
             updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_user (userId)
           )`,
+          `CREATE TABLE IF NOT EXISTS shared_briefs (
+            id VARCHAR(36) NOT NULL PRIMARY KEY,
+            userId INT NOT NULL,
+            countryCode VARCHAR(2) NOT NULL,
+            countryName VARCHAR(255) NOT NULL,
+            title VARCHAR(500) NOT NULL,
+            overview TEXT NOT NULL,
+            sentimentScore INT NOT NULL,
+            stabilityScore INT NOT NULL,
+            riskLevel VARCHAR(50) NOT NULL,
+            keyThemes TEXT,
+            briefJson LONGTEXT NOT NULL,
+            viewCount INT DEFAULT 0,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_user (userId),
+            INDEX idx_country (countryCode)
+          )`,
+          `CREATE TABLE IF NOT EXISTS contributor_profiles (
+            userId INT NOT NULL PRIMARY KEY,
+            displayName VARCHAR(255),
+            affiliation VARCHAR(500),
+            affiliationType ENUM('journalist','researcher','ngo','activist','independent') DEFAULT 'independent',
+            bio TEXT,
+            isVerified TINYINT(1) DEFAULT 0,
+            verifiedAt DATETIME,
+            signalCredits INT DEFAULT 0,
+            briefsShared INT DEFAULT 0,
+            profileSlug VARCHAR(100) UNIQUE,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+          )`,
         ]) {
           try {
             await db.execute(sql.raw(stmt));
@@ -2090,6 +2121,135 @@ Be concise, technical, and actionable. When discussing features, consider:
   africa: africaRouter,
   subscription: subscriptionRouter,
   country: countryRouter,
+
+  briefs: router({
+    // Save a brief and return a shareable ID
+    share: protectedProcedure
+      .input(z.object({
+        countryCode: z.string().length(2),
+        countryName: z.string(),
+        title: z.string(),
+        overview: z.string(),
+        sentimentScore: z.number(),
+        stabilityScore: z.number(),
+        riskLevel: z.string(),
+        keyThemes: z.array(z.string()).optional(),
+        briefJson: z.string(), // full JSON of the brief
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB unavailable");
+        const id = crypto.randomUUID();
+        await db.execute(sql.raw(
+          `INSERT INTO shared_briefs (id, userId, countryCode, countryName, title, overview, sentimentScore, stabilityScore, riskLevel, keyThemes, briefJson)
+           VALUES (${JSON.stringify(id)}, ${ctx.user.id}, ${JSON.stringify(input.countryCode.toUpperCase())}, ${JSON.stringify(input.countryName)},
+           ${JSON.stringify(input.title)}, ${JSON.stringify(input.overview)}, ${input.sentimentScore}, ${input.stabilityScore},
+           ${JSON.stringify(input.riskLevel)}, ${JSON.stringify((input.keyThemes ?? []).join(","))}, ${JSON.stringify(input.briefJson)})`
+        ));
+        // Increment briefsShared on contributor profile if exists
+        await db.execute(sql.raw(
+          `UPDATE contributor_profiles SET briefsShared = briefsShared + 1, signalCredits = signalCredits + 5 WHERE userId = ${ctx.user.id}`
+        ));
+        return { id, url: `/brief/${id}` };
+      }),
+
+    // Public read — no auth required
+    get: publicProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB unavailable");
+        const [rows] = await db.execute(sql.raw(
+          `SELECT sb.*, cp.displayName, cp.affiliation, cp.affiliationType, cp.isVerified
+           FROM shared_briefs sb
+           LEFT JOIN contributor_profiles cp ON cp.userId = sb.userId
+           WHERE sb.id = ${JSON.stringify(input.id)}`
+        )) as any;
+        const row = Array.isArray(rows) ? rows[0] : null;
+        if (!row) throw new Error("Brief not found");
+        // Increment view count
+        await db.execute(sql.raw(`UPDATE shared_briefs SET viewCount = viewCount + 1 WHERE id = ${JSON.stringify(input.id)}`));
+        return row;
+      }),
+
+    // List briefs by current user
+    myBriefs: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const [rows] = await db.execute(sql.raw(
+        `SELECT id, countryCode, countryName, title, riskLevel, sentimentScore, viewCount, createdAt FROM shared_briefs WHERE userId = ${ctx.user.id} ORDER BY createdAt DESC LIMIT 20`
+      )) as any;
+      return Array.isArray(rows) ? rows : [];
+    }),
+  }),
+
+  contributor: router({
+    // Get own profile (creates if missing)
+    getMyProfile: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB unavailable");
+      const [rows] = await db.execute(sql.raw(
+        `SELECT cp.*, ut.balance as tokenBalance FROM contributor_profiles cp LEFT JOIN userTokens ut ON ut.userId = cp.userId WHERE cp.userId = ${ctx.user.id}`
+      )) as any;
+      const existing = Array.isArray(rows) ? rows[0] : null;
+      if (existing) return existing;
+      // Auto-create on first visit
+      const slug = `contributor-${ctx.user.id}-${Date.now().toString(36)}`;
+      await db.execute(sql.raw(
+        `INSERT IGNORE INTO contributor_profiles (userId, displayName, profileSlug) VALUES (${ctx.user.id}, ${JSON.stringify(ctx.user.name ?? "Contributor")}, ${JSON.stringify(slug)})`
+      ));
+      const [newRows] = await db.execute(sql.raw(
+        `SELECT cp.*, ut.balance as tokenBalance FROM contributor_profiles cp LEFT JOIN userTokens ut ON ut.userId = cp.userId WHERE cp.userId = ${ctx.user.id}`
+      )) as any;
+      return Array.isArray(newRows) ? newRows[0] : null;
+    }),
+
+    // Update profile
+    updateProfile: protectedProcedure
+      .input(z.object({
+        displayName: z.string().min(2).max(100).optional(),
+        affiliation: z.string().max(500).optional(),
+        affiliationType: z.enum(["journalist","researcher","ngo","activist","independent"]).optional(),
+        bio: z.string().max(600).optional(),
+        profileSlug: z.string().min(3).max(60).regex(/^[a-z0-9-]+$/).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB unavailable");
+        const sets = Object.entries(input)
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => `${k} = ${JSON.stringify(v)}`)
+          .join(", ");
+        if (!sets) return { success: true };
+        await db.execute(sql.raw(
+          `UPDATE contributor_profiles SET ${sets}, updatedAt = NOW() WHERE userId = ${ctx.user.id}`
+        ));
+        return { success: true };
+      }),
+
+    // Public profile by slug
+    getBySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB unavailable");
+        const [rows] = await db.execute(sql.raw(
+          `SELECT cp.*, u.name, u.subscriptionTier,
+            (SELECT COUNT(*) FROM shared_briefs sb WHERE sb.userId = cp.userId) as totalBriefs,
+            (SELECT COALESCE(SUM(viewCount),0) FROM shared_briefs sb WHERE sb.userId = cp.userId) as totalViews
+           FROM contributor_profiles cp
+           JOIN users u ON u.id = cp.userId
+           WHERE cp.profileSlug = ${JSON.stringify(input.slug)} AND u.profileVisibility = 'public'`
+        )) as any;
+        const profile = Array.isArray(rows) ? rows[0] : null;
+        if (!profile) throw new Error("Profile not found");
+        // Recent public briefs
+        const [briefRows] = await db.execute(sql.raw(
+          `SELECT id, countryCode, countryName, title, riskLevel, sentimentScore, viewCount, createdAt FROM shared_briefs WHERE userId = ${profile.userId} ORDER BY createdAt DESC LIMIT 10`
+        )) as any;
+        return { ...profile, recentBriefs: Array.isArray(briefRows) ? briefRows : [] };
+      }),
+  }),
 
   developerKeys: router({
     list: protectedProcedure.query(async ({ ctx }) => {

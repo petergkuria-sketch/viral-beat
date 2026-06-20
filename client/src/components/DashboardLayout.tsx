@@ -143,8 +143,9 @@ const SECTIONS: Section[] = [
     icon: SettingsIcon,
     accent: "#94a3b8",
     items: [
-      { icon: Crown,        label: "Pricing & Plans",  path: "/pricing" },
-      { icon: FileText,     label: "About & Methodology", path: "/about" },
+      { icon: Crown,        label: "Pricing & Plans",      path: "/pricing" },
+      { icon: UserCircle,   label: "Contributor Profile",  path: "/contributor" },
+      { icon: FileText,     label: "About & Methodology",  path: "/about" },
       { icon: SettingsIcon, label: "Settings",         path: "/settings" },
       { icon: Shield,       label: "Privacy",          path: "/privacy-settings" },
     ],

@@ -38,6 +38,8 @@ const NewsletterSettings = lazy(() => import("./pages/NewsletterSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
+const PublicBrief = lazy(() => import("./pages/PublicBrief"));
+const ContributorProfile = lazy(() => import("./pages/ContributorProfile"));
 
 // Country Intelligence — generic templates
 const CountryDashboard = lazy(() => import("./pages/country/CountryDashboard"));
@@ -89,6 +91,9 @@ function Router() {
     { path: "/pricing", component: Pricing },
     { path: "/about", component: AboutPage },
     { path: "/methodology", component: () => { window.location.replace("/about#methodology"); return null; } },
+    { path: "/brief/:id", component: PublicBrief },
+    { path: "/contributor/:slug", component: ContributorProfile },
+    { path: "/contributor", component: ContributorProfile },
     { path: "/embed/widget", component: EmbedWidget },
     { path: "/onboarding", component: OnboardingPage },
   ];

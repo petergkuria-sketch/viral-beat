@@ -11,6 +11,7 @@ import {
   Globe, MapPin, TrendingUp, Shield, Users, Newspaper,
   AlertTriangle, CheckCircle, ChevronRight, RefreshCw,
 } from "lucide-react";
+import { ShareBriefButton } from "@/components/ShareBriefButton";
 import { AFRICAN_COUNTRIES, AFRICAN_REGIONS, getCountriesByRegion } from "../../../shared/africanCountries";
 
 const RISK_COLOR: Record<string, string> = {
@@ -93,6 +94,9 @@ function CountryPage({ code }: { code: string }) {
     trpc.africa.getCountryBrief.useQuery({ countryCode: code.toUpperCase() });
   const { data: news, isLoading: newsLoading } =
     trpc.africa.getCountryNews.useQuery({ countryCode: code.toUpperCase() });
+  const { data: contributorProfile } = trpc.contributor.getMyProfile.useQuery(undefined, {
+    retry: false,
+  });
 
   if (!countryMeta) {
     return (
@@ -124,14 +128,29 @@ function CountryPage({ code }: { code: string }) {
             {countryMeta.capital} · {countryMeta.region} · {countryMeta.languages.join(", ")}
           </p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-400 hover:text-cyan-300 mt-1"
-          onClick={() => refetch()}
-        >
-          <RefreshCw className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-2 mt-1">
+          {brief && !briefLoading && (
+            <ShareBriefButton
+              brief={{
+                countryCode: code.toUpperCase(),
+                countryName: countryMeta?.name ?? code,
+                title: `${countryMeta?.name ?? code} Intelligence Brief`,
+                overview: brief.overview ?? "",
+                sentimentScore: brief.sentimentScore ?? 0,
+                stabilityScore: brief.stabilityScore ?? 0,
+                riskLevel: brief.riskLevel ?? "medium",
+                keyThemes: brief.keyThemes ?? [],
+              }}
+              contributorName={contributorProfile?.displayName ?? undefined}
+              affiliation={contributorProfile?.affiliation ?? undefined}
+            />
+          )}
+          <Button variant="ghost" size="sm"
+            className="text-gray-400 hover:text-cyan-300"
+            onClick={() => refetch()}>
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* If Kenya — deep-link to the richer Kenya pages */}
