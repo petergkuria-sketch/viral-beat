@@ -89,8 +89,8 @@ function Router() {
   const publicRoutes = [
     { path: "/", component: LandingPage },
     { path: "/pricing", component: Pricing },
-    { path: "/about", component: AboutPage },
-    { path: "/methodology", component: () => { window.location.replace("/about#methodology"); return null; } },
+    { path: "/about", component: () => { window.location.replace("/#mission"); return null; } },
+    { path: "/methodology", component: () => { window.location.replace("/#methodology"); return null; } },
     { path: "/brief/:id", component: PublicBrief },
     { path: "/contributor/:slug", component: ContributorProfile },
     { path: "/contributor", component: ContributorProfile },

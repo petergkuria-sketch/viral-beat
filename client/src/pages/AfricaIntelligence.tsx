@@ -46,6 +46,23 @@ function AfricaHub() {
         </p>
       </div>
 
+      {/* Trend Search card */}
+      <div
+        onClick={() => setLocation("/dashboard")}
+        className="cursor-pointer flex items-center justify-between p-4 rounded-xl bg-[#0d1e36] border border-[#1e3a5f] hover:border-cyan-500/50 hover:bg-[#0d2846] transition-all"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+            <TrendingUp className="w-4 h-4 text-cyan-400" />
+          </div>
+          <div>
+            <div className="font-semibold text-white text-sm">Social Trend Search</div>
+            <div className="text-xs text-gray-400">Search YouTube, TikTok, X for any political topic across Africa</div>
+          </div>
+        </div>
+        <ChevronRight className="w-4 h-4 text-gray-500" />
+      </div>
+
       {AFRICAN_REGIONS.map(region => (
         <div key={region}>
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">

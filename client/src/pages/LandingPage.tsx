@@ -4,6 +4,7 @@ import {
   Globe, Shield, TrendingUp, ArrowRight, ChevronRight, X, Menu,
   Zap, Users, Newspaper, AlertTriangle, BarChart3, Coins,
   CheckCircle2, Star, Activity, MapPin, Code2, Calendar,
+  Rss, Brain, Database, Clock, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -127,11 +128,14 @@ export default function LandingPage() {
           </button>
 
           <div className="hidden md:flex items-center gap-1">
-            {[["people-signal", "People Signal"], ["intelligence", "Intelligence"], ["elections", "Elections"], ["creator-network", "Creators"], ["api", "API"]].map(([id, label]) => (
+            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["creator-network", "Contributors"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => scrollTo(id)} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
                 {label}
               </button>
             ))}
+            <button onClick={() => { setLocation("/about"); setTimeout(() => { window.location.hash = "methodology"; }, 150); }} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
+              Methodology
+            </button>
             <button onClick={() => setLocation("/pricing")} className="px-4 py-2 text-sm font-medium text-cyan-400 hover:text-cyan-300 rounded-lg hover:bg-white/5 transition-all">
               Pricing
             </button>
@@ -156,9 +160,10 @@ export default function LandingPage() {
         </div>
         {mobileMenuOpen && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="md:hidden border-t border-white/5 bg-[#050b1a] px-4 py-4 flex flex-col gap-1">
-            {[["people-signal", "People Signal"], ["intelligence", "Intelligence"], ["elections", "Elections"], ["creator-network", "Creators"], ["api", "API"]].map(([id, label]) => (
-              <button key={id} onClick={() => scrollTo(id)} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
+            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["creator-network", "Contributors"], ["api", "API"]].map(([id, label]) => (
+              <button key={id} onClick={() => { setMobileMenuOpen(false); scrollTo(id); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
+            <button onClick={() => { setMobileMenuOpen(false); setLocation("/about"); setTimeout(() => { window.location.hash = "methodology"; }, 150); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Methodology</button>
             <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
               {!user && <Button variant="outline" className="w-full border-white/10 text-white" onClick={() => { setMobileMenuOpen(false); window.location.href = getLoginUrl(); }}>Sign In / Register</Button>}
               <Button className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-semibold" onClick={() => { setMobileMenuOpen(false); handleExplore(); }}>Get Access</Button>
@@ -272,10 +277,10 @@ export default function LandingPage() {
       <section id="people-signal" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">People-Powered Signal</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mb-4">Intelligence Starts with People</h2>
+            <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Field Signals</Badge>
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">Ground Truth, Not Just Headlines</h2>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Journalists, activists, researchers, and community voices on the ground submit civic signals. That raw human intelligence is then structured and verified — giving you ground truth, not just headlines.
+              Journalists, activists, NGO officers, and researchers submit verified field signals — county-level events, protest reports, voting record discrepancies. That human intelligence is structured and weighted by contributor tier, giving you credible data you can cite publicly.
             </p>
           </div>
 
@@ -442,19 +447,19 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Creator Signal Network</Badge>
+              <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Intelligence Contributors</Badge>
               <h2 className="text-4xl sm:text-5xl font-black mb-5">
-                Creators Validate<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">the Intelligence</span>
+                Contributors Build<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Credibility, Not Just Reach</span>
               </h2>
               <p className="text-gray-300 text-lg leading-relaxed mb-8">
-                African creators and journalists on the ground submit viral content, civic signals, and local observations. This crowd-sourced layer validates and enriches the intelligence — and rewards contributors with VBT tokens.
+                Observers, Analysts, and Correspondents consume verified data, translate it for their communities, and submit field signals that feed the pipeline. The value chain runs through credibility — not virality. Contributors cite the methodology publicly, driving institutional trust back to the platform.
               </p>
               <ul className="space-y-4 mb-8">
                 {[
-                  ["Humans As Agents", "Submit viral local content with analysis. First-movers earn the highest rewards."],
-                  ["Trend Engine", "Cross-platform trend tracking (YouTube, TikTok, X) surfaces emerging narratives before they go mainstream."],
-                  ["VBT Token Rewards", "Contributors earn VBT tokens redeemable in the marketplace — turning local knowledge into real value."],
+                  ["Verified Contributor Tiers", "Observer → Analyst → Correspondent → Partner. Tier names signal what you do with the platform, not just what you pay."],
+                  ["Intelligence Brief Generator", "ViralMind converts raw scores into citation-ready language — English, Swahili, or county-specific framing — for WhatsApp groups, X threads, and NGO newsletters."],
+                  ["Signal Credits", "Earn credits by submitting verified field signals. Spend on premium brief generation, bulk exports, and API access — a contribution incentive, not gamification."],
                   ["Creator Verification", "Verified creators get credibility badges and premium placement in the intelligence feed."],
                 ].map(([title, desc]) => (
                   <li key={title} className="flex gap-3">
@@ -607,6 +612,138 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── MISSION ─────────────────────────────────────────────────────────── */}
+      <section id="mission" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Built for Africa. By Africans.</Badge>
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">Why ViralBeat Exists</h2>
+            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+              Africa's political intelligence should be produced, verified, and distributed by the people who live it — not filtered through foreign newsrooms or aggregated from headlines alone.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: Globe,   color: "#22d3ee", title: "Africa First",           desc: "Every product decision is made through the lens of what best serves African communities, journalists, and institutions." },
+              { icon: Users,   color: "#a78bfa", title: "People-Powered",         desc: "Ground truth comes from people on the ground. Verified contributors — not algorithms — determine what matters." },
+              { icon: Shield,  color: "#34d399", title: "Verified Intelligence",  desc: "Every signal is cross-referenced before it reaches your dashboard. We never publish unverified claims." },
+              { icon: Zap,     color: "#fb923c", title: "Speed with Depth",       desc: "Real-time news only has value with context. We deliver both — fast signal and structured analysis, together." },
+            ].map(v => (
+              <motion.div key={v.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                className="bg-[#0d1e36] border border-[#1e3a5f] rounded-xl p-6">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style={{ background: v.color + "22" }}>
+                  <v.icon className="w-5 h-5" style={{ color: v.color }} />
+                </div>
+                <h3 className="font-bold text-white mb-2">{v.title}</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">{v.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── METHODOLOGY SUMMARY ──────────────────────────────────────────────── */}
+      <section id="methodology" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Published Methodology</Badge>
+              <h2 className="text-4xl sm:text-5xl font-black mb-5">
+                Scores You Can<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Cite in Public</span>
+              </h2>
+              <p className="text-gray-300 text-lg leading-relaxed mb-8">
+                Every sentiment score, risk level, and stability index on ViralBeat is derived from a documented, auditable pipeline — not a black box. RSS ingestion, keyword analysis, LLM blending, and confidence thresholds are all published.
+              </p>
+              <div className="space-y-4 mb-8">
+                {[
+                  { icon: Rss,      color: "#22d3ee", label: "6 RSS Feeds",           detail: "Nation Africa, Standard, Citizen Digital, NTV, KBC, Star — updated every 4 hours" },
+                  { icon: Brain,    color: "#a78bfa", label: "LLM Sentiment Blend",   detail: "Rule-based scoring + Claude AI for Tier-1 figures, averaged for accuracy" },
+                  { icon: Shield,   color: "#34d399", label: "Confidence Badges",      detail: "High (10+ articles), Medium (4–9), Low (1–3) — never fabricates data" },
+                  { icon: Database, color: "#fb923c", label: "Field Signal Layer",     detail: "Verified contributor submissions weighted by tier and institutional affiliation" },
+                ].map(s => (
+                  <div key={s.label} className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: s.color + "22" }}>
+                      <s.icon className="w-4 h-4" style={{ color: s.color }} />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-white text-sm">{s.label}</div>
+                      <div className="text-gray-400 text-sm">{s.detail}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => { setLocation("/about"); setTimeout(() => { window.location.hash = "methodology"; }, 150); }}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+              >
+                Read the full methodology <ArrowRight className="w-4 h-4" />
+              </button>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+              className="bg-[#0d1e36] border border-[#1e3a5f] rounded-2xl p-6 space-y-4">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Confidence Thresholds</div>
+              {[
+                { level: "High",   range: "10+ articles", color: "#22d3ee", badge: "bg-cyan-500/20 text-cyan-300",   desc: "Score published with full confidence" },
+                { level: "Medium", range: "4–9 articles", color: "#a78bfa", badge: "bg-purple-500/20 text-purple-300", desc: "Score published with advisory note" },
+                { level: "Low",    range: "1–3 articles", color: "#fb923c", badge: "bg-orange-500/20 text-orange-300", desc: "Score flagged — treat as indicative" },
+                { level: "None",   range: "0 articles",   color: "#64748b", badge: "bg-slate-500/20 text-slate-400",  desc: "No score shown — never fabricated" },
+              ].map(c => (
+                <div key={c.level} className="flex items-center gap-4 p-3 rounded-lg bg-white/5">
+                  <span className={`text-xs font-bold px-2 py-1 rounded ${c.badge}`}>{c.level}</span>
+                  <span className="text-sm text-gray-400 flex-1">{c.range}</span>
+                  <span className="text-xs text-gray-500">{c.desc}</span>
+                </div>
+              ))}
+              <div className="pt-4 border-t border-white/5 text-xs text-gray-600">
+                All scores update every 4 hours from live RSS feeds. <br />
+                Methodology audited quarterly. Last review: Q2 2026.
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TEAM ─────────────────────────────────────────────────────────────── */}
+      <section id="team" className="py-24 px-4 bg-white/[0.015] border-t border-white/5" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">The Team</Badge>
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">The People Behind the Platform</h2>
+            <p className="text-gray-300 text-lg max-w-xl mx-auto">
+              A cross-disciplinary team of journalists, engineers, and policy researchers — all embedded in Africa's political landscape.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {[
+              { role: "Founder & CEO",               focus: "Political intelligence strategy and Africa policy research",       initials: "F" },
+              { role: "Head of Intelligence",         focus: "Editorial oversight, source verification, 55-nation coverage",    initials: "E" },
+              { role: "Lead Engineer",                focus: "Platform architecture, data pipelines, and developer API",        initials: "T" },
+              { role: "Director of Contributor Network", focus: "On-the-ground contributor network and signal verification",   initials: "S" },
+              { role: "Partnerships & Growth",        focus: "NGO, media, and institutional relationships across Africa",       initials: "G" },
+            ].map(m => (
+              <motion.div key={m.role} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                className="bg-[#0d1e36] border border-[#1e3a5f] rounded-xl p-6 flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                  {m.initials}
+                </div>
+                <div>
+                  <div className="font-semibold text-white text-sm mb-1">{m.role}</div>
+                  <div className="text-gray-400 text-xs leading-relaxed">{m.focus}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          <div className="text-center mt-12">
+            <p className="text-gray-500 text-sm mb-4">Want to contribute intelligence from the ground?</p>
+            <Button onClick={() => setLocation("/contributor")} variant="outline" className="border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/10">
+              Become a Contributor <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
       <footer className="py-14 px-4 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
@@ -621,15 +758,50 @@ export default function LandingPage() {
               <p className="text-sm text-gray-500 leading-relaxed">The intelligence layer for Africa — political briefings, civic movements, and trend signals for all 55 nations.</p>
             </div>
             {[
-              { title: "Intelligence", links: ["Africa Hub", "Kenya Deep-Dive", "Country Briefings", "Civic Movements", "Electoral Calendar"] },
-              { title: "Platform",     links: ["Trend Engine", "Creator Network", "Developer API", "Pricing", "Who We Are"] },
-              { title: "Legal",        links: ["Privacy", "Terms", "Security", "Data Policy"] },
+              { title: "Consume", links: [
+                { label: "Africa Intelligence Hub",   href: "/africa" },
+                { label: "Kenya Political Tracker",   href: "/kenya/tracker" },
+                { label: "Country Briefings",         href: "/africa" },
+                { label: "Regional Risk Map",         href: "/kenya/regional-map" },
+                { label: "Electoral Calendar",        href: "/africa" },
+              ]},
+              { title: "Translate & Distribute", links: [
+                { label: "Brief Generator (ViralMind)", href: "/viralmind" },
+                { label: "Share Intelligence Brief",    href: "/africa" },
+                { label: "PDF Export",                  href: "/africa" },
+                { label: "Alert Subscriptions",         href: "/pricing" },
+                { label: "Developer API",               href: "#api" },
+              ]},
+              { title: "Contribute & Cite", links: [
+                { label: "Contributor Profile",   href: "/contributor" },
+                { label: "Signal Credits",        href: "/contributor" },
+                { label: "Our Methodology",       href: "#methodology" },
+                { label: "Who We Are",            href: "#mission" },
+                { label: "Pricing & Tiers",       href: "/pricing" },
+              ]},
+              { title: "Legal", links: [
+                { label: "Privacy",     href: "#" },
+                { label: "Terms",       href: "#" },
+                { label: "Security",    href: "#" },
+                { label: "Data Policy", href: "#" },
+              ]},
             ].map(col => (
               <div key={col.title}>
                 <h4 className="font-semibold mb-4 text-sm text-white">{col.title}</h4>
                 <ul className="space-y-2.5">
                   {col.links.map(link => (
-                    <li key={link}><a href="#" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">{link}</a></li>
+                    <li key={link.label}>
+                      <button
+                        onClick={() => {
+                          if (link.href === "#") return;
+                          if (link.href.startsWith("#")) { scrollTo(link.href.slice(1)); return; }
+                          const [path, hash] = link.href.split("#");
+                          setLocation(path);
+                          if (hash) setTimeout(() => { window.location.hash = hash; }, 200);
+                        }}
+                        className="text-sm text-gray-500 hover:text-gray-300 transition-colors text-left"
+                      >{link.label}</button>
+                    </li>
                   ))}
                 </ul>
               </div>

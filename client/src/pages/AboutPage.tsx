@@ -96,10 +96,15 @@ export default function AboutPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState("mission");
 
-  // Allow deep-linking via hash
+  // Allow deep-linking via hash (handles both initial load and post-navigate hash set)
   React.useEffect(() => {
-    const hash = window.location.hash.replace("#", "");
-    if (TABS.find(t => t.id === hash)) setActiveTab(hash);
+    const applyHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (TABS.find(t => t.id === hash)) setActiveTab(hash);
+    };
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
   }, []);
 
   return (
