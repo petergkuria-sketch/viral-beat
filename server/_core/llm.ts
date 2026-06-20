@@ -274,15 +274,16 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     anthropicToolChoice = { type: "tool", name: schemaName };
   }
 
-  const response = await client.messages.create({
+  const stream = await client.messages.stream({
     model: "claude-opus-4-8",
-    max_tokens: maxTokens ?? max_tokens ?? 32768,
-    thinking: { type: "adaptive" },
+    max_tokens: maxTokens ?? max_tokens ?? 4096,
     ...(system ? { system } : {}),
     messages: anthropicMessages,
     ...(anthropicTools ? { tools: anthropicTools } : {}),
     ...(anthropicToolChoice ? { tool_choice: anthropicToolChoice } : {}),
   });
+
+  const response = await stream.finalMessage();
 
   // ── Map Anthropic response → OpenAI-shaped InvokeResult ─────────────────────
   let textContent = "";
