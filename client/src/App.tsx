@@ -20,6 +20,7 @@ const ApiKeysSettings = lazy(() => import("./pages/ApiKeysSettings"));
 const AfricaIntelligence = lazy(() => import("./pages/AfricaIntelligence"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const DeveloperHub = lazy(() => import("./pages/DeveloperHub"));
 const DeveloperAgent = lazy(() => import("./pages/DeveloperAgent"));
 const ThreadDetail = lazy(() => import("./pages/ThreadDetail"));
@@ -104,6 +105,7 @@ function Router() {
     { path: "/africa", component: AfricaIntelligence },
     { path: "/africa/:code", component: AfricaIntelligence },
     { path: "/admin", component: AdminDashboard },
+    { path: "/admin/users", component: AdminUsers },
     { path: "/developer-hub", component: DeveloperHub },
     { path: "/developer-hub/agent", component: DeveloperAgent },
     { path: "/developer-hub/thread/:threadId", component: ThreadDetail },

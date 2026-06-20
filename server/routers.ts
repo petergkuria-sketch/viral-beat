@@ -1719,6 +1719,8 @@ ${input.originalContent}`
             loginMethod: users.loginMethod,
             createdAt: users.createdAt,
             lastSignedIn: users.lastSignedIn,
+            isBanned: users.isBanned,
+            banReason: users.banReason,
           }).from(users).where(where).orderBy(order)
             .limit(input.limit).offset((input.page - 1) * input.limit),
           db.select({ count: sql<number>`COUNT(*)` }).from(users).where(where),
@@ -1730,6 +1732,59 @@ ${input.originalContent}`
           page: input.page,
           pages: Math.ceil(Number(count) / input.limit),
         };
+      }),
+
+    getUser: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        const [row] = await db.select().from(users).where(eq(users.id, input.id)).limit(1);
+        if (!row) throw new Error("User not found");
+        return row;
+      }),
+
+    updateUserRole: protectedProcedure
+      .input(z.object({ id: z.number(), role: z.enum(["user", "admin"]) }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        if (ctx.user.id === input.id) throw new Error("Cannot change your own role");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        await db.update(users).set({ role: input.role }).where(eq(users.id, input.id));
+        return { success: true };
+      }),
+
+    updateUserTier: protectedProcedure
+      .input(z.object({ id: z.number(), tier: z.enum(["free", "analyst", "enterprise"]) }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        await db.update(users).set({ subscriptionTier: input.tier }).where(eq(users.id, input.id));
+        return { success: true };
+      }),
+
+    banUser: protectedProcedure
+      .input(z.object({ id: z.number(), reason: z.string().min(1).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        if (ctx.user.id === input.id) throw new Error("Cannot ban yourself");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        await db.update(users).set({ isBanned: true, banReason: input.reason }).where(eq(users.id, input.id));
+        return { success: true };
+      }),
+
+    unbanUser: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin") throw new Error("Unauthorized");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        await db.update(users).set({ isBanned: false, banReason: null }).where(eq(users.id, input.id));
+        return { success: true };
       }),
   }),
 

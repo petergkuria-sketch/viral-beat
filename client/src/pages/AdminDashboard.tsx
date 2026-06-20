@@ -304,8 +304,8 @@ export default function AdminDashboard() {
         {/* Tab Bar */}
         <div className="flex gap-1 border-b border-[#1e3a5f] pb-0">
           {([
-            { id: "overview", label: "Overview",   icon: LayoutDashboard },
-            { id: "users",    label: "Users",       icon: UserCog },
+            { id: "overview", label: "Overview", icon: LayoutDashboard },
+            { id: "users",    label: "Users",    icon: UserCog },
           ] as { id: Tab; label: string; icon: any }[]).map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setActiveTab(id)}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all
@@ -318,7 +318,18 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {activeTab === "users" && <UsersTab />}
+        {activeTab === "users" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-400">Recent users — quick view. For full management, ban controls and role changes:</p>
+              <Button size="sm" onClick={() => setLocation("/admin/users")}
+                className="bg-purple-600 hover:bg-purple-700 gap-2">
+                <Users className="w-4 h-4" /> Full User Management →
+              </Button>
+            </div>
+            <UsersTab />
+          </div>
+        )}
 
         {activeTab === "overview" && <>
 
