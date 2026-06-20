@@ -88,6 +88,7 @@ function Router() {
     { path: "/", component: LandingPage },
     { path: "/pricing", component: Pricing },
     { path: "/about", component: AboutPage },
+    { path: "/methodology", component: () => { window.location.replace("/about#methodology"); return null; } },
     { path: "/embed/widget", component: EmbedWidget },
     { path: "/onboarding", component: OnboardingPage },
   ];
