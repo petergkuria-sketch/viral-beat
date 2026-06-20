@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import type { Express, Request, Response } from "express";
+import type { Express, NextFunction, Request, Response } from "express";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import * as db from "../db";
@@ -52,28 +52,33 @@ export function registerOAuthRoutes(app: Express) {
   app.get("/api/auth/google", passport.authenticate("google", { session: false }));
 
   // Step 2 — Google redirects back here
-  app.get(
-    "/api/auth/google/callback",
-    passport.authenticate("google", { session: false, failureRedirect: "/?auth=failed" }),
-    async (req: Request, res: Response) => {
+  // Use custom callback so passport errors redirect instead of Express 500
+  app.get("/api/auth/google/callback", (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate("google", { session: false }, async (err: Error | null, user: { openId: string; name: string } | false) => {
+      if (err) {
+        const msg = err.message ?? String(err);
+        console.error("[OAuth] Passport error:", msg);
+        return res.redirect(`/?auth=error&reason=${encodeURIComponent(msg)}`);
+      }
+      if (!user) {
+        console.warn("[OAuth] No user returned from Google strategy");
+        return res.redirect("/?auth=failed");
+      }
       try {
-        const user = req.user as { openId: string; name: string };
-
         const sessionToken = await sdk.createSessionToken(user.openId, {
           name: user.name,
           expiresInMs: ONE_YEAR_MS,
         });
-
         const cookieOptions = getSessionCookieOptions(req);
         res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
         res.redirect(302, "/africa");
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        console.error("[OAuth] Callback failed:", msg);
+      } catch (sessionErr) {
+        const msg = sessionErr instanceof Error ? sessionErr.message : String(sessionErr);
+        console.error("[OAuth] Session token creation failed:", msg);
         res.redirect(`/?auth=error&reason=${encodeURIComponent(msg)}`);
       }
-    },
-  );
+    })(req, res, next);
+  });
 
   // Sign out
   app.get("/api/auth/logout", (req: Request, res: Response) => {
