@@ -55,6 +55,26 @@ async function startServer() {
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 
+  // Temporary one-shot DB migration endpoint — adds isBanned/banReason columns
+  // Safe to call multiple times; remove after columns confirmed in DB
+  app.get("/api/sys/add-ban-columns", async (_req, res) => {
+    const database = await db.getDb();
+    if (!database) return res.json({ ok: false, error: "DB not available" });
+    const results: string[] = [];
+    for (const stmt of [
+      "ALTER TABLE users ADD COLUMN isBanned TINYINT(1) NOT NULL DEFAULT 0",
+      "ALTER TABLE users ADD COLUMN banReason TEXT NULL",
+    ]) {
+      try {
+        await database.execute(stmt as any);
+        results.push(`OK: ${stmt}`);
+      } catch (e: any) {
+        results.push(`SKIP: ${String(e?.message ?? e).slice(0, 120)}`);
+      }
+    }
+    res.json({ ok: true, results });
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",
