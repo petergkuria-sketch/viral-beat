@@ -87,8 +87,33 @@ export default function LandingPage() {
     return () => clearInterval(t);
   }, []);
 
+  // Surface auth errors passed back from OAuth redirect
+  const [authError, setAuthError] = useState<string | null>(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const auth = params.get("auth");
+    if (auth === "failed" || auth === "error") {
+      const reason = params.get("reason");
+      setAuthError(reason ? `Sign-in failed: ${reason}` : "Sign-in failed. Please try again.");
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#050b1a] text-white overflow-x-hidden">
+
+      {/* Auth error banner */}
+      {authError && (
+        <div className="fixed top-0 inset-x-0 z-[100] bg-red-900/90 border-b border-red-700 px-4 py-3 flex items-center justify-between text-sm text-red-200">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+            {authError}
+          </div>
+          <button onClick={() => setAuthError(null)} className="text-red-400 hover:text-white ml-4">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* ── NAV ─────────────────────────────────────────────────────────────── */}
       <nav className="fixed top-0 w-full bg-[#050b1a]/90 backdrop-blur-xl border-b border-white/5 z-50">

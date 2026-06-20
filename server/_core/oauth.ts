@@ -68,8 +68,9 @@ export function registerOAuthRoutes(app: Express) {
         res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
         res.redirect(302, "/africa");
       } catch (error) {
-        console.error("[OAuth] Callback failed", error);
-        res.redirect("/?auth=error");
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error("[OAuth] Callback failed:", msg);
+        res.redirect(`/?auth=error&reason=${encodeURIComponent(msg)}`);
       }
     },
   );
