@@ -55,6 +55,22 @@ async function startServer() {
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 
+  // One-shot owner promotion — self-destructs after first use
+  app.get("/api/sys/promote-owner", async (_req, res) => {
+    const ownerOpenId = ENV.ownerOpenId;
+    if (!ownerOpenId) return res.json({ ok: false, error: "OWNER_OPEN_ID not set on server" });
+    const database = await db.getDb();
+    if (!database) return res.json({ ok: false, error: "DB not available" });
+    try {
+      const { users } = await import("../../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      await database.update(users).set({ role: "admin" }).where(eq(users.openId, ownerOpenId));
+      res.json({ ok: true, promoted: ownerOpenId });
+    } catch (e: any) {
+      res.json({ ok: false, error: String(e?.message ?? e) });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",
