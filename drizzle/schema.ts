@@ -21,9 +21,6 @@ export const users = mysqlTable("users", {
   subscriptionTier: mysqlEnum("subscriptionTier", ["free", "analyst", "enterprise"]).default("free").notNull(),
   subscriptionExpiresAt: timestamp("subscriptionExpiresAt"),
   stripeCustomerId: varchar("stripeCustomerId", { length: 64 }),
-  // Admin controls
-  isBanned: boolean("isBanned").default(false).notNull(),
-  banReason: text("banReason"),
   // Privacy settings
   profileVisibility: mysqlEnum("profileVisibility", ["public", "private"]).default("public").notNull(),
   showStats: boolean("showStats").default(true).notNull(),

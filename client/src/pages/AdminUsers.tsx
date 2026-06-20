@@ -165,7 +165,7 @@ function UserDrawer({
                 <Badge variant="outline" className={TIER_BADGE[u.subscriptionTier]?.cls}>
                   {TIER_BADGE[u.subscriptionTier]?.label}
                 </Badge>
-                {u.isBanned && (
+                {(u as any).isBanned && (
                   <Badge variant="outline" className="border-red-700 text-red-400">
                     <Ban className="w-3 h-3 mr-1" /> Banned
                   </Badge>
@@ -173,9 +173,9 @@ function UserDrawer({
               </div>
 
               {/* Ban reason */}
-              {u.isBanned && u.banReason && (
+              {(u as any).isBanned && (u as any).banReason && (
                 <div className="bg-red-950/40 border border-red-800/50 rounded-xl p-3 text-sm text-red-300">
-                  <span className="font-semibold">Ban reason: </span>{u.banReason}
+                  <span className="font-semibold">Ban reason: </span>{(u as any).banReason}
                 </div>
               )}
 
@@ -237,7 +237,7 @@ function UserDrawer({
               {!isSelf && (
                 <div className="bg-[#0d1e36] border border-[#1e3a5f] rounded-xl p-4 space-y-3">
                   <div className="text-xs text-gray-400 uppercase font-semibold tracking-wide">Access</div>
-                  {u.isBanned ? (
+                  {(u as any).isBanned ? (
                     <Button onClick={() => unban.mutate({ id: u.id })} disabled={busy}
                       className="w-full bg-green-700 hover:bg-green-600 text-white gap-2">
                       <Unlock className="w-4 h-4" /> Unban User
@@ -332,11 +332,11 @@ export default function AdminUsers() {
   const pages = data?.pages ?? 1;
 
   // client-side ban filter (listUsers doesn't have isBanned param yet — filter here)
-  const filtered = isBannedFilter === undefined ? rows : rows.filter(u => u.isBanned === isBannedFilter);
+  const filtered = isBannedFilter === undefined ? rows : rows.filter(u => (u as any).isBanned === isBannedFilter);
 
   // Summary counts from current page (rough — full counts would need separate query)
   const adminCount = rows.filter(u => u.role === "admin").length;
-  const bannedCount = rows.filter(u => u.isBanned).length;
+  const bannedCount = rows.filter(u => (u as any).isBanned).length;
 
   const toggleSort = (col: typeof sortBy) => {
     if (sortBy === col) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -567,7 +567,7 @@ export default function AdminUsers() {
                         </td>
                         {/* Status */}
                         <td className="px-4 py-3">
-                          {u.isBanned ? (
+                          {(u as any).isBanned ? (
                             <span className="flex items-center gap-1 text-xs text-red-400">
                               <Ban className="w-3 h-3" /> Banned
                             </span>
