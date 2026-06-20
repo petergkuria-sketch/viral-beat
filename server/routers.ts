@@ -1719,6 +1719,8 @@ ${input.originalContent}`
             loginMethod: users.loginMethod,
             createdAt: users.createdAt,
             lastSignedIn: users.lastSignedIn,
+            isBanned: users.isBanned,
+            banReason: users.banReason,
           }).from(users).where(where).orderBy(order)
             .limit(input.limit).offset((input.page - 1) * input.limit),
           db.select({ count: sql<number>`COUNT(*)` }).from(users).where(where),
@@ -1791,8 +1793,7 @@ ${input.originalContent}`
         if (ctx.user.id === input.id) throw new Error("Cannot ban yourself");
         const db = await getDb();
         if (!db) throw new Error("Database not available");
-        // isBanned/banReason columns added via runMigrations — update after migration is run
-        await db.execute(sql.raw(`UPDATE users SET isBanned = 1, banReason = ${JSON.stringify(input.reason)} WHERE id = ${input.id}`));
+        await db.update(users).set({ isBanned: true, banReason: input.reason }).where(eq(users.id, input.id));
         return { success: true };
       }),
 
@@ -1802,7 +1803,7 @@ ${input.originalContent}`
         if (ctx.user.role !== "admin") throw new Error("Unauthorized");
         const db = await getDb();
         if (!db) throw new Error("Database not available");
-        await db.execute(sql.raw(`UPDATE users SET isBanned = 0, banReason = NULL WHERE id = ${input.id}`));
+        await db.update(users).set({ isBanned: false, banReason: null }).where(eq(users.id, input.id));
         return { success: true };
       }),
   }),
