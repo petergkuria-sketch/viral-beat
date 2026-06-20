@@ -158,12 +158,12 @@ export default function CountryReports() {
 
                 {isOpen && !isLocked && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-5 pb-5 space-y-4 border-t border-border/30 pt-4">
-                    <p className="text-sm text-muted-foreground leading-relaxed">{report.summary}</p>
+                    <p className="text-sm text-slate-300 leading-relaxed">{report.summary}</p>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Key Findings</p>
+                      <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Key Findings</p>
                       <ul className="space-y-2">
                         {report.keyFindings.map((f, j) => (
-                          <li key={j} className="flex items-start gap-2 text-sm">
+                          <li key={j} className="flex items-start gap-2 text-sm text-slate-200">
                             <ChevronRight className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: style.color }} />
                             {f}
                           </li>
@@ -171,7 +171,7 @@ export default function CountryReports() {
                       </ul>
                     </div>
                     <div className="flex gap-2 pt-2">
-                      <Button size="sm" variant="outline" className="text-xs h-7 gap-1">
+                      <Button size="sm" variant="outline" className="text-xs h-7 gap-1 text-slate-200 border-slate-600 hover:bg-slate-700">
                         <Download className="w-3 h-3" /> Download PDF
                       </Button>
                     </div>

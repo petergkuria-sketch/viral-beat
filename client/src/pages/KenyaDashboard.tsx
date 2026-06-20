@@ -78,7 +78,7 @@ export default function KenyaDashboard() {
             </div>
             <div>
               <h1 className="text-xl font-black">Kenya Intelligence</h1>
-              <p className="text-xs text-muted-foreground">Mission Control · Real-time political sentiment</p>
+              <p className="text-xs text-slate-400">Mission Control · Real-time political sentiment</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -112,8 +112,8 @@ export default function KenyaDashboard() {
                   </div>
                 </div>
                 <div className="text-3xl font-black" style={{ color: kpi.color }}>{kpi.value}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">{kpi.label}</div>
-                <div className="text-[10px] text-muted-foreground/60 mt-0.5">{kpi.sub}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{kpi.label}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">{kpi.sub}</div>
               </div>
             </motion.div>
           ))}
@@ -123,7 +123,7 @@ export default function KenyaDashboard() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-black text-base">Political Sentiment Tracker</h2>
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setLocation("/kenya/tracker")}>
+            <Button variant="ghost" size="sm" className="text-xs text-slate-400" onClick={() => setLocation("/kenya/tracker")}>
               View All <ChevronRight className="w-3 h-3 ml-1" />
             </Button>
           </div>
@@ -152,8 +152,8 @@ export default function KenyaDashboard() {
                   </div>
 
                   <div className="text-center">
-                    <h3 className="font-bold text-sm leading-tight group-hover:text-primary transition-colors">{pol.name}</h3>
-                    <p className="text-[10px] text-muted-foreground mt-0.5 mb-3">{pol.role}</p>
+                    <h3 className="font-bold text-sm leading-tight text-slate-100 group-hover:text-primary transition-colors">{pol.name}</h3>
+                    <p className="text-[10px] text-slate-400 mt-0.5 mb-3">{pol.role}</p>
 
                     <div className="flex items-center justify-center gap-1.5">
                       <span className="text-xl font-black" style={{ color: sentColor }}>{pol.currentSentiment}%</span>
@@ -166,7 +166,7 @@ export default function KenyaDashboard() {
                          <Minus className="w-3 h-3 text-gray-400" />}
                       </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">sentiment</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">sentiment</p>
                   </div>
                 </motion.div>
               );
@@ -192,8 +192,8 @@ export default function KenyaDashboard() {
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
-                          <span className="text-xs font-semibold">{region.name}</span>
-                          <span className="text-[10px] text-muted-foreground">{region.pop}</span>
+                          <span className="text-xs font-semibold text-slate-200">{region.name}</span>
+                          <span className="text-[10px] text-slate-400">{region.pop}</span>
                         </div>
                         <span className="text-xs font-black" style={{ color }}>{region.score}%</span>
                       </div>
@@ -214,7 +214,7 @@ export default function KenyaDashboard() {
               {/* National mood big number */}
               <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-muted-foreground">National Mood Index</div>
+                  <div className="text-xs text-slate-400">National Mood Index</div>
                   <div className="text-3xl font-black mt-0.5" style={{ color: overallMood >= 50 ? "#34d399" : "#f87171" }}>{overallMood}%</div>
                 </div>
                 <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: `${overallMood >= 50 ? "#34d399" : "#f87171"}15` }}>
@@ -232,7 +232,7 @@ export default function KenyaDashboard() {
                   <AlertTriangle className="w-4 h-4 text-orange-400" />
                   <h3 className="font-bold text-sm">System Alerts</h3>
                 </div>
-                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setLocation("/kenya/alerts")}>
+                <Button variant="ghost" size="sm" className="text-xs text-slate-400" onClick={() => setLocation("/kenya/alerts")}>
                   View All <ChevronRight className="w-3 h-3 ml-1" />
                 </Button>
               </div>
@@ -253,9 +253,9 @@ export default function KenyaDashboard() {
                           <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${cfg.color} bg-transparent border-0`}>
                             {alert.severity.toUpperCase()}
                           </Badge>
-                          <span className="text-[10px] text-muted-foreground ml-auto">{alert.timestamp}</span>
+                          <span className="text-[10px] text-slate-400 ml-auto">{alert.timestamp}</span>
                         </div>
-                        <p className="text-xs leading-snug text-foreground/90">{alert.message}</p>
+                        <p className="text-xs leading-snug text-slate-200">{alert.message}</p>
                       </div>
                     </motion.div>
                   );
@@ -267,7 +267,7 @@ export default function KenyaDashboard() {
 
         {/* ── QUICK LINKS ── */}
         <div>
-          <h3 className="font-bold text-sm mb-3 text-muted-foreground">Quick Access</h3>
+          <h3 className="font-bold text-sm mb-3 text-slate-400">Quick Access</h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { label: "Sentiment Tracker", icon: TrendingUp, href: "/kenya/tracker", color: "#22d3ee", desc: "Live political sentiment" },
@@ -288,9 +288,9 @@ export default function KenyaDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-xs">{item.label}</div>
-                  <div className="text-[10px] text-muted-foreground truncate">{item.desc}</div>
+                  <div className="text-[10px] text-slate-400 truncate">{item.desc}</div>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors shrink-0" />
               </motion.button>
             ))}
           </div>
