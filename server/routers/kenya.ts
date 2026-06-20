@@ -352,6 +352,62 @@ export const kenyaRouter = router({
       .input(z.object({ figureId: z.number().optional(), days: z.number().default(30) }))
       .query(async ({ input }) => getSentimentHistory(input.figureId, input.days)),
 
+    getLatestScores: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      // For each active figure, get their most recent sentiment record
+      const figures = await db
+        .select()
+        .from(politicalFigures)
+        .where(eq(politicalFigures.isActive, "yes"))
+        .orderBy(politicalFigures.name);
+
+      const results = await Promise.all(
+        figures.map(async (fig) => {
+          const [latest] = await db
+            .select()
+            .from(sentimentRecords)
+            .where(eq(sentimentRecords.figureId, fig.id))
+            .orderBy(desc(sentimentRecords.recordedAt))
+            .limit(1);
+
+          const prev = latest
+            ? await db
+                .select()
+                .from(sentimentRecords)
+                .where(eq(sentimentRecords.figureId, fig.id))
+                .orderBy(desc(sentimentRecords.recordedAt))
+                .limit(1)
+                .offset(1)
+            : [];
+
+          const score = latest ? Number(latest.sentimentScore) : null;
+          const prevScore = prev[0] ? Number(prev[0].sentimentScore) : null;
+          const trend: "up" | "down" | "stable" =
+            score === null || prevScore === null
+              ? "stable"
+              : score > prevScore + 2
+              ? "up"
+              : score < prevScore - 2
+              ? "down"
+              : "stable";
+
+          return {
+            id: fig.id,
+            name: fig.name,
+            title: fig.title ?? "",
+            party: fig.party ?? "",
+            imageUrl: fig.imageUrl ?? "",
+            score,
+            trend,
+            hasData: !!latest,
+            lastUpdated: latest?.recordedAt ?? null,
+          };
+        })
+      );
+      return results;
+    }),
+
     save: protectedProcedure
       .input(
         z.object({
