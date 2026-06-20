@@ -596,7 +596,7 @@ export const kenyaRouter = router({
     getBySource: publicProcedure
       .input(
         z.object({
-          source: z.enum(["nation", "standardHeadlines", "standardKenya", "standardPolitics", "standardBusiness", "standardCounties"]),
+          source: z.enum(["nation", "standardHeadlines", "standardKenya", "standardPolitics", "standardBusiness", "citizenDigital"]),
         })
       )
       .query(async ({ input }) => {
