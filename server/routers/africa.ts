@@ -46,6 +46,7 @@ async function generateCountryIntelligence(countryCode: string) {
   if (!country) throw new Error(`Unknown country code: ${countryCode}`);
 
   const response = await invokeLLM({
+    max_tokens: 2048,
     messages: [
       {
         role: "system",
