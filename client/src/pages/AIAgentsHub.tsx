@@ -368,13 +368,20 @@ export default function AIAgentsHub() {
                     </div>
                   </div>
                   <Button
-                    onClick={() => generateBrief.mutate({
-                      topic: `${briefCountry} — ${PESTEL.find(p => p.value === briefPestel)?.label} Intelligence Brief`,
-                      platform: briefAudience,
-                      contentType: briefAudience,
-                      duration: briefDuration,
-                      tone: briefRegister,
-                    })}
+                    onClick={() => {
+                      const audienceLabels: Record<string, string> = {
+                        educational: "Journalist / Editor",
+                        entertainment: "General Public",
+                        promotional: "NGO / Researcher",
+                        storytelling: "Policy / Government",
+                      };
+                      generateBrief.mutate({
+                        topic: `${briefCountry} — ${PESTEL.find(p => p.value === briefPestel)?.label} Intelligence Brief — Audience: ${audienceLabels[briefAudience] ?? briefAudience}`,
+                        platform: "twitter",
+                        duration: briefDuration,
+                        tone: briefRegister,
+                      });
+                    }}
                     disabled={generateBrief.isPending || !briefCountry.trim()}
                     className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold"
                   >
