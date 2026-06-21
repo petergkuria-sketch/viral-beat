@@ -56,6 +56,8 @@ export default function ViralMindPage() {
   const [copiedAnalysis, setCopiedAnalysis] = useState(false);
 
   // Queries
+  const utils = trpc.useUtils();
+
   const { data: profile, isLoading: profileLoading } = trpc.aiAssistant.getProfile.useQuery();
   const { data: conversations } = trpc.aiAssistant.getConversations.useQuery({ sessionId });
   const { data: insights } = trpc.aiAssistant.getAnalyses.useQuery({ limit: 10 });
@@ -78,10 +80,11 @@ export default function ViralMindPage() {
   });
 
   const analyzeContent = trpc.aiAssistant.analyzeContent.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Game Theory analysis complete!");
       setContentTitle("");
       setContentUrl("");
+      await utils.aiAssistant.getAnalyses.invalidate();
       setActiveTab("insights");
     },
   });
