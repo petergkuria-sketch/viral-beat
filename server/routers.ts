@@ -999,6 +999,281 @@ export const appRouter = router({
                 { text: "Dangote Refinery at 80% capacity: Nigeria's petrol import bill falls 40%. Energy self-sufficiency within sight for first time in decades. #Dangote", likes: 13400, retweets: 6500 },
               ]},
             ],
+            social: [
+              { username: "UNAfrica", topic: "Nigeria Social Issues", fallbackTweets: [
+                { text: "Nigeria's out-of-school children crisis: 10.5M children not in school — second highest in the world. Northern states worst affected. #NigeriaEducation", likes: 8900, retweets: 4200 },
+                { text: "Borno State: IDP camp populations spike as Boko Haram splinter groups intensify attacks in Lake Chad Basin. #NigeriaSecurity", likes: 7200, retweets: 3400 },
+              ]},
+            ],
+            technological: [
+              { username: "TechCabalMedia", topic: "Nigeria Tech & Innovation", fallbackTweets: [
+                { text: "Lagos fintech hub: Nigeria processes $24B in mobile money transactions in Q1 2025. Flutterwave and Paystack dominate. #NigeriaFintech", likes: 6700, retweets: 3100 },
+                { text: "NCC spectrum auction: 5G licences awarded in Lagos, Abuja, and Port Harcourt. Full rollout by 2027. #Nigeria5G", likes: 5400, retweets: 2500 },
+              ]},
+            ],
+            environmental: [
+              { username: "UNEPAfrica", topic: "Nigeria Environment", fallbackTweets: [
+                { text: "Niger Delta oil spill: Shell subsidiary ordered to pay $1.5B in damages. Decades of environmental destruction finally reckoned with. #NigerDelta", likes: 9100, retweets: 4400 },
+                { text: "Flooding in Kogi, Anambra, and Benue states displaces 600,000. Climate adaptation budget cut by 30% this year. #NigeriaFloods", likes: 7800, retweets: 3700 },
+              ]},
+            ],
+            legal: [
+              { username: "AfricanCourt", topic: "Nigeria Rule of Law", fallbackTweets: [
+                { text: "Nigeria Supreme Court upholds Tinubu election in 4-3 split ruling. Dissenting judgement raises questions about due process. #NigeriaElections", likes: 12100, retweets: 5900 },
+                { text: "SERAP files suit challenging Nigeria's $800M loan without NASS approval. Separation of powers at stake. #NigeriaLaw", likes: 6800, retweets: 3200 },
+              ]},
+            ],
+          },
+          ghana: {
+            political: [
+              { username: "Joy997FM", topic: "Ghana National Politics", fallbackTweets: [
+                { text: "President Mahama's first 100 days: Anti-corruption unit makes 12 high-profile arrests. NDC consolidates governance agenda. #GhanaPolitics", likes: 9400, retweets: 4500 },
+                { text: "NPP opposition launches 'Operation Agenda 2028' as parliament debates constitutional review commission. #GhanaParliament", likes: 6800, retweets: 3200 },
+              ]},
+              { username: "Citinewsroom", topic: "Ghana Governance", fallbackTweets: [
+                { text: "Ghana Electoral Commission confirms 2024 election results audit completed. No irregularities found. Confidence in democratic process restored. #Ghana2024", likes: 7200, retweets: 3400 },
+                { text: "Akufo-Addo transition team cooperates with incoming NDC administration. Peaceful handover praised by AU observers. #GhanaElections", likes: 5600, retweets: 2700 },
+              ]},
+            ],
+            economic: [
+              { username: "GraphicOnline", topic: "Ghana Economy", fallbackTweets: [
+                { text: "Ghana exits IMF programme Q3 2025: Primary surplus achieved, cedi stabilises at GHS 14.2/$. Cautious optimism from Accra markets. #GhanaEconomy", likes: 8700, retweets: 4200 },
+                { text: "Cocoa Board announces record 780,000 tonne harvest. FX earnings boost reserves to 3.8 months import cover. #Ghana #Cocoa", likes: 6100, retweets: 2900 },
+              ]},
+              { username: "BusinessGhana", topic: "Ghana Investment", fallbackTweets: [
+                { text: "Ghana's gold output rises 8% as Newmont and AngloGold expand Obuasi operations. Mining sector contributes 40% of FX earnings. #GhanaMining", likes: 5400, retweets: 2600 },
+                { text: "Accra to Kumasi expressway PPP: $2.1B concession signed with French-South African consortium. 3-year construction timeline. #GhanaInfrastructure", likes: 4800, retweets: 2300 },
+              ]},
+            ],
+            social: [
+              { username: "GhanaWeb", topic: "Ghana Social Issues", fallbackTweets: [
+                { text: "Ghana galamsey crisis: Illegal mining contaminates Pra and Offin rivers. 2 million lose access to safe drinking water in Ashanti and Western regions. #Galamsey", likes: 11200, retweets: 5600 },
+                { text: "Free SHS enrolment hits 1.2M students. World Bank rates Ghana's education expansion as fastest in West Africa. #FreeSHS #GhanaEducation", likes: 7400, retweets: 3500 },
+              ]},
+              { username: "Citinewsroom", topic: "Ghana Civil Society", fallbackTweets: [
+                { text: "Fix The Country movement holds rally in Accra. 50,000 march demanding cost-of-living relief and accountability on galamsey. #FixTheCountryGH", likes: 9800, retweets: 4900 },
+                { text: "Ghana's maternal mortality rate falls 15% — midwife training and community health expansion credited. #GhanaHealth", likes: 5200, retweets: 2500 },
+              ]},
+            ],
+            technological: [
+              { username: "TechGhana", topic: "Ghana Tech & Fintech", fallbackTweets: [
+                { text: "Ghana's Mobile Money interoperability: GHS 420B processed in 2024 — 14% of GDP. Highest mobile money penetration in West Africa. #GhanaMoMo", likes: 7800, retweets: 3700 },
+                { text: "Accra Tech Hub opens: Government-backed facility hosts 200 startups. Target: 10,000 tech jobs by 2027. #GhanaStartups", likes: 5600, retweets: 2700 },
+              ]},
+            ],
+            environmental: [
+              { username: "UNEPAfrica", topic: "Ghana Environment", fallbackTweets: [
+                { text: "Volta Lake water levels critical — Akosombo Dam at 30% capacity. Power rationing returns across Ghana as hydro generation collapses. #GhanaPower", likes: 10400, retweets: 5100 },
+                { text: "Ghana loses 2% of forest cover annually to galamsey and charcoal production. Climate finance request of $12B submitted to COP30. #GhanaForests", likes: 7100, retweets: 3400 },
+              ]},
+            ],
+            legal: [
+              { username: "GhanaLegalNews", topic: "Ghana Rule of Law", fallbackTweets: [
+                { text: "Ghana Supreme Court upholds Anti-LGBTQ+ bill. International rights bodies warn of aid implications for Accra. #GhanaHumanRights", likes: 13200, retweets: 6500 },
+                { text: "Special Prosecutor opens new investigation into PDS electricity concession scandal. $190M in losses under scrutiny. #GhanaAccountability", likes: 8900, retweets: 4300 },
+              ]},
+              { username: "Joy997FM", topic: "Ghana Governance & Accountability", fallbackTweets: [
+                { text: "CHRAJ finds former minister liable for conflict of interest in road contract award. First senior ruling in 2 years. #GhanaAntiCorruption", likes: 6700, retweets: 3200 },
+                { text: "Ghana Bar Association demands independence of judiciary amid political pressure on court appointments. #GhanaJudiciary", likes: 5400, retweets: 2600 },
+              ]},
+            ],
+          },
+          ethiopia: {
+            political: [
+              { username: "AddisStandard", topic: "Ethiopia National Politics", fallbackTweets: [
+                { text: "Abiy government signs security pact with Eritrea — first visit in 4 years signals warming after post-Tigray cooling. #Ethiopia #Eritrea", likes: 8900, retweets: 4300 },
+                { text: "Tigray IDP return: Only 22% of 2.2M displaced persons have returned home. Humanitarian access remains restricted. #TigrayConflict", likes: 10200, retweets: 5100 },
+              ]},
+              { username: "EthiopianReporter", topic: "Ethiopia Governance", fallbackTweets: [
+                { text: "Amhara Fano ceasefire talks resume in Nairobi. Federal government and militia representatives meet for first time in 8 months. #Ethiopia #Amhara", likes: 7600, retweets: 3700 },
+                { text: "Ethiopia postpones regional elections in Somali and Afar states citing security. Independent observers raise electoral process concerns. #EthiopiaElections", likes: 6400, retweets: 3100 },
+              ]},
+            ],
+            economic: [
+              { username: "AfDB_Group", topic: "Ethiopia Economy", fallbackTweets: [
+                { text: "Ethiopia's Homegrown Economic Reform programme enters Phase 3. IMF commends progress on FX liberalisation but flags fiscal risks. #EthiopiaEconomy", likes: 5800, retweets: 2800 },
+                { text: "Grand Ethiopian Renaissance Dam: Third turbine operational — Ethiopia now Africa's largest power exporter. #GERD #EthiopiaPower", likes: 9700, retweets: 4800 },
+              ]},
+            ],
+            social: [
+              { username: "UNAfrica", topic: "Ethiopia Humanitarian", fallbackTweets: [
+                { text: "20 million Ethiopians face acute food insecurity — worst figure since 2003. Conflict, drought and funding cuts converge in a triple crisis. #Ethiopia #Hunger", likes: 11400, retweets: 5700 },
+                { text: "Displacement in Oromia surpasses 1.8M. Healthcare access in conflict zones described as 'catastrophic' by MSF. #OromiaConflict", likes: 9300, retweets: 4600 },
+              ]},
+            ],
+            technological: [
+              { username: "AfricanTechVoices", topic: "Ethiopia Tech", fallbackTweets: [
+                { text: "Ethio Telecom ends monopoly: Safaricom Ethiopia hits 7M subscribers in 2 years. Competition drives data prices down 45%. #EthiopiaTech", likes: 6200, retweets: 3000 },
+                { text: "Addis Ababa tech park: 80 startups, $120M raised. Ethiopia's digital economy ambitions getting traction despite instability. #EthiopiaStartups", likes: 4700, retweets: 2300 },
+              ]},
+            ],
+            environmental: [
+              { username: "AUC_DREA", topic: "Ethiopia Climate", fallbackTweets: [
+                { text: "Ethiopia's Blue Nile basin: Watershed degradation threatens downstream water security for 300M in Sudan and Egypt. #NileBasin #GERD", likes: 7800, retweets: 3900 },
+                { text: "Ethiopia plants 25B trees in Green Legacy Initiative — but deforestation rate still outpaces replanting in conflict zones. #GreenLegacy", likes: 6300, retweets: 3100 },
+              ]},
+            ],
+            legal: [
+              { username: "ICJAfrica", topic: "Ethiopia Rule of Law", fallbackTweets: [
+                { text: "ICJ report: Ethiopia's Tigray amnesty law excludes key accountability provisions. Victims groups reject 'impunity by design'. #TigrayJustice", likes: 8700, retweets: 4300 },
+                { text: "Ethiopian Human Rights Commission given expanded mandate — but independence from executive questioned by international observers. #EthiopiaRights", likes: 6100, retweets: 2900 },
+              ]},
+            ],
+          },
+          tanzania: {
+            political: [
+              { username: "DailyNewstz", topic: "Tanzania National Politics", fallbackTweets: [
+                { text: "President Samia's CCM secures fourth consecutive super-majority. Opposition Chadema disputes results, EU observers cite intimidation. #TanzaniaElections2025", likes: 8100, retweets: 3900 },
+                { text: "Zanzibar political crisis: ACT-Wazalendo boycotts parliament over disputed semi-autonomous elections. #ZanzibarPolitics", likes: 6500, retweets: 3200 },
+              ]},
+            ],
+            economic: [
+              { username: "AfDB_Group", topic: "Tanzania Economy", fallbackTweets: [
+                { text: "Tanzania GDP grows 5.4% — tourism recovery and natural gas investment drive expansion. #TanzaniaEconomy #Tourism", likes: 5900, retweets: 2800 },
+                { text: "Standard Gauge Railway Dar es Salaam–Dodoma section opens. $14B megaproject reshaping East African logistics. #SGR #Tanzania", likes: 7400, retweets: 3600 },
+              ]},
+            ],
+            social: [
+              { username: "UNICEFAfrica", topic: "Tanzania Social", fallbackTweets: [
+                { text: "Tanzania teen pregnancy rate falls 30% after school re-entry policy. 200,000 young mothers return to classrooms. #Tanzania #Education", likes: 7200, retweets: 3500 },
+                { text: "Albino attacks in Tanzania rise 40%. UN human rights expert calls for urgent security response ahead of elections. #Tanzania #HumanRights", likes: 9800, retweets: 4900 },
+              ]},
+            ],
+            technological: [
+              { username: "DigitalAfricaHub", topic: "Tanzania Tech", fallbackTweets: [
+                { text: "Tanzania's M-Pesa expansion: Mobile money agents now in all 31 regions. Unbanked population falls below 30% for the first time. #Tanzania #Fintech", likes: 5100, retweets: 2500 },
+              ]},
+            ],
+            environmental: [
+              { username: "UNEPAfrica", topic: "Tanzania Environment", fallbackTweets: [
+                { text: "Serengeti migration threatened: Tanzania's northern corridor faces land subdivision pressure. UNESCO monitoring closely. #Serengeti", likes: 8400, retweets: 4200 },
+                { text: "Kilimanjaro glaciers: Less than 1km² of ice remains — down from 12km² in 1912. Water security for 400,000 at risk. #ClimateAfrica", likes: 10200, retweets: 5100 },
+              ]},
+            ],
+            legal: [
+              { username: "ICJAfrica", topic: "Tanzania Rule of Law", fallbackTweets: [
+                { text: "Tanzania Media Services Act: Committee on Freedom of Expression condemns blanket media licensing powers. #TanzaniaPressFreedom", likes: 6300, retweets: 3100 },
+                { text: "Tanzanian court acquits opposition leader of sedition charges. Rights groups say charges were politically motivated. #Tanzania #RuleOfLaw", likes: 5700, retweets: 2800 },
+              ]},
+            ],
+          },
+          "south-africa": {
+            political: [
+              { username: "DailyMaverick", topic: "South Africa National Politics", fallbackTweets: [
+                { text: "GNU coalition crisis: DA threatens to withdraw over ANC's NHI implementation timeline. Ramaphosa convenes emergency Cabinet meeting. #SouthAfrica #GNU", likes: 13400, retweets: 6500 },
+                { text: "MK Party wins KwaZulu-Natal legislature vote — Zuma's party consolidates provincial power. ANC locked out of its historic heartland. #SouthAfrica", likes: 11700, retweets: 5700 },
+              ]},
+              { username: "TimesLIVE", topic: "South Africa Governance", fallbackTweets: [
+                { text: "Eskom unbundling: Transmission subsidiary incorporated — SA's grid transformation enters execution phase after 5 years of delays. #LoadShedding", likes: 9200, retweets: 4500 },
+                { text: "SARS recovers R58B in tax dodging crackdown. Commissioner signals 2025 will be 'year of enforcement'. #SouthAfricaTax", likes: 7800, retweets: 3800 },
+              ]},
+            ],
+            economic: [
+              { username: "BusinessDayZA", topic: "South Africa Economy", fallbackTweets: [
+                { text: "SA rand at R17.4/$ — 18-month high. GNU stability premium and Fed rate cut expectations drive appreciation. #SouthAfricaEconomy #Rand", likes: 8100, retweets: 3900 },
+                { text: "Unemployment falls to 31.9% — still among world's highest but first sustained decline in 5 years. Youth joblessness at 60%. #SAUnemployment", likes: 9400, retweets: 4600 },
+              ]},
+            ],
+            social: [
+              { username: "UNAfrica", topic: "South Africa Social", fallbackTweets: [
+                { text: "Cape Town water crisis returns: Dam levels at 42% heading into summer. Day Zero scenarios being modelled again by municipality. #CapeTown #Water", likes: 8900, retweets: 4400 },
+                { text: "Xenophobic violence in Gauteng: 3 killed, 200 displaced in Alexandra township. Government deploys army after police overwhelmed. #SouthAfrica", likes: 10600, retweets: 5200 },
+              ]},
+            ],
+            technological: [
+              { username: "SmartAfricaOrg", topic: "South Africa Tech", fallbackTweets: [
+                { text: "South Africa's AI policy gazetted: First binding AI regulation on the continent. Compliance deadline 18 months. #SouthAfricaAI", likes: 6700, retweets: 3200 },
+                { text: "Cape Town named Africa's top tech hub 2025. 1,200 active startups, R24B raised since 2020. #CapeTownTech", likes: 7400, retweets: 3600 },
+              ]},
+            ],
+            environmental: [
+              { username: "AUC_DREA", topic: "South Africa Climate", fallbackTweets: [
+                { text: "South Africa's Just Energy Transition: R131B international financing package enters disbursement phase. Coal regions to benefit from R18B reskilling fund. #JETP", likes: 7200, retweets: 3500 },
+                { text: "KwaZulu-Natal floods: R12B in infrastructure damage. Third major climate event in 3 years in the province. #SouthAfricaFloods", likes: 8600, retweets: 4200 },
+              ]},
+            ],
+            legal: [
+              { username: "AfricanCourt", topic: "South Africa Rule of Law", fallbackTweets: [
+                { text: "Constitutional Court rules expropriation without compensation bill requires 2/3 majority. Government faces political arithmetic challenge. #EWC #SouthAfrica", likes: 14200, retweets: 7100 },
+                { text: "NPA charges former president Zuma with contempt — third prosecution attempt in 5 years. Court proceedings to begin Q2 2026. #Zuma #SouthAfrica", likes: 11800, retweets: 5800 },
+              ]},
+            ],
+          },
+          egypt: {
+            political: [
+              { username: "AhramOnline", topic: "Egypt National Politics", fallbackTweets: [
+                { text: "President Sisi secures record 89% in re-election. EU observers note 'restricted space for genuine competition'. #EgyptElections #Egypt", likes: 7400, retweets: 3600 },
+                { text: "Egypt-Hamas ceasefire mediation: Cairo hosts 8th round of talks. Qatari and US delegations present. Agreement remains elusive. #Egypt #Gaza", likes: 12600, retweets: 6200 },
+              ]},
+            ],
+            economic: [
+              { username: "AfDB_Group", topic: "Egypt Economy", fallbackTweets: [
+                { text: "Egypt's $35B UAE deal: Ras El-Hekma project breaks ground. Largest FDI in Egyptian history to create 500,000 jobs. #EgyptEconomy", likes: 11300, retweets: 5500 },
+                { text: "IMF extends Egypt programme to $8B after 5th review. Pound devaluation and subsidy cuts implemented. Social impact severe. #Egypt #IMF", likes: 8700, retweets: 4200 },
+              ]},
+            ],
+            social: [
+              { username: "UNAfrica", topic: "Egypt Social Issues", fallbackTweets: [
+                { text: "Egypt inflation at 34%: Food costs consume 65% of household budgets in lower-income brackets. Social safety net under pressure. #EgyptInflation", likes: 9400, retweets: 4600 },
+                { text: "Gaza refugee pressure on Sinai: Egypt reinforces border but faces international criticism over access restrictions. #Egypt #Gaza", likes: 10800, retweets: 5300 },
+              ]},
+            ],
+            technological: [
+              { username: "DigitalAfricaHub", topic: "Egypt Tech", fallbackTweets: [
+                { text: "Egypt's Digital Egypt programme: 70M citizens registered on national digital ID. E-government services usage up 300% in 3 years. #DigitalEgypt", likes: 6100, retweets: 3000 },
+                { text: "Cairo AI hub: 15 government AI projects operational. Egypt positions as North Africa's AI governance leader. #EgyptAI", likes: 5200, retweets: 2500 },
+              ]},
+            ],
+            environmental: [
+              { username: "UNEPAfrica", topic: "Egypt Environment", fallbackTweets: [
+                { text: "Nile water negotiations: Egypt rejects Ethiopia's GERD operating rules. Calls for AU binding arbitration. #NileConflict #GERD", likes: 9800, retweets: 4800 },
+                { text: "Nile Delta sea level rise: 12% of Egypt's agricultural land at risk of salinisation by 2050. Food security alarm raised. #EgyptClimate", likes: 7600, retweets: 3700 },
+              ]},
+            ],
+            legal: [
+              { username: "ICJAfrica", topic: "Egypt Rule of Law", fallbackTweets: [
+                { text: "Egypt detains 23 journalists — highest figure since 2015. CPJ ranks Egypt 4th worst jailer of journalists globally. #EgyptPressFreedom", likes: 10200, retweets: 5100 },
+                { text: "Emergency law extended for 3rd consecutive year. Human rights lawyers say 'state of exception has become the rule'. #EgyptHumanRights", likes: 8900, retweets: 4400 },
+              ]},
+            ],
+          },
+          rwanda: {
+            political: [
+              { username: "NewTimesRwanda", topic: "Rwanda National Politics", fallbackTweets: [
+                { text: "Kagame wins 4th term with 99.2% — largest margin since 2003. RPF dominance cements 30-year political continuity. #RwandaElections2024", likes: 6800, retweets: 3300 },
+                { text: "Rwanda-DRC relations: Kigali withdraws M23 support pledge under AU pressure. Luanda roadmap implementation resumed. #Rwanda #DRCCrisis", likes: 8400, retweets: 4100 },
+              ]},
+            ],
+            economic: [
+              { username: "AfDB_Group", topic: "Rwanda Economy", fallbackTweets: [
+                { text: "Rwanda GDP grows 7.2% — fastest in East Africa. Services sector and tourism drive expansion as meetings industry surges. #RwandaEconomy", likes: 7100, retweets: 3500 },
+                { text: "Kigali International Financial Centre: 40 new financial institutions licensed. Rwanda positions as Africa's Singapore. #KIFC #Rwanda", likes: 6400, retweets: 3100 },
+              ]},
+            ],
+            social: [
+              { username: "UNICEFAfrica", topic: "Rwanda Social Development", fallbackTweets: [
+                { text: "Rwanda achieves universal health coverage: 97% of population enrolled in Mutuelle de Santé. A model for Africa. #RwandaHealth #UHC", likes: 8900, retweets: 4400 },
+                { text: "Rwanda genocide commemoration: 31 years on. Reconciliation villages housing 50,000 survivors and perpetrators in joint communities. #Kwibuka31", likes: 11200, retweets: 5600 },
+              ]},
+            ],
+            technological: [
+              { username: "SmartAfricaOrg", topic: "Rwanda Tech & Innovation", fallbackTweets: [
+                { text: "Rwanda Coding Academy graduates 1,200 students — 60% female. Kigali's tech ecosystem ranked top 3 in Africa for talent quality. #RwandaTech", likes: 7600, retweets: 3700 },
+                { text: "Africa's first drone delivery network scales: Zipline operates 700 daily deliveries across Rwanda. Blood and medicine reach all 30 districts. #Rwanda #Drones", likes: 9300, retweets: 4600 },
+              ]},
+            ],
+            environmental: [
+              { username: "AUC_DREA", topic: "Rwanda Environment", fallbackTweets: [
+                { text: "Rwanda forest cover reaches 30.4% — first African nation to exceed Rio target. Community forest management model goes continental. #RwandaGreen", likes: 7200, retweets: 3600 },
+                { text: "Lake Kivu methane extraction project generates 56MW. Rwanda turns environmental risk into clean energy. #RwandaEnergy", likes: 6100, retweets: 3000 },
+              ]},
+            ],
+            legal: [
+              { username: "ICJAfrica", topic: "Rwanda Rule of Law", fallbackTweets: [
+                { text: "Rwanda's UK asylum deal collapses. Supreme Court rules deportations unlawful — landmark for refugee law globally. #Rwanda #AsylumPolicy", likes: 9800, retweets: 4900 },
+                { text: "Genocide ideology law: Rights groups say Rwanda's broadly worded statute continues to suppress political opposition. #Rwanda #RuleOfLaw", likes: 7400, retweets: 3700 },
+              ]},
+            ],
           },
         };
 
@@ -1010,8 +1285,27 @@ export const appRouter = router({
           const regionData = regionalAccounts[geoScope] || regionalAccounts["east-africa"];
           accounts = regionData[pestelFilter] || regionData.political || continentalAccounts[pestelFilter] || [];
         } else {
-          const countryData = countryAccounts[geoScope] || countryAccounts.kenya;
-          accounts = countryData[pestelFilter] || countryData.political || continentalAccounts[pestelFilter] || [];
+          // Map countries without dedicated entries to their nearest region's data
+          const countryToRegion: Record<string, string> = {
+            "senegal": "west-africa", "cote-divoire": "west-africa", "mali": "west-africa",
+            "burkina-faso": "west-africa", "guinea": "west-africa", "cameroon": "central-africa",
+            "democratic-republic-of-congo": "central-africa", "angola": "southern-africa",
+            "zambia": "southern-africa", "zimbabwe": "southern-africa", "mozambique": "southern-africa",
+            "malawi": "southern-africa", "botswana": "southern-africa", "namibia": "southern-africa",
+            "sudan": "east-africa", "south-sudan": "east-africa", "somalia": "east-africa",
+            "uganda": "east-africa", "djibouti": "east-africa", "eritrea": "east-africa",
+            "libya": "north-africa", "tunisia": "north-africa", "algeria": "north-africa",
+            "morocco": "north-africa",
+          };
+          const countryData = countryAccounts[geoScope];
+          if (countryData) {
+            accounts = countryData[pestelFilter] || countryData.political || continentalAccounts[pestelFilter] || [];
+          } else {
+            // Fall back to the country's regional data, not always Kenya
+            const fallbackRegion = countryToRegion[geoScope] || "east-africa";
+            const regionData = regionalAccounts[fallbackRegion] || regionalAccounts["east-africa"];
+            accounts = regionData[pestelFilter] || regionData.political || continentalAccounts[pestelFilter] || [];
+          }
         }
 
         // accounts resolved above
