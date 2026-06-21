@@ -2186,6 +2186,7 @@ ${input.originalContent}`
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
           )`,
+          `ALTER TABLE xTrendsCache MODIFY COLUMN category VARCHAR(128) NOT NULL`,
         ]) {
           try {
             await db.execute(sql.raw(stmt));
