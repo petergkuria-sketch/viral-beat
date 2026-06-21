@@ -272,7 +272,7 @@ export async function getCachedSentiment(topic: string, platform: "all" | "youtu
 
 
 // X Trends caching functions
-export async function getCachedXTrends(category: "general" | "tech" | "entertainment" | "sports" | "politics" | "business") {
+export async function getCachedXTrends(category: string) {
   const db = await getDb();
   if (!db) return null;
 
@@ -292,7 +292,7 @@ export async function getCachedXTrends(category: "general" | "tech" | "entertain
   return results[0];
 }
 
-export async function cacheXTrends(category: "general" | "tech" | "entertainment" | "sports" | "politics" | "business", trendsData: any[]) {
+export async function cacheXTrends(category: string, trendsData: any[]) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 

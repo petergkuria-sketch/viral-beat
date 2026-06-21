@@ -118,7 +118,7 @@ export type InsertSentimentCache = typeof sentimentCache.$inferInsert;
  */
 export const xTrendsCache = mysqlTable("xTrendsCache", {
   id: int("id").autoincrement().primaryKey(),
-  category: mysqlEnum("category", ["general", "tech", "entertainment", "sports", "politics", "business"]).notNull(),
+  category: varchar("category", { length: 128 }).notNull(),
   trendsData: json("trendsData").$type<any[]>(),
   fetchedAt: timestamp("fetchedAt").defaultNow().notNull(),
 });

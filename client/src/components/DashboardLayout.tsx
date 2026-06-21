@@ -85,7 +85,7 @@ const SECTIONS: Section[] = [
     icon: TrendingUp,
     accent: "#f472b6",
     items: [
-      { icon: TrendingUp,    label: "Trends",            path: "/x-trends" },
+      { icon: TrendingUp,    label: "Signal Monitor",    path: "/x-trends" },
       { icon: Heart,         label: "Favorites",         path: "/favorites" },
       { icon: Users,         label: "Humans As Agents",  path: "/haa" },
       { icon: Crown,         label: "HAA Leaderboard",   path: "/haa/leaderboard" },
