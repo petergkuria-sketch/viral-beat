@@ -26,7 +26,9 @@ import {
   castVote,
   getUserVote,
   getVoteCounts,
-  getTopVotedTopics
+  getTopVotedTopics,
+  upsertSignalRating,
+  getPestelRatingSummary,
 } from "./db";
 import {
   createThread,
@@ -1307,6 +1309,33 @@ When answering, always cite the geographic scope (continental / regional / count
           timestamp: new Date().toISOString(),
         };
       }),
+
+    rateSignal: protectedProcedure
+      .input(z.object({
+        messageId: z.string(),
+        topic: z.string(),
+        geoLayer: z.string(),
+        geoScope: z.string(),
+        pestelCategory: z.string(),
+        rating: z.number().int().min(1).max(5),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await upsertSignalRating({
+          userId: ctx.user.id,
+          messageId: input.messageId,
+          topic: input.topic,
+          geoLayer: input.geoLayer,
+          geoScope: input.geoScope,
+          pestelCategory: input.pestelCategory,
+          rating: input.rating,
+        });
+        return { ok: true };
+      }),
+
+    pestelSummary: publicProcedure
+      .query(async () => {
+        return getPestelRatingSummary();
+      }),
   }),
 
   // ============ BEAT VOTES ============
@@ -2190,6 +2219,19 @@ ${input.originalContent}`
             updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
           )`,
           `ALTER TABLE xTrendsCache MODIFY COLUMN category VARCHAR(128) NOT NULL`,
+          `CREATE TABLE IF NOT EXISTS signalRatings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            userId INT NOT NULL,
+            messageId VARCHAR(128) NOT NULL,
+            topic VARCHAR(512) NOT NULL,
+            geoLayer VARCHAR(32) NOT NULL,
+            geoScope VARCHAR(64) NOT NULL,
+            pestelCategory VARCHAR(32) NOT NULL,
+            rating INT NOT NULL,
+            createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_signal_ratings_user_msg (userId, messageId),
+            INDEX idx_signal_ratings_pestel (pestelCategory)
+          )`,
         ]) {
           try {
             await db.execute(sql.raw(stmt));

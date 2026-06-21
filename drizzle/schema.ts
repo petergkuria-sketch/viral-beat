@@ -1239,3 +1239,22 @@ export const subscriptionEvents = mysqlTable("subscriptionEvents", {
 });
 export type SubscriptionEvent = typeof subscriptionEvents.$inferSelect;
 export type InsertSubscriptionEvent = typeof subscriptionEvents.$inferInsert;
+
+// ── Signal Ratings ────────────────────────────────────────────────────────────
+export const signalRatings = mysqlTable("signalRatings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  messageId: varchar("messageId", { length: 128 }).notNull(),
+  topic: varchar("topic", { length: 512 }).notNull(),
+  geoLayer: varchar("geoLayer", { length: 32 }).notNull(),
+  geoScope: varchar("geoScope", { length: 64 }).notNull(),
+  pestelCategory: varchar("pestelCategory", { length: 32 }).notNull(),
+  rating: int("rating").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  userMsg: index("idx_signal_ratings_user_msg").on(t.userId, t.messageId),
+  pestel: index("idx_signal_ratings_pestel").on(t.pestelCategory),
+}));
+
+export type SignalRating = typeof signalRatings.$inferSelect;
+export type InsertSignalRating = typeof signalRatings.$inferInsert;

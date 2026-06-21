@@ -57,6 +57,11 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   isWelcome?: boolean;
+  // Context captured at analysis time for rating persistence
+  topic?: string;
+  geoLayer?: string;
+  geoScope?: string;
+  pestelCategory?: string;
 }
 
 function formatNumber(num: number) {
@@ -111,6 +116,8 @@ export default function XTrends() {
     { refetchOnWindowFocus: false }
   );
 
+  const rateSignalMutation = trpc.xTrends.rateSignal.useMutation();
+
   const chatMutation = trpc.xTrends.chat.useMutation({
     onSuccess: (data) => {
       setChatMessages((prev) => [...prev, {
@@ -118,6 +125,10 @@ export default function XTrends() {
         role: "assistant",
         content: typeof data.response === "string" ? data.response : String(data.response),
         timestamp: new Date(data.timestamp),
+        geoLayer,
+        geoScope: scopeKey,
+        pestelCategory: selectedCategory,
+        topic: selectedTrend?.topic || inputMessage,
       }]);
     },
   });
@@ -158,6 +169,10 @@ export default function XTrends() {
       role: "assistant",
       content: typeof result.summary === "string" ? result.summary : String(result.summary),
       timestamp: new Date(result.generatedAt),
+      topic: trend.topic,
+      geoLayer,
+      geoScope: scopeKey,
+      pestelCategory: selectedCategory,
     }]);
   };
 
@@ -433,7 +448,19 @@ export default function XTrends() {
                                 {[1, 2, 3, 4, 5].map((star) => (
                                   <button
                                     key={star}
-                                    onClick={() => setRatings((r) => ({ ...r, [message.id]: star }))}
+                                    onClick={() => {
+                                      setRatings((r) => ({ ...r, [message.id]: star }));
+                                      if (user && message.topic) {
+                                        rateSignalMutation.mutate({
+                                          messageId: message.id,
+                                          topic: message.topic,
+                                          geoLayer: message.geoLayer || geoLayer,
+                                          geoScope: message.geoScope || scopeKey,
+                                          pestelCategory: message.pestelCategory || selectedCategory,
+                                          rating: star,
+                                        });
+                                      }
+                                    }}
                                     className="text-lg leading-none transition-transform hover:scale-125 text-muted-foreground hover:text-yellow-400"
                                     title={["", "Poor", "Fair", "Good", "Very good", "Excellent"][star]}
                                   >

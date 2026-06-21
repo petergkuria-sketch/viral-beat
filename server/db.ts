@@ -1,11 +1,11 @@
 import { eq, and, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { 
-  InsertUser, 
-  users, 
-  favorites, 
-  InsertFavorite, 
-  creators, 
+import {
+  InsertUser,
+  users,
+  favorites,
+  InsertFavorite,
+  creators,
   InsertCreator,
   creatorStats,
   InsertCreatorStats,
@@ -14,7 +14,9 @@ import {
   xTrendsCache,
   InsertXTrendsCache,
   beatVotes,
-  InsertBeatVote
+  InsertBeatVote,
+  signalRatings,
+  InsertSignalRating,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -361,6 +363,41 @@ export async function getVoteCounts(topic: string) {
     downvotes,
     score: upvotes - downvotes,
   };
+}
+
+// ── Signal Ratings ────────────────────────────────────────────────────────────
+
+export async function upsertSignalRating(data: InsertSignalRating) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await db.select().from(signalRatings)
+    .where(and(eq(signalRatings.userId, data.userId), eq(signalRatings.messageId, data.messageId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    await db.update(signalRatings).set({ rating: data.rating }).where(eq(signalRatings.id, existing[0].id));
+  } else {
+    await db.insert(signalRatings).values(data);
+  }
+}
+
+export async function getPestelRatingSummary() {
+  const db = await getDb();
+  if (!db) return [];
+
+  const rows = await db.select().from(signalRatings);
+  const agg: Record<string, { total: number; count: number }> = {};
+  for (const r of rows) {
+    if (!agg[r.pestelCategory]) agg[r.pestelCategory] = { total: 0, count: 0 };
+    agg[r.pestelCategory].total += r.rating;
+    agg[r.pestelCategory].count++;
+  }
+  return Object.entries(agg).map(([pestel, { total, count }]) => ({
+    pestel,
+    avgRating: Math.round((total / count) * 10) / 10,
+    count,
+  })).sort((a, b) => b.avgRating - a.avgRating);
 }
 
 export async function getTopVotedTopics(limit = 10) {
