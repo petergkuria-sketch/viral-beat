@@ -48,8 +48,8 @@ export default function ViralMindPage() {
   // Content analyzer state
   const [contentTitle, setContentTitle] = useState("");
   const [contentUrl, setContentUrl] = useState("");
-  const [contentType, setContentType] = useState<"video" | "image" | "text" | "audio">("video");
-  const [analysisPlatform, setAnalysisPlatform] = useState<"youtube" | "tiktok" | "instagram" | "twitter">("youtube");
+  const [contentType, setContentType] = useState<"video" | "image" | "text" | "audio" | "research">("video");
+  const [analysisPlatform, setAnalysisPlatform] = useState<"youtube" | "tiktok" | "instagram" | "twitter" | "journal">("youtube");
 
   // Queries
   const { data: profile, isLoading: profileLoading } = trpc.aiAssistant.getProfile.useQuery();
@@ -557,8 +557,9 @@ export default function ViralMindPage() {
                       <SelectContent>
                         <SelectItem value="video">Video</SelectItem>
                         <SelectItem value="image">Image</SelectItem>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="audio">Audio</SelectItem>
+                        <SelectItem value="text">Text / Article</SelectItem>
+                        <SelectItem value="audio">Audio / Podcast</SelectItem>
+                        <SelectItem value="research">Research Document</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -573,6 +574,7 @@ export default function ViralMindPage() {
                         <SelectItem value="tiktok">TikTok</SelectItem>
                         <SelectItem value="instagram">Instagram</SelectItem>
                         <SelectItem value="twitter">Twitter/X</SelectItem>
+                        <SelectItem value="journal">Journal / Newspaper</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

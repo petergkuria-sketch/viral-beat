@@ -291,8 +291,8 @@ HOW TO RESPOND:
         title: z.string(),
         description: z.string().optional(),
         contentUrl: z.string().optional(),
-        contentType: z.enum(["video", "image", "text", "audio"]),
-        platform: z.enum(["youtube", "tiktok", "instagram", "twitter"]),
+        contentType: z.enum(["video", "image", "text", "audio", "research"]),
+        platform: z.enum(["youtube", "tiktok", "instagram", "twitter", "journal"]),
       })
     )
     .mutation(async ({ ctx, input }) => {
