@@ -248,37 +248,37 @@ export default function ViralMindPage() {
         <Card className="w-full max-w-2xl">
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-6 h-6 text-purple-600" />
+              <Sparkles className="w-6 h-6 text-cyan-400" />
               <CardTitle className="text-2xl">Welcome to ViralMind</CardTitle>
             </div>
-            <CardDescription>Your AI-powered personal assistant for viral content creation</CardDescription>
+            <CardDescription>Your Game Theory strategist for Africa intelligence content — powered by ViralBeat signals</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {onboardingStep === "welcome" && (
               <div className="space-y-4">
                 <p className="text-lg">
-                  ViralMind learns your unique style and helps you create content that resonates with your audience.
+                  ViralMind maps the Game Theory landscape of Africa intelligence — then tells you the dominant move for your content.
                 </p>
                 <div className="grid gap-3">
                   <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-cyan-500 mt-0.5" />
                     <div>
-                      <p className="font-medium">Personalized Recommendations</p>
-                      <p className="text-sm text-muted-foreground">Get trend alerts tailored to your niche</p>
+                      <p className="font-medium">Signal-to-Story</p>
+                      <p className="text-sm text-muted-foreground">Turn PESTEL signals from 55 nations into content angles your audience hasn't seen yet</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-cyan-500 mt-0.5" />
                     <div>
-                      <p className="font-medium">Content Analysis</p>
-                      <p className="text-sm text-muted-foreground">Score your content for virality potential</p>
+                      <p className="font-medium">Game Theory Analyser</p>
+                      <p className="text-sm text-muted-foreground">Score any piece of content for strategic value, Nash position, and mission alignment</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 text-cyan-500 mt-0.5" />
                     <div>
-                      <p className="font-medium">24/7 AI Assistant</p>
-                      <p className="text-sm text-muted-foreground">Chat anytime for optimization tips</p>
+                      <p className="font-medium">Intelligence-Backed Briefs</p>
+                      <p className="text-sm text-muted-foreground">Generate citation-ready intelligence briefs for any African country or political moment</p>
                     </div>
                   </div>
                 </div>
@@ -503,10 +503,10 @@ export default function ViralMindPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Sparkles className="w-8 h-8 text-purple-600" />
-            ViralMind Assistant
+            <Sparkles className="w-8 h-8 text-cyan-400" />
+            ViralMind
           </h1>
-          <p className="text-muted-foreground">Your AI-powered content creation companion</p>
+          <p className="text-muted-foreground">Africa intelligence through Game Theory — strategy, signal, and story</p>
         </div>
         {profile && (
           <div className="flex items-center gap-2">
@@ -534,7 +534,7 @@ export default function ViralMindPage() {
                 <Sparkles className="w-5 h-5" />
                 ViralMind — Game Theory Strategist
               </CardTitle>
-              <CardDescription>Strategic content advice grounded in Game Theory and Africa political intelligence</CardDescription>
+              <CardDescription>Explore dominant strategies, signal angles, and Nash positions in Africa's intelligence landscape — then build content that wins</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="h-[400px] overflow-y-auto border rounded-lg p-4 space-y-4 bg-muted/20">
@@ -562,8 +562,8 @@ export default function ViralMindPage() {
                 ) : (
                   <div className="text-center text-muted-foreground py-12">
                     <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p className="font-semibold">Start your Game Theory session</p>
-                    <p className="text-sm mt-1 max-w-sm mx-auto">Ask about dominant content strategies, PESTEL signal angles, Nash positions in the Africa intelligence space, or how to build your contributor network.</p>
+                    <p className="font-semibold">What signal do you want to own?</p>
+                    <p className="text-sm mt-1 max-w-sm mx-auto">Start with a country, theme, or political moment — ViralMind maps the Game Theory landscape and tells you the dominant move.</p>
                   </div>
                 )}
                 <div ref={chatEndRef} />
@@ -607,12 +607,12 @@ export default function ViralMindPage() {
                 <TrendingUp className="w-5 h-5" />
                 Game Theory Content Analyser
               </CardTitle>
-              <CardDescription>Strategic value scoring — Nash position, dominant strategy, mission alignment, and PESTEL signal optimisation</CardDescription>
+              <CardDescription>Drop a title, pick your platform — ViralMind scores the strategic value, finds the Nash position, and tells you the single move that dominates</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4">
                 <div>
-                  <Label htmlFor="contentTitle">Content Title *</Label>
+                  <Label htmlFor="contentTitle">Content Title or Thesis *</Label>
                   <Input
                     id="contentTitle"
                     placeholder="e.g., Ghana's Anti-LGBTQ Law and the International Aid Payoff Matrix"
@@ -856,11 +856,16 @@ export default function ViralMindPage() {
             <Card className="border-dashed">
               <CardContent className="py-16 text-center">
                 <Target className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p className="font-semibold text-muted-foreground">No analyses yet</p>
-                <p className="text-sm text-muted-foreground mt-1">Run a Game Theory analysis from the Analyser tab — results will appear here.</p>
-                <Button variant="outline" size="sm" className="mt-4" onClick={() => setActiveTab("analyze")}>
-                  Go to Analyser
-                </Button>
+                <p className="font-semibold text-muted-foreground">Your strategy library starts here</p>
+                <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">Run your first Game Theory analysis — every result is saved here as a reusable strategy card you can share, download, or iterate on.</p>
+                <div className="flex items-center justify-center gap-3 mt-4">
+                  <Button variant="outline" size="sm" onClick={() => setActiveTab("chat")}>
+                    Explore in Chat
+                  </Button>
+                  <Button size="sm" className="bg-cyan-500 hover:bg-cyan-600 text-black font-semibold" onClick={() => setActiveTab("analyze")}>
+                    Run First Analysis
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}

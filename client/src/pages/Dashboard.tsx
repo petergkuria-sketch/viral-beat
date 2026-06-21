@@ -193,7 +193,7 @@ export default function Dashboard() {
         <div className="relative max-w-3xl mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-muted-foreground">AI Trend Intelligence</span>
+            <span className="text-sm font-medium text-muted-foreground">Africa Political Intelligence Search</span>
             {user && <div className="ml-auto"><TokenBalanceIndicator /></div>}
           </div>
           <form onSubmit={handleSearch} className="flex gap-2">
@@ -201,20 +201,20 @@ export default function Dashboard() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search any topic, hashtag, or creator..."
+                placeholder="Search a topic, election, movement, or country signal…"
                 className="pl-10 h-12 bg-background/80 border-border/60 text-base focus-visible:ring-primary/50"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
             </div>
             <Button type="submit" size="lg" className="h-12 px-6 shadow-lg shadow-primary/20 font-semibold">
-              Analyze <Zap className="ml-1.5 w-4 h-4" />
+              Analyse <Zap className="ml-1.5 w-4 h-4" />
             </Button>
           </form>
 
-          {/* Quick suggestions */}
+          {/* Quick signals */}
           <div className="flex flex-wrap gap-2 mt-3">
-            {["AI", "TikTok Dance", "Climate", "Gaming", "K-Pop"].map((s) => (
+            {["Kenya Elections", "Nigeria Economy", "Sudan Conflict", "Ethiopia Politics", "AU Summit"].map((s) => (
               <button key={s} onClick={() => { setSearchInput(s); setTopic(s); setLocation(`/dashboard?topic=${encodeURIComponent(s)}`); }}
                 className="text-xs px-3 py-1.5 rounded-full bg-muted/50 hover:bg-primary/10 hover:text-primary border border-border/50 hover:border-primary/30 transition-all text-muted-foreground">
                 {s}
@@ -385,12 +385,12 @@ export default function Dashboard() {
                 </motion.div>
               </div>
 
-              {/* ── TOP CREATORS ── */}
+              {/* ── TOP VOICES ── */}
               {trendData.topCreators?.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
                   <Card className="border-border/50">
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-bold">Top Creators Driving This Trend</CardTitle>
+                      <CardTitle className="text-base font-bold">Key Voices Shaping This Signal</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid sm:grid-cols-3 gap-4">
@@ -456,13 +456,43 @@ export default function Dashboard() {
           </AnimatePresence>
         )}
 
-        {/* ── EMPTY STATE: Live Trends Grid ── */}
+        {/* ── EMPTY STATE: Intelligence Mission Control ── */}
         {!isLoading && !error && !topic && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+
+            {/* Mission control quick-action cards */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: "Africa Hub", desc: "Explore all 55 nations — signals, stability scores, civic movements", icon: "🌍", href: "/africa", color: "#22d3ee", badge: "55 Nations" },
+                { label: "Signal Monitor", desc: "PESTEL-filtered intelligence with live AI analysis", icon: "📡", href: "/x-trends", color: "#a78bfa", badge: "Live" },
+                { label: "ViralMind", desc: "Game Theory content strategy powered by Africa intelligence", icon: "⚡", href: "/viralmind", color: "#f472b6", badge: "AI" },
+                { label: "Field Signals", desc: "Contribute or browse ground-truth signals from Africa", icon: "🧑‍💻", href: "/haa", color: "#34d399", badge: "People-Powered" },
+              ].map((item, i) => (
+                <motion.button
+                  key={i}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  onClick={() => setLocation(item.href)}
+                  className="group text-left w-full relative bg-card border border-border/50 rounded-2xl p-5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity" style={{ background: item.color }} />
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-2xl">{item.icon}</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ color: item.color, borderColor: `${item.color}40`, background: `${item.color}10` }}>{item.badge}</span>
+                    </div>
+                    <h3 className="font-black text-sm mb-1 group-hover:text-primary transition-colors">{item.label}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-black">Live Trending Now</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">Click any trend to analyse it instantly</p>
+                <h2 className="text-xl font-black">Africa Intelligence Signals</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">Search a topic above or click any signal to analyse it</p>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -503,9 +533,9 @@ export default function Dashboard() {
             {/* Quick access row */}
             <div className="grid sm:grid-cols-3 gap-4">
               {[
-                { label: "X Trends", desc: "Real-time Twitter/X trending topics", icon: TrendingUp, href: "/x-trends", color: "#22d3ee" },
-                { label: "Kenya Intel", desc: "Kenya political & social intelligence", icon: BarChart3, href: "/kenya", color: "#a78bfa" },
-                { label: "Marketplace", desc: "Browse & trade trend insights", icon: Zap, href: "/marketplace", color: "#34d399" },
+                { label: "Kenya Deep-Dive", desc: "The richest country intelligence module on the platform", icon: TrendingUp, href: "/kenya", color: "#22d3ee" },
+                { label: "Humans As Agents", desc: "Ground-truth field signals from Africa contributors", icon: BarChart3, href: "/haa", color: "#a78bfa" },
+                { label: "Developer API", desc: "Embed Africa intelligence in your product", icon: Zap, href: "/developer-hub", color: "#34d399" },
               ].map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.1 }}>
                   <button
