@@ -1,10 +1,16 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Route, Switch } from "wouter";
-import { lazy, Suspense } from "react";
+import { Route, Switch, useLocation } from "wouter";
+import { lazy, Suspense, useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
+
+function RedirectTo({ path }: { path: string }) {
+  const [, navigate] = useLocation();
+  useEffect(() => { navigate(path, { replace: true }); }, []);
+  return null;
+}
 
 // Lazy load all page components for better performance
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -149,7 +155,7 @@ function Router() {
     { path: "/kenya/governors", component: KenyaGovernorsAgent },
     { path: "/kenya/women-reps", component: KenyaWomenRepsAgent },
     { path: "/kenya/newsfeed", component: KenyaNewsfeedAgent },
-    { path: "/kenya/breaking-news", component: KenyaBreakingNewsAgent },
+    { path: "/kenya/breaking-news", component: () => <RedirectTo path="/country/ke/breaking-news" /> },
     { path: "/kenya/social-media", component: KenyaSocialMediaAgent },
     { path: "/kenya/election-phases", component: KenyaElectionPhases },
     { path: "/kenya/alerts", component: KenyaAlerts },
