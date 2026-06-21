@@ -397,8 +397,10 @@ Provide your analysis in JSON format with:
         predictedPerformance: JSON.stringify({
           views: analysis.predictedViews,
           engagement: analysis.predictedEngagement,
+          gameTheoryMove: analysis.gameTheoryMove,
+          missionAlignment: analysis.missionAlignment,
         }),
-        analysisType: "pre_publish",
+        analysisType: "game_theory",
       });
 
       return analysis;

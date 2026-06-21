@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Loader2, Send, Sparkles, TrendingUp, Target, Lightbulb, CheckCircle2, ArrowRight } from "lucide-react";
+import { Loader2, Send, Sparkles, TrendingUp, Target, Lightbulb, CheckCircle2, ArrowRight, Download, Share2, Check, Zap } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
@@ -42,6 +42,9 @@ export default function ViralMindPage() {
   const [verificationCode, setVerificationCode] = useState("");
   const [selectedPlatformForVerification, setSelectedPlatformForVerification] = useState<"youtube" | "tiktok" | "instagram" | "twitter" | null>(null);
 
+  // Tab control
+  const [activeTab, setActiveTab] = useState("chat");
+
   // Chat state
   const [chatMessage, setChatMessage] = useState("");
 
@@ -50,12 +53,13 @@ export default function ViralMindPage() {
   const [contentUrl, setContentUrl] = useState("");
   const [contentType, setContentType] = useState<"video" | "image" | "text" | "audio" | "research">("video");
   const [analysisPlatform, setAnalysisPlatform] = useState<"youtube" | "tiktok" | "instagram" | "twitter" | "journal">("youtube");
+  const [copiedAnalysis, setCopiedAnalysis] = useState(false);
 
   // Queries
   const { data: profile, isLoading: profileLoading } = trpc.aiAssistant.getProfile.useQuery();
   const { data: conversations } = trpc.aiAssistant.getConversations.useQuery({ sessionId });
   const { data: insights } = trpc.aiAssistant.getAnalyses.useQuery({ limit: 10 });
-  const { data: activeGoals } = trpc.aiAssistant.getGoals.useQuery();
+
   const { data: verificationStatus } = trpc.aiAssistant.getVerificationStatus.useQuery();
 
   // Mutations
@@ -75,9 +79,10 @@ export default function ViralMindPage() {
 
   const analyzeContent = trpc.aiAssistant.analyzeContent.useMutation({
     onSuccess: () => {
-      toast.success("Game Theory analysis complete! Check the Insights tab for your strategic move.");
+      toast.success("Game Theory analysis complete!");
       setContentTitle("");
       setContentUrl("");
+      setActiveTab("insights");
     },
   });
 
@@ -160,6 +165,69 @@ export default function ViralMindPage() {
       contentType,
       platform: analysisPlatform,
     });
+  };
+
+  // Import last user message from chat into analyser title
+  const handleImportFromChat = () => {
+    const lastUserMsg = conversations?.find((m: any) => m.role === "user");
+    if (lastUserMsg) {
+      setContentTitle(lastUserMsg.message.slice(0, 120));
+      setActiveTab("analyze");
+      toast.success("Chat topic imported into analyser.");
+    } else {
+      toast.error("No chat messages found to import.");
+    }
+  };
+
+  const buildAnalysisText = (insight: any) => {
+    const perf = (() => { try { return JSON.parse(insight.predictedPerformance || "{}"); } catch { return {}; } })();
+    const recs = (() => { try { return JSON.parse(insight.recommendations || "[]"); } catch { return []; } })();
+    const strengths = (() => { try { return JSON.parse(insight.strengths || "[]"); } catch { return []; } })();
+    const tags = (() => { try { return JSON.parse(insight.optimizedHashtags || "[]"); } catch { return []; } })();
+    return [
+      `VIRALBEAT — GAME THEORY CONTENT ANALYSIS`,
+      `Generated: ${new Date(insight.createdAt).toLocaleDateString()}`,
+      ``,
+      `CONTENT: ${insight.contentTitle}`,
+      `PLATFORM: ${insight.platform?.toUpperCase()} | TYPE: ${insight.contentType?.toUpperCase()}`,
+      `GAME THEORY SCORE: ${insight.viralityScore}/10`,
+      ``,
+      perf.gameTheoryMove ? `DOMINANT STRATEGY MOVE\n${perf.gameTheoryMove}` : "",
+      perf.missionAlignment ? `MISSION ALIGNMENT: ${perf.missionAlignment}` : "",
+      ``,
+      `OPTIMISED TITLE (NASH SIGNAL)\n${insight.optimizedTitle}`,
+      ``,
+      strengths.length ? `STRATEGIC STRENGTHS\n${strengths.map((s: string) => `+ ${s}`).join("\n")}` : "",
+      ``,
+      recs.length ? `STRATEGIC MOVES\n${recs.map((r: string, i: number) => `${i + 1}. ${r}`).join("\n")}` : "",
+      ``,
+      tags.length ? `PESTEL SIGNAL TAGS\n${tags.join("  ")}` : "",
+      ``,
+      `— ViralBeat Africa Political Intelligence | viralbeat.io`,
+    ].filter(Boolean).join("\n");
+  };
+
+  const handleShareAnalysis = async (insight: any) => {
+    const text = buildAnalysisText(insight);
+    if (navigator.share) {
+      await navigator.share({ title: `ViralBeat GT Analysis — ${insight.contentTitle}`, text });
+    } else {
+      await navigator.clipboard.writeText(text);
+      setCopiedAnalysis(true);
+      toast.success("Analysis copied to clipboard.");
+      setTimeout(() => setCopiedAnalysis(false), 2000);
+    }
+  };
+
+  const handleDownloadAnalysis = (insight: any) => {
+    const text = buildAnalysisText(insight);
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `viralbeat-gt-analysis-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (profileLoading) {
@@ -449,7 +517,7 @@ export default function ViralMindPage() {
         )}
       </div>
 
-      <Tabs defaultValue="chat" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="chat">Chat</TabsTrigger>
           <TabsTrigger value="analyze">Game Theory Analyser</TabsTrigger>
@@ -514,6 +582,17 @@ export default function ViralMindPage() {
                   )}
                 </Button>
               </div>
+              {conversations && conversations.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                  onClick={handleImportFromChat}
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Analyse in Game Theory — Import last topic to Analyser
+                </Button>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -666,74 +745,122 @@ export default function ViralMindPage() {
         </TabsContent>
 
         <TabsContent value="insights" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  Active Goals
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {activeGoals && activeGoals.length > 0 ? (
-                  <div className="space-y-3">
-                    {activeGoals.map((goal) => (
-                      <div key={goal.id} className="border rounded-lg p-3">
-                        <div className="flex items-start justify-between mb-2">
-                          <p className="font-medium">{goal.title}</p>
-                          <Badge variant={goal.status === "completed" ? "default" : "secondary"}>
-                            {goal.status}
-                          </Badge>
-                        </div>
-                        {goal.description && <p className="text-sm text-muted-foreground mb-2">{goal.description}</p>}
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            Progress: {goal.currentValue}/{goal.targetValue}
-                          </span>
-                          <span className="font-medium">
-                            {Math.round((goal.currentValue / goal.targetValue) * 100)}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">No active goals yet</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lightbulb className="w-5 h-5" />
-                  Recent Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {insights && insights.length > 0 ? (
-                  <div className="space-y-3">
-                    {insights.map((insight: any) => (
-                      <div key={insight.id} className="border rounded-lg p-3">
-                        <div className="flex items-start justify-between mb-2">
-                          <p className="font-medium text-sm">{insight.insightType}</p>
-                          <Badge variant="outline" className="text-xs">
-                            {new Date(insight.createdAt).toLocaleDateString()}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{insight.content}</p>
-                        {insight.actionable && (
-                          <p className="text-xs text-primary mt-2">💡 Actionable</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">No insights yet. Start analyzing content!</p>
-                )}
-              </CardContent>
-            </Card>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-cyan-400" />
+              Game Theory Analysis History
+            </h2>
+            <Badge variant="outline" className="text-xs text-muted-foreground">
+              {insights?.length || 0} analyses
+            </Badge>
           </div>
+
+          {insights && insights.length > 0 ? (
+            <div className="space-y-4">
+              {insights.map((insight: any) => {
+                const perf = (() => { try { return JSON.parse(insight.predictedPerformance || "{}"); } catch { return {}; } })();
+                const recs: string[] = (() => { try { return JSON.parse(insight.recommendations || "[]"); } catch { return []; } })();
+                const strengths: string[] = (() => { try { return JSON.parse(insight.strengths || "[]"); } catch { return []; } })();
+                const weaknesses: string[] = (() => { try { return JSON.parse(insight.weaknesses || "[]"); } catch { return []; } })();
+                const tags: string[] = (() => { try { return JSON.parse(insight.optimizedHashtags || "[]"); } catch { return []; } })();
+                const gtMove: string = perf.gameTheoryMove || "";
+                const missionAlign: string = perf.missionAlignment || insight.missionAlignment || "";
+                const alignTier = missionAlign.startsWith("High") ? "text-green-400" : missionAlign.startsWith("Medium") ? "text-yellow-400" : "text-red-400";
+
+                return (
+                  <Card key={insight.id} className="border border-border/60">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base leading-snug">{insight.contentTitle}</CardTitle>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <Badge variant="outline" className="text-xs capitalize">{insight.platform}</Badge>
+                            <Badge variant="outline" className="text-xs capitalize">{insight.contentType}</Badge>
+                            <span className="text-xs text-muted-foreground">{new Date(insight.createdAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-2xl font-black text-cyan-400">{insight.viralityScore}<span className="text-xs text-muted-foreground font-normal">/10</span></p>
+                          <p className="text-xs text-muted-foreground">GT Score</p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-0">
+                      {gtMove && (
+                        <div className="rounded-lg bg-cyan-500/10 border border-cyan-500/25 px-3 py-2">
+                          <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-1">Dominant Strategy Move</p>
+                          <p className="text-xs text-foreground/80">{gtMove}</p>
+                        </div>
+                      )}
+
+                      {missionAlign && (
+                        <p className="text-xs"><span className="text-muted-foreground">Mission Alignment: </span><span className={alignTier + " font-semibold"}>{missionAlign.split(" — ")[0]}</span>{missionAlign.includes(" — ") && <span className="text-muted-foreground"> — {missionAlign.split(" — ")[1]}</span>}</p>
+                      )}
+
+                      {insight.optimizedTitle && (
+                        <div className="rounded-lg bg-muted/20 px-3 py-2">
+                          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Optimised Title</p>
+                          <p className="text-xs font-semibold">{insight.optimizedTitle}</p>
+                        </div>
+                      )}
+
+                      {(strengths.length > 0 || weaknesses.length > 0) && (
+                        <div className="grid grid-cols-2 gap-3">
+                          {strengths.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold text-green-400 uppercase tracking-widest mb-1">Strengths</p>
+                              <ul className="space-y-0.5">{strengths.slice(0, 3).map((s, i) => <li key={i} className="text-xs text-muted-foreground flex gap-1"><span className="text-green-400 shrink-0">+</span>{s}</li>)}</ul>
+                            </div>
+                          )}
+                          {weaknesses.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold text-red-400 uppercase tracking-widest mb-1">Gaps</p>
+                              <ul className="space-y-0.5">{weaknesses.slice(0, 3).map((w, i) => <li key={i} className="text-xs text-muted-foreground flex gap-1"><span className="text-red-400 shrink-0">−</span>{w}</li>)}</ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {recs.length > 0 && (
+                        <div>
+                          <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-1">Strategic Moves</p>
+                          <ol className="space-y-0.5">{recs.slice(0, 3).map((r, i) => <li key={i} className="text-xs text-muted-foreground flex gap-1.5"><span className="text-cyan-400 font-bold shrink-0">{i + 1}.</span>{r}</li>)}</ol>
+                        </div>
+                      )}
+
+                      {tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {tags.map((tag, i) => <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">{tag}</span>)}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-1">
+                        <Button size="sm" variant="outline" className="flex-1 text-xs h-8" onClick={() => handleShareAnalysis(insight)}>
+                          {copiedAnalysis ? <Check className="w-3 h-3 mr-1.5" /> : <Share2 className="w-3 h-3 mr-1.5" />}
+                          Share
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex-1 text-xs h-8" onClick={() => handleDownloadAnalysis(insight)}>
+                          <Download className="w-3 h-3 mr-1.5" />
+                          Download
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="py-16 text-center">
+                <Target className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p className="font-semibold text-muted-foreground">No analyses yet</p>
+                <p className="text-sm text-muted-foreground mt-1">Run a Game Theory analysis from the Analyser tab — results will appear here.</p>
+                <Button variant="outline" size="sm" className="mt-4" onClick={() => setActiveTab("analyze")}>
+                  Go to Analyser
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>
