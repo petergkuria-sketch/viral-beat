@@ -459,14 +459,14 @@ export default function XTrends() {
                     <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                       message.role === "user"
                         ? "bg-cyan-500/15 border border-cyan-500/30 rounded-br-sm"
-                        : "bg-muted/40 border border-border/40 rounded-bl-sm"
+                        : "bg-[#0d1e36] border border-[#1e3a5f] rounded-bl-sm"
                     }`}>
-                      <div className="prose prose-invert prose-sm max-w-none">
+                      <div className="prose prose-invert prose-sm max-w-none [&_*]:text-gray-100 [&_strong]:text-white [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_table]:text-gray-200 [&_td]:text-gray-200 [&_th]:text-gray-100">
                         <Streamdown>{message.content}</Streamdown>
                       </div>
-                      <p className="text-[10px] text-muted-foreground mt-2">{message.timestamp.toLocaleTimeString()}</p>
+                      <p className="text-[10px] text-gray-400 mt-2">{message.timestamp.toLocaleTimeString()}</p>
                       {message.role === "assistant" && !message.isWelcome && (
-                        <div className="mt-3 pt-3 border-t border-border/30 flex items-end justify-between gap-4 flex-wrap">
+                        <div className="mt-3 pt-3 border-t border-[#1e3a5f] flex items-end justify-between gap-4 flex-wrap">
                           {/* Rating */}
                           <div>
                             {ratings[message.id] ? (
@@ -475,7 +475,7 @@ export default function XTrends() {
                               </p>
                             ) : (
                               <div>
-                                <p className="text-[10px] text-muted-foreground mb-2">Rate this analysis</p>
+                                <p className="text-[10px] text-gray-400 mb-2">Rate this analysis</p>
                                 <div className="flex items-center gap-1.5">
                                   {[1, 2, 3, 4, 5].map((star) => (
                                     <button
@@ -493,13 +493,13 @@ export default function XTrends() {
                                           });
                                         }
                                       }}
-                                      className="text-lg leading-none transition-transform hover:scale-125 text-muted-foreground hover:text-yellow-400"
+                                      className="text-lg leading-none transition-transform hover:scale-125 text-gray-400 hover:text-yellow-400"
                                       title={["", "Poor", "Fair", "Good", "Very good", "Excellent"][star]}
                                     >
                                       ☆
                                     </button>
                                   ))}
-                                  <span className="text-[10px] text-muted-foreground ml-1">1 – 5</span>
+                                  <span className="text-[10px] text-gray-500 ml-1">1 – 5</span>
                                 </div>
                               </div>
                             )}
