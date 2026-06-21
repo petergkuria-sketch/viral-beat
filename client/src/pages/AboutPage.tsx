@@ -35,24 +35,24 @@ const PIPELINE_STEPS = [
     icon: Rss,
     color: "#22d3ee",
     step: "01",
-    title: "RSS Signal Ingestion",
-    desc: "Every 4 hours, our pipeline fetches articles from Nation Africa, The Standard (Headlines, Kenya, Politics, Business), and Citizen Digital. Articles are deduplicated by URL and stored with full text, source, and publication timestamp.",
-    detail: "~120–180 articles per run · 6 feeds · 4-hour refresh cycle",
+    title: "Geo-Curated RSS Ingestion",
+    desc: "Every 4 hours, our pipeline fetches articles from country-specific RSS feeds for each nation in scope. Each country has its own geo-curated source set — Kenya uses Nation Africa, The Standard, and Citizen Digital; Ghana uses GhanaWeb, MyJoyOnline, and Citinewsroom; Nigeria uses Punch and Guardian Nigeria. Articles are deduplicated by URL and stored with full text, source, country tag, and publication timestamp.",
+    detail: "Per-country feed sets · 4-hour refresh cycle · deduplicated by URL",
   },
   {
     icon: Brain,
     color: "#a78bfa",
     step: "02",
     title: "Name Recognition & Matching",
-    desc: "Each article is scanned for mentions of tracked political figures using name variants (e.g. 'Ruto', 'William Ruto', 'President Ruto'). Articles are attributed to every figure they mention — one article can inform multiple scores.",
-    detail: "52 figures tracked · Swahili & Sheng term dictionary included",
+    desc: "Each article is scanned for mentions of tracked political figures using name variants and aliases in the country's primary language(s). Articles are attributed to every figure they mention — one article can inform multiple scores. Kenya includes Swahili and Sheng term dictionaries; other countries use English and relevant local language dictionaries.",
+    detail: "Per-country figure registries · multilingual name variant matching",
   },
   {
     icon: BarChart3,
     color: "#34d399",
     step: "03",
     title: "Sentiment Scoring",
-    desc: "Each matched article is scored using two methods in parallel: (1) rule-based keyword analysis using a Kenyan political vocabulary including NCIC Hatelex terms, and (2) LLM-enhanced analysis for top national figures using Claude, which returns structured JSON with score, confidence, key phrases, and hate speech risk.",
+    desc: "Each matched article is scored using two methods in parallel: (1) rule-based keyword analysis using a country-specific political vocabulary, and (2) LLM-enhanced analysis for top Tier-1 national figures using Claude AI, which returns structured JSON with score, confidence, key phrases, and hate speech risk assessment.",
     detail: "Score = positive share − (0.5 × negative share) + 50 baseline · LLM blend for Tier-1 figures",
   },
   {
@@ -60,26 +60,27 @@ const PIPELINE_STEPS = [
     color: "#fb923c",
     step: "04",
     title: "Persistence & Versioning",
-    desc: "Every pipeline run writes a timestamped row to the sentiment_records table for each figure that had relevant coverage. Historical rows are never overwritten — each run appends, creating a genuine time series. The tracker chart renders this history directly.",
-    detail: "MySQL · one row per figure per run · full audit trail retained",
+    desc: "Every pipeline run writes a timestamped row to the sentiment_records table for each figure that had relevant coverage. Historical rows are never overwritten — each run appends, creating a genuine time series per country and figure. The tracker chart renders this history directly.",
+    detail: "MySQL · one row per figure per run · full audit trail · country-scoped queries",
   },
   {
     icon: Shield,
     color: "#f472b6",
     step: "05",
     title: "Confidence Classification",
-    desc: "Each displayed score carries a confidence badge derived from the number of source articles: High (≥10 articles), Medium (4–9), Low (1–3), or No signal. When a score swings more than 20 points between consecutive runs, a 'Conflicted signal' warning is shown instead of a clean number.",
+    desc: "Each displayed score carries a confidence badge derived from the number of source articles: High (≥10 articles), Medium (4–9), Low (1–3), or No signal. When a score swings more than 20 points between consecutive runs, a 'Conflicted signal' warning is shown instead of a clean number. Scores are never fabricated.",
     detail: "Scores are never fabricated — figures with no coverage show '—' until data exists",
   },
 ];
 
 const LIMITATIONS = [
-  "Coverage is English and Swahili language only. County-level and vernacular-language coverage is limited.",
-  "RSS feeds represent editorial decisions by Nation Africa and The Standard — framing bias of those outlets may influence scores.",
-  "Governors and senators outside national headlines may have insufficient article volume for high-confidence scores.",
+  "Coverage depth varies by country. Kenya has the richest source set (6 feeds, 52 figures tracked). Many nations currently have 2–4 feeds and fewer tracked figures.",
+  "RSS feeds reflect editorial decisions of the source outlets — framing bias of those outlets may influence scores. We list sources publicly so users can account for this.",
+  "Sub-national figures (governors, senators, local officials) outside national headlines may have insufficient article volume for high-confidence scores.",
   "Pipeline runs every 4 hours; scores may lag breaking news by up to 4 hours.",
-  "LLM-enhanced scoring applies only to named Tier-1 national figures (President, DP, Opposition leaders). All others use rule-based scoring only.",
-  "Social media signals (X/Twitter) are not yet incorporated. Scores reflect editorial media only.",
+  "LLM-enhanced scoring applies only to named Tier-1 national figures (President, Deputy President, main Opposition leaders). All others use rule-based scoring only.",
+  "Coverage is primarily in English and select local languages. Vernacular-only coverage is not yet incorporated.",
+  "Social media signals (X/Twitter) are not yet incorporated into sentiment scores. Scores reflect editorial media only.",
 ];
 
 function SilhouetteSVG() {
@@ -205,19 +206,27 @@ export default function AboutPage() {
             </div>
 
             {/* Data sources */}
-            <h3 className="text-lg font-black text-white mb-4">Data Sources</h3>
+            <h3 className="text-lg font-black text-white mb-2">Data Sources</h3>
+            <p className="text-sm text-gray-400 mb-5">Each country has its own geo-curated feed set. Sources are selected for editorial independence, publication frequency, and language coverage. A representative sample is shown below.</p>
             <div className="grid sm:grid-cols-3 gap-4 mb-12">
               {[
-                { name: "Nation Africa", url: "nation.africa", type: "General / Politics", status: "Live" },
-                { name: "The Standard – Headlines", url: "standardmedia.co.ke", type: "General", status: "Live" },
-                { name: "The Standard – Kenya", url: "standardmedia.co.ke", type: "Kenya Politics", status: "Live" },
-                { name: "The Standard – Politics", url: "standardmedia.co.ke", type: "Politics", status: "Live" },
-                { name: "The Standard – Business", url: "standardmedia.co.ke", type: "Business", status: "Live" },
-                { name: "Citizen Digital", url: "citizentv.co.ke", type: "General", status: "Live" },
+                { country: "🇰🇪 Kenya",        name: "Nation Africa",         type: "General / Politics", status: "Live" },
+                { country: "🇰🇪 Kenya",        name: "The Standard",          type: "Politics / Business", status: "Live" },
+                { country: "🇰🇪 Kenya",        name: "Citizen Digital",       type: "General", status: "Live" },
+                { country: "🇬🇭 Ghana",        name: "GhanaWeb",              type: "General / Politics", status: "Live" },
+                { country: "🇬🇭 Ghana",        name: "MyJoyOnline",           type: "General", status: "Live" },
+                { country: "🇬🇭 Ghana",        name: "Citinewsroom",          type: "General", status: "Live" },
+                { country: "🇳🇬 Nigeria",      name: "Punch Nigeria",         type: "General / Politics", status: "Live" },
+                { country: "🇳🇬 Nigeria",      name: "Guardian Nigeria",      type: "General / Business", status: "Live" },
+                { country: "🇿🇦 South Africa", name: "Daily Maverick",        type: "Politics / Investigative", status: "Live" },
+                { country: "🇪🇹 Ethiopia",     name: "The Reporter Ethiopia", type: "General", status: "Live" },
+                { country: "🇹🇿 Tanzania",     name: "The Citizen Tanzania",  type: "General", status: "Live" },
+                { country: "🇷🇼 Rwanda",       name: "The New Times",         type: "General / Politics", status: "Live" },
               ].map((src, i) => (
                 <div key={i} className="bg-[#0f2240] border border-[#1e3a5f] rounded-xl p-4 flex items-start gap-3">
                   <Rss className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
                   <div className="min-w-0">
+                    <p className="text-[10px] text-gray-500 mb-0.5">{src.country}</p>
                     <p className="text-sm font-semibold text-white truncate">{src.name}</p>
                     <p className="text-[11px] text-gray-500">{src.type}</p>
                     <span className="inline-block mt-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-500/20 rounded-full px-2 py-0.5">
