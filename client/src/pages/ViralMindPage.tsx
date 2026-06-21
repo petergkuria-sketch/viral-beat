@@ -75,7 +75,7 @@ export default function ViralMindPage() {
 
   const analyzeContent = trpc.aiAssistant.analyzeContent.useMutation({
     onSuccess: () => {
-      toast.success("Analysis complete! Check the Insights tab for recommendations.");
+      toast.success("Game Theory analysis complete! Check the Insights tab for your strategic move.");
       setContentTitle("");
       setContentUrl("");
     },
@@ -452,7 +452,7 @@ export default function ViralMindPage() {
       <Tabs defaultValue="chat" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="chat">Chat</TabsTrigger>
-          <TabsTrigger value="analyze">Analyze Content</TabsTrigger>
+          <TabsTrigger value="analyze">Game Theory Analyser</TabsTrigger>
           <TabsTrigger value="insights">Insights</TabsTrigger>
         </TabsList>
 
@@ -461,9 +461,9 @@ export default function ViralMindPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5" />
-                Chat with ViralMind
+                ViralMind — Game Theory Strategist
               </CardTitle>
-              <CardDescription>Ask anything about content creation, trends, or optimization</CardDescription>
+              <CardDescription>Strategic content advice grounded in Game Theory and Africa political intelligence</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="h-[400px] overflow-y-auto border rounded-lg p-4 space-y-4 bg-muted/20">
@@ -491,8 +491,8 @@ export default function ViralMindPage() {
                 ) : (
                   <div className="text-center text-muted-foreground py-12">
                     <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Start a conversation with ViralMind!</p>
-                    <p className="text-sm mt-1">Ask about trends, content ideas, or optimization tips</p>
+                    <p className="font-semibold">Start your Game Theory session</p>
+                    <p className="text-sm mt-1 max-w-sm mx-auto">Ask about dominant content strategies, PESTEL signal angles, Nash positions in the Africa intelligence space, or how to build your contributor network.</p>
                   </div>
                 )}
                 <div ref={chatEndRef} />
@@ -500,7 +500,7 @@ export default function ViralMindPage() {
 
               <div className="flex gap-2">
                 <Input
-                  placeholder="Ask ViralMind anything..."
+                  placeholder="e.g. What's the dominant strategy for Ghana legal content this week?"
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
@@ -523,9 +523,9 @@ export default function ViralMindPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5" />
-                Content Analyzer
+                Game Theory Content Analyser
               </CardTitle>
-              <CardDescription>Get virality predictions and optimization suggestions</CardDescription>
+              <CardDescription>Strategic value scoring — Nash position, dominant strategy, mission alignment, and PESTEL signal optimisation</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4">
@@ -533,7 +533,7 @@ export default function ViralMindPage() {
                   <Label htmlFor="contentTitle">Content Title *</Label>
                   <Input
                     id="contentTitle"
-                    placeholder="e.g., How AI is Changing Content Creation"
+                    placeholder="e.g., Ghana's Anti-LGBTQ Law and the International Aid Payoff Matrix"
                     value={contentTitle}
                     onChange={(e) => setContentTitle(e.target.value)}
                   />
@@ -579,9 +579,86 @@ export default function ViralMindPage() {
                 </div>
                 <Button onClick={handleAnalyzeContent} disabled={analyzeContent.isPending} className="w-full">
                   {analyzeContent.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Analyze Content
+                  Run Game Theory Analysis
                 </Button>
               </div>
+
+              {analyzeContent.data && (
+                <div className="mt-6 space-y-4 border-t pt-4">
+                  {/* Dominant strategy move */}
+                  {analyzeContent.data.gameTheoryMove && (
+                    <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 px-4 py-3">
+                      <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-1">Dominant Strategy Move</p>
+                      <p className="text-sm text-white">{analyzeContent.data.gameTheoryMove}</p>
+                    </div>
+                  )}
+
+                  {/* Score + mission alignment row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-xl bg-muted/30 border border-border/50 px-4 py-3 text-center">
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Game Theory Score</p>
+                      <p className="text-3xl font-black text-cyan-400">{analyzeContent.data.viralityScore}<span className="text-sm text-muted-foreground font-normal">/10</span></p>
+                    </div>
+                    <div className="rounded-xl bg-muted/30 border border-border/50 px-4 py-3 text-center">
+                      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Mission Alignment</p>
+                      <p className={`text-xl font-black ${analyzeContent.data.missionAlignment?.startsWith("High") ? "text-green-400" : analyzeContent.data.missionAlignment?.startsWith("Medium") ? "text-yellow-400" : "text-red-400"}`}>
+                        {analyzeContent.data.missionAlignment?.split(" — ")[0] || analyzeContent.data.missionAlignment}
+                      </p>
+                      {analyzeContent.data.missionAlignment?.includes(" — ") && (
+                        <p className="text-xs text-muted-foreground mt-1">{analyzeContent.data.missionAlignment.split(" — ")[1]}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Optimised title */}
+                  <div className="rounded-xl bg-muted/20 border border-border/50 px-4 py-3">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Optimised Title (Nash Signal)</p>
+                    <p className="text-sm font-semibold text-white">{analyzeContent.data.optimizedTitle}</p>
+                  </div>
+
+                  {/* Strengths + weaknesses */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-green-400 uppercase tracking-widest mb-2">Strategic Strengths</p>
+                      <ul className="space-y-1">
+                        {analyzeContent.data.strengths?.map((s: string, i: number) => (
+                          <li key={i} className="text-xs text-muted-foreground flex gap-2"><span className="text-green-400 shrink-0">+</span>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-red-400 uppercase tracking-widest mb-2">Strategic Gaps</p>
+                      <ul className="space-y-1">
+                        {analyzeContent.data.weaknesses?.map((w: string, i: number) => (
+                          <li key={i} className="text-xs text-muted-foreground flex gap-2"><span className="text-red-400 shrink-0">−</span>{w}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Recommendations */}
+                  <div>
+                    <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-2">Strategic Moves</p>
+                    <ol className="space-y-1.5">
+                      {analyzeContent.data.recommendations?.map((r: string, i: number) => (
+                        <li key={i} className="text-xs text-muted-foreground flex gap-2">
+                          <span className="text-cyan-400 font-bold shrink-0">{i + 1}.</span>{r}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  {/* Hashtags */}
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">PESTEL Signal Tags</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {analyzeContent.data.optimizedHashtags?.map((tag: string, i: number) => (
+                        <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
