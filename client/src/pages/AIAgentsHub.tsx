@@ -49,8 +49,8 @@ const AGENTS = [
   {
     id: "brief-adaptor",
     name: "Brief Adaptor",
-    tagline: "One brief, every format",
-    desc: "Paste a raw intelligence brief — the agent adapts it for X threads, newsletters, academic papers, NGO reports, or diplomatic summaries.",
+    tagline: "Triangulate. Validate. Publish.",
+    desc: "Enter a raw signal — the agent applies PESTEL analysis, maps actor Game Theory, assesses source confidence, then packages the validated intelligence for X threads, newsletters, NGO SitReps, and diplomatic cables.",
     icon: FileOutput,
     accent: "#f472b6",
     bg: "bg-pink-500/10",
@@ -134,10 +134,14 @@ export default function AIAgentsHub() {
   const [sourceMatches, setSourceMatches] = useState<any[]>([]);
 
   // Brief Adaptor state
-  const [adaptorContent, setAdaptorContent] = useState("");
-  const [adaptorSource, setAdaptorSource] = useState<any>("youtube");
-  const [adaptorTargets, setAdaptorTargets] = useState<any[]>(["tiktok", "instagram"]);
+  const [adaptorSignal, setAdaptorSignal] = useState("");
+  const [adaptorCountry, setAdaptorCountry] = useState("");
+  const [adaptorActors, setAdaptorActors] = useState("");
+  const [adaptorPestel, setAdaptorPestel] = useState<string[]>(["political"]);
+  const [adaptorConfidence, setAdaptorConfidence] = useState<any>("single-source");
+  const [adaptorFormats, setAdaptorFormats] = useState<string[]>(["thread", "newsletter"]);
   const [adaptedOutputs, setAdaptedOutputs] = useState<any[]>([]);
+  const [adaptorMeta, setAdaptorMeta] = useState<{ signal: string; pestel: string[]; confidence: string } | null>(null);
 
   // Funding Radar state
   const [fundingFocus, setFundingFocus] = useState("");
@@ -178,9 +182,10 @@ export default function AIAgentsHub() {
   const adaptBrief = trpc.aiAgents.repurposeContent.useMutation({
     onSuccess: (data: any) => {
       setAdaptedOutputs(data.adaptations ?? []);
-      toast.success("Brief adapted.");
+      setAdaptorMeta({ signal: data.signal, pestel: data.pestelDimensions, confidence: data.confidenceTier });
+      toast.success("Intelligence brief triangulated.");
     },
-    onError: (err: any) => toast.error("Failed to adapt brief: " + err.message),
+    onError: (err: any) => toast.error("Triangulation failed: " + err.message),
   });
 
   // Funding Radar query
@@ -563,90 +568,205 @@ export default function AIAgentsHub() {
 
             {/* ── BRIEF ADAPTOR ── */}
             {activeAgent === "brief-adaptor" && (
-              <div className="grid lg:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-gray-300">Intelligence Brief (paste raw text)</Label>
-                    <Textarea
-                      placeholder="Paste a ViralBeat brief, news summary, or intelligence note…"
-                      value={adaptorContent}
-                      onChange={e => setAdaptorContent(e.target.value)}
-                      className="mt-1.5 bg-[#050b1a] border-[#1e3a5f] text-white min-h-[200px]"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Source format</Label>
-                    <Select value={adaptorSource} onValueChange={setAdaptorSource}>
-                      <SelectTrigger className="mt-1.5 bg-[#050b1a] border-[#1e3a5f]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#0d1e36] border-[#1e3a5f]">
-                        {BRIEF_FORMATS.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Target formats</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-1.5">
-                      {BRIEF_FORMATS.map(fmt => (
-                        <label key={fmt.value}
-                          className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050b1a] border border-[#1e3a5f] cursor-pointer hover:border-pink-500/30 transition-colors">
-                          <input type="checkbox"
-                            checked={adaptorTargets.includes(fmt.value)}
-                            onChange={e => {
-                              if (e.target.checked) setAdaptorTargets([...adaptorTargets, fmt.value]);
-                              else setAdaptorTargets(adaptorTargets.filter((p: string) => p !== fmt.value));
-                            }}
-                            className="w-3.5 h-3.5 accent-pink-500"
-                          />
-                          <span className="text-xs text-gray-300">{fmt.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => adaptBrief.mutate({
-                      originalContent: adaptorContent,
-                      originalPlatform: adaptorSource,
-                      targetPlatforms: adaptorTargets,
-                    })}
-                    disabled={adaptBrief.isPending || !adaptorContent.trim() || adaptorTargets.length === 0}
-                    className="w-full bg-pink-500 hover:bg-pink-400 text-white font-bold"
-                  >
-                    {adaptBrief.isPending
-                      ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Adapting…</>
-                      : <><FileOutput className="w-4 h-4 mr-2" />Adapt Brief</>}
-                  </Button>
+              <div className="space-y-5">
+
+                {/* Triangulation explainer */}
+                <div className="flex gap-3 text-xs text-gray-400 bg-pink-500/5 border border-pink-500/15 rounded-xl px-4 py-3">
+                  <span className="text-pink-400 font-bold shrink-0">▲</span>
+                  <span>Briefs are triangulated across three axes before output — <strong className="text-gray-200">PESTEL</strong> (what forces are active), <strong className="text-gray-200">Game Theory</strong> (actors, dominant strategies, Nash equilibrium), and <strong className="text-gray-200">Source Confidence</strong>. The same validated intelligence core is packaged for each target format.</span>
                 </div>
 
-                <div className="space-y-4 max-h-[560px] overflow-y-auto">
-                  {adaptedOutputs.length > 0 ? adaptedOutputs.map((out, i) => (
-                    <div key={i} className="bg-[#050b1a] border border-[#1e3a5f] rounded-xl overflow-hidden">
-                      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#1e3a5f]">
-                        <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">
-                          {BRIEF_FORMATS.find(f => f.value === out.platform)?.label ?? out.platform}
-                        </p>
-                        <div className="flex gap-1.5">
-                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-gray-500 hover:text-white"
-                            onClick={() => handleCopy(out.content)}>
-                            {copied ? <CheckCircle2 className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-gray-500 hover:text-white"
-                            onClick={() => handleDownload(out.content, `viralbeat-brief-${out.platform}.txt`)}>
-                            <Download className="w-3 h-3" />
-                          </Button>
+                <div className="grid lg:grid-cols-[1fr_1fr] gap-6">
+                  {/* ── INPUT PANEL ── */}
+                  <div className="space-y-4">
+
+                    {/* Signal */}
+                    <div>
+                      <Label className="text-gray-300">Intelligence Signal</Label>
+                      <Textarea
+                        placeholder="Describe the event, development, or signal to triangulate — e.g. 'Kenya government announced fuel levy increase amid opposition protests in Nairobi, Kisumu and Mombasa'"
+                        value={adaptorSignal}
+                        onChange={e => setAdaptorSignal(e.target.value)}
+                        className="mt-1.5 bg-[#050b1a] border-[#1e3a5f] text-white min-h-[100px] text-sm"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Country */}
+                      <div>
+                        <Label className="text-gray-300">Country / Region</Label>
+                        <Input
+                          placeholder="e.g., Kenya, West Africa…"
+                          value={adaptorCountry}
+                          onChange={e => setAdaptorCountry(e.target.value)}
+                          className="mt-1.5 bg-[#050b1a] border-[#1e3a5f] text-white text-sm"
+                        />
+                      </div>
+                      {/* Confidence tier */}
+                      <div>
+                        <Label className="text-gray-300">Source Confidence</Label>
+                        <Select value={adaptorConfidence} onValueChange={setAdaptorConfidence}>
+                          <SelectTrigger className="mt-1.5 bg-[#050b1a] border-[#1e3a5f] text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#0d1e36] border-[#1e3a5f]">
+                            <SelectItem value="corroborated">Corroborated (3+ sources)</SelectItem>
+                            <SelectItem value="single-source">Single-Source</SelectItem>
+                            <SelectItem value="unverified">Unverified / Signal only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Actors */}
+                    <div>
+                      <Label className="text-gray-300">Key Actors <span className="text-gray-500 font-normal">(optional)</span></Label>
+                      <Input
+                        placeholder="e.g., Ruto, opposition coalition, IMF, Kenya police…"
+                        value={adaptorActors}
+                        onChange={e => setAdaptorActors(e.target.value)}
+                        className="mt-1.5 bg-[#050b1a] border-[#1e3a5f] text-white text-sm"
+                      />
+                      <p className="text-[11px] text-gray-600 mt-1">Game Theory axis: payoff matrices and dominant strategies will be mapped for these actors</p>
+                    </div>
+
+                    {/* PESTEL dimensions */}
+                    <div>
+                      <Label className="text-gray-300 block mb-1.5">Active PESTEL Dimensions</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { v: "political",      l: "Political",      c: "pink" },
+                          { v: "economic",       l: "Economic",       c: "pink" },
+                          { v: "social",         l: "Social",         c: "pink" },
+                          { v: "technological",  l: "Technological",  c: "pink" },
+                          { v: "environmental",  l: "Environmental",  c: "pink" },
+                          { v: "legal",          l: "Legal",          c: "pink" },
+                        ].map(dim => {
+                          const active = adaptorPestel.includes(dim.v);
+                          return (
+                            <button key={dim.v}
+                              onClick={() => setAdaptorPestel(active
+                                ? adaptorPestel.filter(d => d !== dim.v)
+                                : [...adaptorPestel, dim.v])}
+                              className={`px-2 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                                active
+                                  ? "bg-pink-500/15 border-pink-500/40 text-pink-300"
+                                  : "bg-[#050b1a] border-[#1e3a5f] text-gray-500 hover:border-pink-500/20"
+                              }`}>
+                              {dim.l}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Output formats */}
+                    <div>
+                      <Label className="text-gray-300 block mb-1.5">Output Formats</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { v: "thread",     l: "X / Twitter Thread",        sub: "6–8 tweets, hook → Nash position" },
+                          { v: "newsletter", l: "Intelligence Newsletter",    sub: "PESTEL breakdown + actor matrix" },
+                          { v: "sitrep",     l: "NGO Situation Report",       sub: "Formal, citation-ready, risk matrix" },
+                          { v: "cable",      l: "Diplomatic Intelligence Cable", sub: "Actor positions + regional implications" },
+                        ].map(fmt => {
+                          const active = adaptorFormats.includes(fmt.v);
+                          return (
+                            <label key={fmt.v}
+                              className={`flex flex-col gap-0.5 p-3 rounded-lg border cursor-pointer transition-all ${
+                                active
+                                  ? "bg-pink-500/10 border-pink-500/35"
+                                  : "bg-[#050b1a] border-[#1e3a5f] hover:border-pink-500/20"
+                              }`}>
+                              <div className="flex items-center gap-2">
+                                <input type="checkbox" checked={active}
+                                  onChange={e => setAdaptorFormats(e.target.checked
+                                    ? [...adaptorFormats, fmt.v]
+                                    : adaptorFormats.filter(f => f !== fmt.v))}
+                                  className="w-3.5 h-3.5 accent-pink-500 shrink-0"
+                                />
+                                <span className={`text-xs font-semibold ${active ? "text-pink-300" : "text-gray-300"}`}>{fmt.l}</span>
+                              </div>
+                              <p className="text-[10px] text-gray-600 ml-5">{fmt.sub}</p>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={() => adaptBrief.mutate({
+                        signal: adaptorSignal,
+                        country: adaptorCountry || undefined,
+                        actors: adaptorActors || undefined,
+                        pestelDimensions: adaptorPestel as any,
+                        confidenceTier: adaptorConfidence,
+                        targetFormats: adaptorFormats as any,
+                      })}
+                      disabled={adaptBrief.isPending || !adaptorSignal.trim() || adaptorPestel.length === 0 || adaptorFormats.length === 0}
+                      className="w-full bg-pink-500 hover:bg-pink-400 text-white font-bold"
+                    >
+                      {adaptBrief.isPending
+                        ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Triangulating…</>
+                        : <><FileOutput className="w-4 h-4 mr-2" />Triangulate & Generate</>}
+                    </Button>
+                  </div>
+
+                  {/* ── OUTPUT PANEL ── */}
+                  <div className="space-y-4 max-h-[720px] overflow-y-auto">
+
+                    {adaptorMeta && (
+                      <div className="bg-[#050b1a] border border-pink-500/20 rounded-xl px-4 py-3 space-y-1.5">
+                        <p className="text-[11px] font-bold text-pink-400 uppercase tracking-wider">Triangulation Receipt</p>
+                        <p className="text-xs text-gray-300"><span className="text-gray-500">Signal: </span>{adaptorMeta.signal}</p>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {adaptorMeta.pestel.map(d => (
+                            <Badge key={d} className="bg-pink-500/10 text-pink-400 border-pink-500/25 text-[10px] capitalize">{d}</Badge>
+                          ))}
+                          <Badge className={`text-[10px] border ${
+                            adaptorMeta.confidence === "corroborated"
+                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25"
+                              : adaptorMeta.confidence === "single-source"
+                              ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/25"
+                              : "bg-red-500/10 text-red-400 border-red-500/25"
+                          }`}>
+                            {adaptorMeta.confidence === "corroborated" ? "✓ Corroborated"
+                              : adaptorMeta.confidence === "single-source" ? "⚠ Single-Source"
+                              : "⚡ Unverified"}
+                          </Badge>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <Streamdown className="prose prose-invert prose-sm max-w-none">{out.content}</Streamdown>
+                    )}
+
+                    {adaptedOutputs.length > 0 ? adaptedOutputs.map((out, i) => (
+                      <div key={i} className="bg-[#050b1a] border border-[#1e3a5f] rounded-xl overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#1e3a5f]">
+                          <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">
+                            {out.format ?? out.platform}
+                          </p>
+                          <div className="flex gap-1.5">
+                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-gray-500 hover:text-white"
+                              onClick={() => handleCopy(out.content)}>
+                              {copied ? <CheckCircle2 className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-gray-500 hover:text-white"
+                              onClick={() => handleDownload(out.content, `viralbeat-${out.platform}-${Date.now()}.txt`)}>
+                              <Download className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <Streamdown className="prose prose-invert prose-sm max-w-none">{out.content}</Streamdown>
+                        </div>
                       </div>
-                    </div>
-                  )) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                      <FileOutput className="w-10 h-10 text-gray-700 mb-3" />
-                      <p className="text-sm text-gray-500">Adapted formats will appear here</p>
-                    </div>
-                  )}
+                    )) : (
+                      <div className="flex flex-col items-center justify-center h-full text-center py-16">
+                        <FileOutput className="w-10 h-10 text-gray-700 mb-3" />
+                        <p className="text-sm text-gray-500">Triangulated outputs appear here</p>
+                        <p className="text-[11px] text-gray-600 mt-1.5 max-w-[240px] leading-relaxed">Enter a signal, select PESTEL dimensions and target formats, then run triangulation</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

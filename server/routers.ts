@@ -2060,56 +2060,107 @@ Format as JSON array.`
     // Content Repurposing Agent - suggests cross-platform adaptations
     repurposeContent: protectedProcedure
       .input(z.object({
-        originalContent: z.string().min(1),
-        originalPlatform: z.enum(["tiktok", "youtube", "instagram", "twitter"]),
-        targetPlatforms: z.array(z.enum(["tiktok", "youtube", "instagram", "twitter"])),
+        // Intelligence triangulation inputs
+        signal: z.string().min(1),
+        pestelDimensions: z.array(z.enum(["political", "economic", "social", "technological", "environmental", "legal"])).min(1),
+        actors: z.string().optional(),   // comma-separated key political actors
+        country: z.string().optional(),
+        confidenceTier: z.enum(["corroborated", "single-source", "unverified"]).default("single-source"),
+        targetFormats: z.array(z.enum(["thread", "newsletter", "sitrep", "cable"])).min(1),
+        // Legacy fields kept for backward-compat (ignored)
+        originalContent: z.string().optional(),
+        originalPlatform: z.string().optional(),
+        targetPlatforms: z.array(z.string()).optional(),
       }))
-      .mutation(async ({ input }) => {
-        const platformGuidelines = {
-          tiktok: "15-60s vertical video. Hook in 3s. Trending sounds. Fast cuts. Text overlays.",
-          youtube: "Longer-form (3-15min). Strong intro. Clear structure. Timestamps. End screen CTA.",
-          instagram: "Reels (15-90s) or carousel posts. Visual-first. Trending audio. Hashtags.",
-          twitter: "Thread format. Punchy text. Line breaks. Images/GIFs. Quote-worthy hooks.",
+      .mutation(async ({ ctx, input }) => {
+        // Spend tokens
+        try {
+          await spendTokens(ctx.user.id, 25, "spend_ai_agent", `Used Brief Adaptor for signal: ${input.signal.slice(0, 60)}`);
+        } catch (error: any) {
+          throw new Error(error.message || "Failed to process token payment");
+        }
+
+        const formatSpecs: Record<string, { name: string; structure: string }> = {
+          thread: {
+            name: "X / Twitter Thread",
+            structure: `Structure: 6–8 tweets. Tweet 1: hook (the Nash position in one sentence). Tweets 2–4: PESTEL evidence (one dimension per tweet). Tweet 5: Actor mapping and dominant strategies. Tweet 6: What to watch (leading indicators). Tweet 7: Confidence statement. Tweet 8: CTA. Each tweet ≤280 chars. Number them 1/ 2/ etc.`,
+          },
+          newsletter: {
+            name: "Intelligence Newsletter",
+            structure: `Structure: Subject line → Situation (2 sentences) → PESTEL Breakdown (bullet per active dimension) → Actor Payoff Matrix (table: Actor | Interest | Likely Move) → Nash Equilibrium (what outcome are actors converging toward?) → Confidence Assessment (sources, axes confirmed) → What to Watch (3 leading indicators) → Analyst Note. Tone: authoritative but accessible.`,
+          },
+          sitrep: {
+            name: "NGO Situation Report",
+            structure: `Structure: Classification (Unverified/Single-Source/Corroborated) → Date → Summary (3 sentences max) → Background → Key Developments (numbered) → Actor Analysis (table: Actor | Position | Likely Action | Risk Level) → PESTEL Risk Matrix → Recommended Actions (for humanitarian/civil society actors) → Confidence Level → Sources consulted → Next review date. Tone: formal, neutral, citation-ready.`,
+          },
+          cable: {
+            name: "Diplomatic Intelligence Cable",
+            structure: `Structure: CLASSIFICATION header → TO/FROM/DATE fields → SUBJECT → 1. SITUATION SUMMARY → 2. POLITICAL ACTORS (name, position, interest, likely move) → 3. GAME THEORY ASSESSMENT (dominant strategies, Nash equilibrium, signalling vs reality) → 4. PESTEL IMPLICATIONS (one paragraph per active dimension) → 5. REGIONAL IMPLICATIONS → 6. RECOMMENDED POSTURE → 7. CONFIDENCE ASSESSMENT (Corroborated/Single-source/Unverified + rationale) → END. Tone: precise, third-person, diplomatic register.`,
+          },
         };
+
+        const pestelActive = input.pestelDimensions.join(", ").toUpperCase();
+        const actorList = input.actors || "key political actors in the region";
+        const country = input.country || "the relevant African nation(s)";
+
+        const systemPrompt = `You are a senior Africa political intelligence analyst at ViralBeat. Your outputs are used by journalists, NGOs, researchers, and policy analysts.
+
+TRIANGULATION FRAMEWORK — apply all three axes before outputting:
+
+AXIS 1 — PESTEL: Classify the signal across Political, Economic, Social, Technological, Environmental, Legal dimensions. Identify which dimensions are ACTIVE (driving the situation) vs LATENT (background conditions). Active dimensions for this signal: ${pestelActive}.
+
+AXIS 2 — GAME THEORY: Map the key actors, their payoff matrices, and dominant strategies. Apply:
+- Dominant Strategy: what move is rational regardless of what others do?
+- Nash Equilibrium: what outcome is each actor converging toward given the others' moves?
+- Signalling Theory: what are actors saying vs what their actions reveal?
+- Mission Alignment: which actors benefit from the stated situation vs the actual situation?
+
+AXIS 3 — SOURCE VALIDATION: Assess confidence based on corroboration. Always state clearly:
+- CORROBORATED = confirmed by 3+ independent sources across different frameworks
+- SINGLE-SOURCE = one primary source, consistent with PESTEL/GT analysis
+- UNVERIFIED = signal exists but insufficient corroboration
+
+The VALIDATED POSITION is where all three axes converge. Do not assert facts that only one axis supports.
+
+CONFIDENCE TIER FOR THIS BRIEF: ${input.confidenceTier.toUpperCase()}
+
+Country/Region: ${country}
+Key Actors: ${actorList}`;
 
         const adaptations: any[] = [];
 
-        for (const targetPlatform of input.targetPlatforms) {
-          if (targetPlatform === input.originalPlatform) continue;
+        for (const fmt of input.targetFormats) {
+          const spec = formatSpecs[fmt];
+          if (!spec) continue;
 
           const response = await invokeLLM({
             messages: [
-              {
-                role: "system",
-                content: `You are a content repurposing expert. Adapt content from ${input.originalPlatform} to ${targetPlatform} while maintaining core message but optimizing for platform-specific best practices.
-
-${targetPlatform} Guidelines: ${platformGuidelines[targetPlatform]}
-
-Provide:
-1. Adapted content/script
-2. Format changes needed
-3. Key optimization tips
-4. Estimated effort (low/medium/high)`
-              },
+              { role: "system", content: systemPrompt },
               {
                 role: "user",
-                content: `Adapt this ${input.originalPlatform} content for ${targetPlatform}:
+                content: `Produce a ${spec.name} for the following intelligence signal.
 
-${input.originalContent}`
+SIGNAL: ${input.signal}
+
+ACTIVE PESTEL DIMENSIONS: ${pestelActive}
+KEY ACTORS: ${actorList}
+CONFIDENCE TIER: ${input.confidenceTier}
+
+${spec.structure}
+
+Apply the full triangulation framework. Mark any assertion that is only supported by one axis as [SINGLE-SOURCE]. Mark anything unconfirmed as [UNVERIFIED]. The validated intelligence core must be the same across all formats — only the register and structure changes.`,
               }
             ]
           });
 
-          const adaptedContent = response.choices?.[0]?.message?.content || "Unable to generate adaptation.";
-
-          adaptations.push({
-            platform: targetPlatform,
-            content: adaptedContent,
-          });
+          const content = response.choices?.[0]?.message?.content || "Unable to generate output.";
+          adaptations.push({ platform: fmt, format: spec.name, content });
         }
 
         return {
-          originalPlatform: input.originalPlatform,
+          signal: input.signal,
+          pestelDimensions: input.pestelDimensions,
+          confidenceTier: input.confidenceTier,
           adaptations,
           generatedAt: new Date().toISOString(),
         };
