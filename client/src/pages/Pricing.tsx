@@ -1,5 +1,4 @@
 import { useLocation } from "wouter";
-import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -9,10 +8,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { BackToDashboard } from "@/components/BackToDashboard";
 import {
   CheckCircle2, Globe, Zap, Code2, Shield, Users, BarChart3,
-  ArrowRight, Crown, Building2, Loader2,
+  ArrowRight, Crown, Building2,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const PLANS = [
   {
@@ -104,40 +102,14 @@ const USE_CASES = [
 export default function Pricing() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const [checkingOut, setCheckingOut] = useState(false);
-  const { data: myPlan, refetch: refetchPlan } = trpc.subscription.getMyPlan.useQuery(undefined, { enabled: !!user });
-  const checkoutMutation = trpc.billing.createCheckoutSession.useMutation();
+  const { data: myPlan } = trpc.subscription.getMyPlan.useQuery(undefined, { enabled: !!user });
 
-  // Handle Stripe redirect-back query params
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("success") === "1") {
-      toast.success("Payment successful — your Analyst plan is now active!");
-      refetchPlan();
-      window.history.replaceState({}, "", "/pricing");
-    } else if (params.get("cancelled") === "1") {
-      toast.info("Checkout cancelled — no charge was made.");
-      window.history.replaceState({}, "", "/pricing");
-    }
-  }, []);
-
-  const handleCta = async (planId: string) => {
+  const handleCta = (planId: string) => {
     if (!user) { window.location.href = getLoginUrl(); return; }
     if (planId === "free") { setLocation("/africa"); return; }
-    if (planId === "enterprise") {
-      window.open("mailto:hello@viralbeat.io?subject=Enterprise Plan", "_blank");
-      return;
-    }
-    // Analyst — create Stripe Checkout session
-    try {
-      setCheckingOut(true);
-      const { url } = await checkoutMutation.mutateAsync({ planId: "analyst" });
-      if (url) window.location.href = url;
-    } catch (e: any) {
-      toast.error(e?.message || "Could not start checkout. Please try again.");
-    } finally {
-      setCheckingOut(false);
-    }
+    if (planId === "enterprise") { window.open("mailto:hello@viralbeat.io?subject=Enterprise Plan", "_blank"); return; }
+    // Analyst — link to Stripe (replace with real Stripe link)
+    window.open("https://buy.stripe.com/placeholder", "_blank");
   };
 
   return (
@@ -231,14 +203,11 @@ export default function Pricing() {
                           ? "bg-purple-600 hover:bg-purple-500 text-white"
                           : "bg-white/5 hover:bg-white/10 text-white border border-white/10"
                     }`}
-                    disabled={isCurrent || (checkingOut && plan.id === "analyst")}
+                    disabled={isCurrent}
                     onClick={() => handleCta(plan.id)}
                   >
-                    {checkingOut && plan.id === "analyst" ? (
-                      <><Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />Redirecting to Stripe…</>
-                    ) : isCurrent ? "Current plan" : (
-                      <>{plan.cta}<ArrowRight className="ml-2 w-3.5 h-3.5" /></>
-                    )}
+                    {isCurrent ? "Current plan" : plan.cta}
+                    {!isCurrent && <ArrowRight className="ml-2 w-3.5 h-3.5" />}
                   </Button>
                 </div>
               </motion.div>
