@@ -2592,6 +2592,29 @@ ${input.originalContent}`
             INDEX idx_signal_ratings_user_msg (userId, messageId),
             INDEX idx_signal_ratings_pestel (pestelCategory)
           )`,
+          `CREATE TABLE IF NOT EXISTS contentAnalyses (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            userId INT NOT NULL,
+            contentTitle VARCHAR(500) NOT NULL,
+            contentUrl TEXT,
+            contentType ENUM('video','image','text','audio','research') NOT NULL,
+            platform ENUM('youtube','tiktok','instagram','twitter','journal') NOT NULL,
+            viralityScore DECIMAL(3,1),
+            strengths TEXT,
+            weaknesses TEXT,
+            recommendations TEXT,
+            predictedPerformance TEXT,
+            optimizedTitle TEXT,
+            optimizedHashtags TEXT,
+            optimalPostTime DATETIME,
+            analysisType ENUM('pre_publish','post_publish','competitor','game_theory') NOT NULL,
+            actualPerformance TEXT,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_content_analyses_user (userId)
+          )`,
+          `ALTER TABLE contentAnalyses MODIFY COLUMN contentType ENUM('video','image','text','audio','research') NOT NULL`,
+          `ALTER TABLE contentAnalyses MODIFY COLUMN platform ENUM('youtube','tiktok','instagram','twitter','journal') NOT NULL`,
+          `ALTER TABLE contentAnalyses MODIFY COLUMN analysisType ENUM('pre_publish','post_publish','competitor','game_theory') NOT NULL`,
         ]) {
           try {
             await db.execute(sql.raw(stmt));

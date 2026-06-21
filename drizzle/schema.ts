@@ -634,8 +634,8 @@ export const contentAnalyses = mysqlTable("contentAnalyses", {
   userId: int("userId").notNull(),
   contentTitle: varchar("contentTitle", { length: 500 }).notNull(),
   contentUrl: text("contentUrl"),
-  contentType: mysqlEnum("contentType", ["video", "image", "text", "audio"]).notNull(),
-  platform: mysqlEnum("platform", ["youtube", "tiktok", "instagram", "twitter"]).notNull(),
+  contentType: mysqlEnum("contentType", ["video", "image", "text", "audio", "research"]).notNull(),
+  platform: mysqlEnum("platform", ["youtube", "tiktok", "instagram", "twitter", "journal"]).notNull(),
   // Analysis results
   viralityScore: decimal("viralityScore", { precision: 3, scale: 1 }), // 0.0 to 10.0
   strengths: text("strengths"), // JSON: array of identified strengths
@@ -646,7 +646,7 @@ export const contentAnalyses = mysqlTable("contentAnalyses", {
   optimizedHashtags: text("optimizedHashtags"), // JSON: array
   optimalPostTime: timestamp("optimalPostTime"),
   // Metadata
-  analysisType: mysqlEnum("analysisType", ["pre_publish", "post_publish", "competitor"]).notNull(),
+  analysisType: mysqlEnum("analysisType", ["pre_publish", "post_publish", "competitor", "game_theory"]).notNull(),
   actualPerformance: text("actualPerformance"), // JSON: filled after content is published
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
