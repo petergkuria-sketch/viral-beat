@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import {
   Twitter, TrendingUp, MessageCircle, Heart, Repeat2, Send, Sparkles,
   RefreshCw, User, Bot, Zap, Globe, Building2, ChevronRight,
   Landmark, Coins, Users, Leaf, Scale, Cpu, MapPin, Flag,
-  Share2, Copy, Check,
+  Share2, Check, FileText, Link2, X, Upload, BookOpen, Loader2,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 
@@ -106,6 +106,15 @@ export default function XTrends() {
   const [inputMessage, setInputMessage] = useState("");
   const [selectedTrend, setSelectedTrend] = useState<any>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Research panel state
+  const [showResearch, setShowResearch] = useState(false);
+  const [researchUrl, setResearchUrl] = useState("");
+  const [researchText, setResearchText] = useState(""); // extracted content
+  const [researchMeta, setResearchMeta] = useState<{ title: string; source: string } | null>(null);
+  const [researchLoading, setResearchLoading] = useState(false);
+  const [researchError, setResearchError] = useState("");
 
   // Build the category string passed to the server: "<layer>:<scope>:<pestel>"
   const scopeKey = geoLayer === "continental" ? "au"
@@ -119,6 +128,64 @@ export default function XTrends() {
   );
 
   const rateSignalMutation = trpc.xTrends.rateSignal.useMutation();
+  const fetchResearchMutation = trpc.xTrends.fetchResearchUrl.useMutation();
+
+  // Extract text from PDF client-side using pdfjs-dist
+  const extractPdfText = useCallback(async (file: File): Promise<string> => {
+    const pdfjsLib = await import("pdfjs-dist");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+      "pdfjs-dist/build/pdf.worker.mjs",
+      import.meta.url
+    ).href;
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let text = "";
+    for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map((item: any) => item.str).join(" ") + "\n";
+    }
+    return text.trim();
+  }, []);
+
+  const handlePdfUpload = async (file: File) => {
+    setResearchLoading(true);
+    setResearchError("");
+    try {
+      const text = await extractPdfText(file);
+      setResearchText(text);
+      setResearchMeta({ title: file.name.replace(".pdf", ""), source: "Uploaded PDF" });
+      setShowResearch(false);
+    } catch (e: any) {
+      setResearchError("Could not read PDF. Try pasting the URL instead.");
+    } finally {
+      setResearchLoading(false);
+    }
+  };
+
+  const handleResearchUrl = async () => {
+    if (!researchUrl.trim()) return;
+    setResearchLoading(true);
+    setResearchError("");
+    try {
+      const { text } = await fetchResearchMutation.mutateAsync({ url: researchUrl.trim() });
+      setResearchText(text);
+      const domain = new URL(researchUrl).hostname.replace("www.", "");
+      setResearchMeta({ title: researchUrl, source: domain });
+      setShowResearch(false);
+    } catch (e: any) {
+      setResearchError(e.message || "Could not fetch URL.");
+    } finally {
+      setResearchLoading(false);
+    }
+  };
+
+  const clearResearch = () => {
+    setResearchText("");
+    setResearchMeta(null);
+    setResearchUrl("");
+    setResearchError("");
+  };
 
   const chatMutation = trpc.xTrends.chat.useMutation({
     onSuccess: (data) => {
@@ -165,6 +232,7 @@ export default function XTrends() {
     const result = await summarizeMutation.mutateAsync({
       topic: trend.topic,
       tweets: trend.tweets?.map((t: any) => ({ text: t.text, likes: t.likes, retweets: t.retweets })),
+      researchContext: researchText || undefined,
     });
     setChatMessages((prev) => [...prev, {
       id: `assistant-summary-${Date.now()}`,
@@ -429,17 +497,99 @@ export default function XTrends() {
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
               <Bot className="w-4 h-4 text-white" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="font-bold text-sm">Africa Intelligence Agent</div>
-              <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
                 <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
                 Online · Claude-powered
+                {researchMeta && (
+                  <span className="flex items-center gap-1 text-emerald-400">
+                    · <BookOpen className="w-2.5 h-2.5" /> Research attached
+                  </span>
+                )}
               </div>
             </div>
-            <Badge variant="secondary" className="ml-auto bg-purple-500/10 text-purple-400 text-xs">
-              <Sparkles className="w-3 h-3 mr-1" /> AI
-            </Badge>
+            <div className="flex items-center gap-1.5 ml-auto">
+              {researchMeta ? (
+                <button
+                  onClick={clearResearch}
+                  title="Remove attached research"
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 transition-colors"
+                >
+                  <BookOpen className="w-3 h-3" />
+                  <span className="max-w-[80px] truncate">{researchMeta.title.slice(0, 20)}</span>
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowResearch(v => !v)}
+                  title="Attach research paper"
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+                >
+                  <FileText className="w-3 h-3" /> Research
+                </button>
+              )}
+              <Badge variant="secondary" className="bg-purple-500/10 text-purple-400 text-xs">
+                <Sparkles className="w-3 h-3 mr-1" /> AI
+              </Badge>
+            </div>
           </div>
+
+          {/* Research attachment panel */}
+          <AnimatePresence>
+            {showResearch && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden border-b border-border/50 bg-[#0a1628]"
+              >
+                <div className="px-4 py-4 space-y-3">
+                  <p className="text-xs font-semibold text-gray-300 flex items-center gap-2">
+                    <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                    Attach Research to Boost PESTEL Analysis
+                  </p>
+                  {/* URL input */}
+                  <div className="flex gap-2">
+                    <Input
+                      value={researchUrl}
+                      onChange={e => setResearchUrl(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && handleResearchUrl()}
+                      placeholder="Paste DOI, journal URL, or article link…"
+                      className="text-xs h-8 bg-[#0d1e36] border-[#1e3a5f] text-white placeholder:text-gray-500"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleResearchUrl}
+                      disabled={researchLoading || !researchUrl.trim()}
+                      className="h-8 px-3 bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/25 text-xs"
+                    >
+                      {researchLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link2 className="w-3 h-3" />}
+                    </Button>
+                  </div>
+                  {/* PDF upload */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-[#1e3a5f] text-gray-500 hover:border-cyan-500/40 hover:text-cyan-400 cursor-pointer transition-colors text-xs"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    Upload PDF (full paper, max 20 pages extracted)
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) handlePdfUpload(file);
+                    }}
+                  />
+                  {researchError && <p className="text-[11px] text-red-400">{researchError}</p>}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <ScrollArea className="flex-1 px-4 sm:px-6 py-4">
             <div className="space-y-4 max-w-2xl mx-auto">
@@ -552,6 +702,38 @@ export default function XTrends() {
               <div ref={chatEndRef} />
             </div>
           </ScrollArea>
+
+          {/* Research context summary card — shown when paper is attached */}
+          <AnimatePresence>
+            {researchMeta && chatMessages.length > 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                className="mx-4 mb-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 p-4"
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="text-xs font-bold text-emerald-300">Research Context Active</span>
+                  </div>
+                  <button onClick={clearResearch} className="text-gray-500 hover:text-red-400 transition-colors">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <p className="text-[11px] text-gray-300 leading-relaxed line-clamp-2 mb-2">
+                  {researchText.slice(0, 220)}…
+                </p>
+                <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    {researchMeta.source}
+                  </span>
+                  <span className="truncate max-w-[200px]">{researchMeta.title}</span>
+                  <span className="ml-auto text-emerald-500/60">Grounding all analyses ✓</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {chatMessages.length <= 1 && (
             <div className="px-4 sm:px-6 pb-3">

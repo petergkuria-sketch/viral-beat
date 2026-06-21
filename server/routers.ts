@@ -1153,30 +1153,40 @@ export const appRouter = router({
           likes: z.number(),
           retweets: z.number(),
         })).optional(),
+        researchContext: z.string().optional(), // injected extracted paper text
       }))
       .mutation(async ({ input }) => {
         const tweetsContext = input.tweets && input.tweets.length > 0
-          ? `\n\nRecent tweets about this topic:\n${input.tweets.map((t, i) => 
+          ? `\n\nRecent signal data:\n${input.tweets.map((t, i) =>
               `${i + 1}. "${t.text.slice(0, 200)}" (${t.likes} likes, ${t.retweets} retweets)`
             ).join("\n")}`
+          : "";
+
+        const researchBlock = input.researchContext
+          ? `\n\n--- ATTACHED RESEARCH ---\n${input.researchContext.slice(0, 4000)}\n--- END RESEARCH ---`
           : "";
 
         const response = await invokeLLM({
           messages: [
             {
               role: "system",
-              content: `You are an Africa political intelligence analyst specialising in PESTEL analysis (Political, Economic, Social, Technological, Environmental, Legal) across all 55 African nations. Your sources include AU organs, regional bodies (EAC, ECOWAS, SADC, ECCAS, AMU), and verified African media. Format your signal analysis as:
-1. Signal overview (2-3 sentences — what is happening and where)
-2. PESTEL dimension (which factor this primarily touches and why it matters)
-3. Key actors and positions (bullet points)
-4. Regional or continental implications (1-2 sentences)
-5. Risk or opportunity assessment (High/Medium/Low with one-line rationale)
+              content: `You are an Africa political intelligence analyst specialising in PESTEL analysis (Political, Economic, Social, Technological, Environmental, Legal) across all 55 African nations. Your sources include AU organs, regional bodies (EAC, ECOWAS, SADC, ECCAS, AMU), and verified African media.
 
-Keep the total response under 350 words. Be precise, cite the geographic scope, and avoid speculation beyond the evidence.`
+${input.researchContext ? "You have been provided with an attached research paper or article. Integrate its findings into your analysis and cite it in your conclusions." : ""}
+
+Format your signal analysis as:
+1. Signal Overview (2-3 sentences — what is happening and where)
+2. PESTEL Dimension (which factor this primarily touches and why)
+3. Key Actors & Positions (bullet points)
+4. Regional & Continental Implications (1-2 sentences)
+5. Risk or Opportunity Assessment (High/Medium/Low with rationale)
+${input.researchContext ? "6. Research Synthesis (how the attached paper supports or challenges this signal — 2-3 sentences with inline citation)" : ""}
+
+Keep the total response under 450 words. Be precise and cite the geographic scope.`
             },
             {
               role: "user",
-              content: `Analyze and summarize the trending topic: "${input.topic}"${tweetsContext}`
+              content: `Analyze the signal: "${input.topic}"${tweetsContext}${researchBlock}`
             }
           ]
         });
@@ -1188,6 +1198,32 @@ Keep the total response under 350 words. Be precise, cite the geographic scope, 
           summary,
           generatedAt: new Date().toISOString(),
         };
+      }),
+
+    // Fetch and extract text from a research URL for PESTEL grounding
+    fetchResearchUrl: publicProcedure
+      .input(z.object({ url: z.string().url() }))
+      .mutation(async ({ input }) => {
+        const axios = (await import("axios")).default;
+        try {
+          const response = await axios.get(input.url, {
+            timeout: 10000,
+            headers: { "User-Agent": "ViralBeat-Research-Bot/1.0" },
+            maxContentLength: 1_000_000,
+          });
+          const html: string = response.data;
+          // Strip HTML tags, collapse whitespace
+          const text = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 8000);
+          return { text, url: input.url };
+        } catch (e: any) {
+          throw new Error(`Could not fetch URL: ${e.message}`);
+        }
       }),
 
     // Get user profile and recent activity
