@@ -119,13 +119,13 @@ export default function CountryBreakingNews() {
               <span className="text-xs font-black text-red-400 uppercase tracking-widest">Breaking</span>
               <span className="text-[10px] text-muted-foreground ml-auto">{top.source}</span>
             </div>
-            <h2 className="text-lg font-black leading-snug group-hover:text-primary transition-colors mb-2">
+            <h2 className="text-lg font-black leading-snug text-foreground group-hover:text-primary transition-colors mb-2">
               {top.title}
             </h2>
             {top.description && (
               <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{top.description}</p>
             )}
-            <div className="flex items-center justify-between text-[10px] text-muted-foreground/60">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               {top.publishedAt && (
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
@@ -170,15 +170,15 @@ export default function CountryBreakingNews() {
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                      <p className="text-sm font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">
                         {article.title}
                       </p>
-                      <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground/60">
+                      <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
                         <span>{article.source}</span>
                         {timeAgo && <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{timeAgo}</span>}
                       </div>
                     </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-colors shrink-0 mt-1" />
+                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground/60 group-hover:text-primary transition-colors shrink-0 mt-1" />
                   </motion.a>
                 );
               })}
