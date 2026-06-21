@@ -682,7 +682,7 @@ export default function LandingPage() {
               </p>
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: Rss,      color: "#22d3ee", label: "6 RSS Feeds",           detail: "Nation Africa, Standard, Citizen Digital, NTV, KBC, Star — updated every 4 hours" },
+                  { icon: Rss,      color: "#22d3ee", label: "Country-Specific RSS Feeds", detail: "Each nation has its own geo-curated sources — GhanaWeb for Ghana, Punch for Nigeria, AllAfrica for regional signals — updated every 4 hours" },
                   { icon: Brain,    color: "#a78bfa", label: "LLM Sentiment Blend",   detail: "Rule-based scoring + Claude AI for Tier-1 figures, averaged for accuracy" },
                   { icon: Shield,   color: "#34d399", label: "Confidence Badges",      detail: "High (10+ articles), Medium (4–9), Low (1–3) — never fabricates data" },
                   { icon: Database, color: "#fb923c", label: "Field Signal Layer",     detail: "Verified contributor submissions weighted by tier and institutional affiliation" },
