@@ -217,6 +217,9 @@ export default function XTrends() {
     chatMutation.mutate({
       message: inputMessage,
       context: selectedTrend ? { currentTopic: selectedTrend.topic, recentTweets: selectedTrend.tweets?.map((t: any) => t.text) || [] } : undefined,
+      geoLayer,
+      geoScope: scopeKey,
+      pestelCategory: selectedCategory,
     });
   };
 
@@ -233,6 +236,9 @@ export default function XTrends() {
       topic: trend.topic,
       tweets: trend.tweets?.map((t: any) => ({ text: t.text, likes: t.likes, retweets: t.retweets })),
       researchContext: researchText || undefined,
+      geoLayer,
+      geoScope: scopeKey,
+      pestelCategory: selectedCategory,
     });
     setChatMessages((prev) => [...prev, {
       id: `assistant-summary-${Date.now()}`,
@@ -278,6 +284,19 @@ export default function XTrends() {
   const catColor = PESTEL.find(c => c.value === selectedCategory)?.color || "#22d3ee";
   const activeRegionLabel = AFRICA_REGIONS.find(r => r.value === selectedRegion)?.label || "";
   const activeCountry = AFRICA_COUNTRIES.find(c => c.value === selectedCountry);
+
+  const scopeLabel = geoLayer === "country"
+    ? activeCountry?.label || "the selected country"
+    : geoLayer === "regional"
+      ? activeRegionLabel || "the selected region"
+      : "African Union";
+  const pestelLabel = PESTEL.find(p => p.value === selectedCategory)?.label || "Political";
+  const quickPrompts = [
+    `What are the top ${pestelLabel.toLowerCase()} risks in ${scopeLabel} right now?`,
+    `Summarise ${pestelLabel.toLowerCase()} signals in ${scopeLabel} this week`,
+    `Which key actors are shaping ${pestelLabel.toLowerCase()} dynamics in ${scopeLabel}?`,
+    `What is the stability outlook for ${scopeLabel} — ${pestelLabel} perspective?`,
+  ];
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
@@ -738,12 +757,7 @@ export default function XTrends() {
           {chatMessages.length <= 1 && (
             <div className="px-4 sm:px-6 pb-3">
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                {[
-                  "What are the top political risks in East Africa right now?",
-                  "Summarise AU economic signals this week",
-                  "Which country has the highest social unrest signals?",
-                  "Analyse Kenya's legal and governance signals",
-                ].map((prompt) => (
+                {quickPrompts.map((prompt) => (
                   <button key={prompt} onClick={() => setInputMessage(prompt)}
                     className="shrink-0 text-xs px-3 py-2 rounded-xl bg-muted/40 border border-border/50 hover:border-purple-500/40 hover:bg-purple-500/5 hover:text-purple-400 transition-all text-muted-foreground whitespace-nowrap">
                     {prompt}
