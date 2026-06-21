@@ -10,6 +10,7 @@ import {
   Twitter, TrendingUp, MessageCircle, Heart, Repeat2, Send, Sparkles,
   RefreshCw, User, Bot, Zap, Globe, Building2, ChevronRight,
   Landmark, Coins, Users, Leaf, Scale, Cpu, MapPin, Flag,
+  Share2, Copy, Check,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 
@@ -101,6 +102,7 @@ export default function XTrends() {
     },
   ]);
   const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [inputMessage, setInputMessage] = useState("");
   const [selectedTrend, setSelectedTrend] = useState<any>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -174,6 +176,23 @@ export default function XTrends() {
       geoScope: scopeKey,
       pestelCategory: selectedCategory,
     }]);
+  };
+
+  const handleShareAnalysis = async (message: ChatMessage) => {
+    const pestelLabel = PESTEL.find(p => p.value === message.pestelCategory)?.label || message.pestelCategory || "Intelligence";
+    const geoLabel = message.geoScope ? message.geoScope.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "Africa";
+    const url = "https://viralbeat.io/x-trends";
+    const shareText = `📡 ${pestelLabel} Signal — ${geoLabel}\n\n${message.topic || "Africa Intelligence"}\n\nAnalysis powered by ViralBeat Africa Signal Monitor 🌍\n\n${url}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `ViralBeat — ${pestelLabel} Signal`, text: shareText, url });
+        return;
+      } catch (_) { /* user cancelled — fall through to clipboard */ }
+    }
+    await navigator.clipboard.writeText(shareText);
+    setCopiedId(message.id);
+    setTimeout(() => setCopiedId(null), 2500);
   };
 
   const maxEngagement = Math.max(...((trendingData?.trends ?? []).map((t: any) => t.engagement).concat([1])));
@@ -436,41 +455,61 @@ export default function XTrends() {
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-2">{message.timestamp.toLocaleTimeString()}</p>
                       {message.role === "assistant" && !message.isWelcome && (
-                        <div className="mt-3 pt-3 border-t border-border/30">
-                          {ratings[message.id] ? (
-                            <p className="text-[11px] text-emerald-400 font-medium">
-                              Thanks for rating this analysis {["", "⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"][ratings[message.id]]}
-                            </p>
-                          ) : (
-                            <div>
-                              <p className="text-[10px] text-muted-foreground mb-2">Rate this analysis</p>
-                              <div className="flex items-center gap-1.5">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <button
-                                    key={star}
-                                    onClick={() => {
-                                      setRatings((r) => ({ ...r, [message.id]: star }));
-                                      if (user && message.topic) {
-                                        rateSignalMutation.mutate({
-                                          messageId: message.id,
-                                          topic: message.topic,
-                                          geoLayer: message.geoLayer || geoLayer,
-                                          geoScope: message.geoScope || scopeKey,
-                                          pestelCategory: message.pestelCategory || selectedCategory,
-                                          rating: star,
-                                        });
-                                      }
-                                    }}
-                                    className="text-lg leading-none transition-transform hover:scale-125 text-muted-foreground hover:text-yellow-400"
-                                    title={["", "Poor", "Fair", "Good", "Very good", "Excellent"][star]}
-                                  >
-                                    ☆
-                                  </button>
-                                ))}
-                                <span className="text-[10px] text-muted-foreground ml-1">1 – 5</span>
+                        <div className="mt-3 pt-3 border-t border-border/30 flex items-end justify-between gap-4 flex-wrap">
+                          {/* Rating */}
+                          <div>
+                            {ratings[message.id] ? (
+                              <p className="text-[11px] text-emerald-400 font-medium">
+                                Thanks for rating this analysis {["", "⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"][ratings[message.id]]}
+                              </p>
+                            ) : (
+                              <div>
+                                <p className="text-[10px] text-muted-foreground mb-2">Rate this analysis</p>
+                                <div className="flex items-center gap-1.5">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                      key={star}
+                                      onClick={() => {
+                                        setRatings((r) => ({ ...r, [message.id]: star }));
+                                        if (user && message.topic) {
+                                          rateSignalMutation.mutate({
+                                            messageId: message.id,
+                                            topic: message.topic,
+                                            geoLayer: message.geoLayer || geoLayer,
+                                            geoScope: message.geoScope || scopeKey,
+                                            pestelCategory: message.pestelCategory || selectedCategory,
+                                            rating: star,
+                                          });
+                                        }
+                                      }}
+                                      className="text-lg leading-none transition-transform hover:scale-125 text-muted-foreground hover:text-yellow-400"
+                                      title={["", "Poor", "Fair", "Good", "Very good", "Excellent"][star]}
+                                    >
+                                      ☆
+                                    </button>
+                                  ))}
+                                  <span className="text-[10px] text-muted-foreground ml-1">1 – 5</span>
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
+
+                          {/* Share */}
+                          <motion.button
+                            onClick={() => handleShareAnalysis(message)}
+                            whileTap={{ scale: 0.92 }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors border ${
+                              copiedId === message.id
+                                ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
+                                : "bg-cyan-500/10 border-cyan-500/25 text-cyan-400 hover:bg-cyan-500/20"
+                            }`}
+                          >
+                            {copiedId === message.id ? (
+                              <><Check className="w-3 h-3" /> Copied!</>
+                            ) : (
+                              <><Share2 className="w-3 h-3" /> Share insight</>
+                            )}
+                          </motion.button>
                         </div>
                       )}
                     </div>
