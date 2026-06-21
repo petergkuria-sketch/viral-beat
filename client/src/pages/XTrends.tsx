@@ -56,6 +56,7 @@ interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  isWelcome?: boolean;
 }
 
 function formatNumber(num: number) {
@@ -91,8 +92,10 @@ export default function XTrends() {
       role: "assistant",
       content: "👋 I'm the **Africa Signal Monitor**. I track political, economic, social, tech, environmental, and legal signals across 55 African nations — sourced from AU organs, regional bodies, and verified media.\n\nSelect a PESTEL filter and a geographic layer (Continental / Regional / Country), then click any signal card to get a Claude-powered analysis.",
       timestamp: new Date(),
+      isWelcome: true,
     },
   ]);
+  const [ratings, setRatings] = useState<Record<string, number>>({});
   const [inputMessage, setInputMessage] = useState("");
   const [selectedTrend, setSelectedTrend] = useState<any>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -417,6 +420,32 @@ export default function XTrends() {
                         <Streamdown>{message.content}</Streamdown>
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-2">{message.timestamp.toLocaleTimeString()}</p>
+                      {message.role === "assistant" && !message.isWelcome && (
+                        <div className="mt-3 pt-3 border-t border-border/30">
+                          {ratings[message.id] ? (
+                            <p className="text-[11px] text-emerald-400 font-medium">
+                              Thanks for rating this analysis {["", "⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"][ratings[message.id]]}
+                            </p>
+                          ) : (
+                            <div>
+                              <p className="text-[10px] text-muted-foreground mb-2">Rate this analysis</p>
+                              <div className="flex items-center gap-1.5">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    onClick={() => setRatings((r) => ({ ...r, [message.id]: star }))}
+                                    className="text-lg leading-none transition-transform hover:scale-125 text-muted-foreground hover:text-yellow-400"
+                                    title={["", "Poor", "Fair", "Good", "Very good", "Excellent"][star]}
+                                  >
+                                    ☆
+                                  </button>
+                                ))}
+                                <span className="text-[10px] text-muted-foreground ml-1">1 – 5</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     {message.role === "user" && (
                       <div className="w-8 h-8 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0">
