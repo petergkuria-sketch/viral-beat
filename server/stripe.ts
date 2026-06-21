@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 
 // ── Stripe client ─────────────────────────────────────────────────────────────
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2025-05-28.basil",
+  apiVersion: "2024-06-20",
 });
 
 // ── Price IDs — set via Railway env vars ────────────────────────────────────
@@ -87,8 +87,8 @@ async function handleWebhookEvent(event: Stripe.Event) {
       await db.update(users)
         .set({
           subscriptionTier: isActive ? planId : "free",
-          subscriptionExpiresAt: isActive
-            ? new Date((sub as any).current_period_end * 1000)
+          subscriptionExpiresAt: isActive && sub.current_period_end
+            ? new Date(sub.current_period_end * 1000)
             : null,
         })
         .where(eq(users.id, userId));
