@@ -36,7 +36,6 @@ export default function CountryBreakingNews() {
     { staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false }
   );
 
-  // Auto-refresh every 5 min
   useEffect(() => {
     const id = setInterval(() => {
       refetch();
@@ -45,7 +44,7 @@ export default function CountryBreakingNews() {
     return () => clearInterval(id);
   }, [refetch]);
 
-  if (!country) return <div className="p-6 text-muted-foreground">Country not found.</div>;
+  if (!country) return <div className="p-6 text-gray-400">Country not found.</div>;
 
   const articles = data?.articles ?? [];
   const top = articles[0];
@@ -54,21 +53,21 @@ export default function CountryBreakingNews() {
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Header */}
-      <div className="border-b border-border/50 px-4 sm:px-6 py-5 bg-card/40">
+      <div className="border-b border-white/10 px-4 sm:px-6 py-5 bg-[#0f1f38]/60">
         <button
           onClick={() => setLocation(`/country/${code}`)}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-3 transition-colors"
+          className="flex items-center gap-1 text-xs text-gray-400 hover:text-white mb-3 transition-colors"
         >
           <ArrowLeft className="w-3 h-3" /> {country.name} Overview
         </button>
         <div className="flex items-center gap-3">
           <span className="text-3xl">{country.flag}</span>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-black flex items-center gap-2">
+            <h1 className="text-xl font-black text-white flex items-center gap-2">
               <Radio className="w-5 h-5 text-red-400 animate-pulse" />
               {country.name} Breaking News
             </h1>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-400">
               {articles.length} stories · refreshed {formatDistanceToNow(lastRefresh, { addSuffix: true })}
             </p>
           </div>
@@ -78,7 +77,7 @@ export default function CountryBreakingNews() {
               Live
             </div>
             <Button size="sm" variant="ghost" onClick={() => { refetch(); setLastRefresh(Date.now()); }} disabled={isFetching} className="h-8 w-8 p-0">
-              <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-gray-300 ${isFetching ? "animate-spin" : ""}`} />
             </Button>
           </div>
         </div>
@@ -88,20 +87,20 @@ export default function CountryBreakingNews() {
 
         {isLoading && (
           <div className="flex flex-col items-center py-20 gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Scanning feeds…</p>
+            <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+            <p className="text-sm text-gray-400">Scanning feeds…</p>
           </div>
         )}
 
         {isError && (
           <div className="flex flex-col items-center py-20 gap-3">
             <AlertTriangle className="w-8 h-8 text-red-400" />
-            <p className="text-sm text-muted-foreground">Failed to load news.</p>
+            <p className="text-sm text-gray-400">Failed to load news.</p>
             <Button size="sm" variant="outline" onClick={() => refetch()}>Retry</Button>
           </div>
         )}
 
-        {/* Hero story */}
+        {/* Hero breaking story */}
         {top && (
           <motion.a
             href={top.link}
@@ -109,7 +108,7 @@ export default function CountryBreakingNews() {
             rel="noopener noreferrer"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="group block bg-gradient-to-br from-red-500/10 to-card border border-red-500/30 rounded-2xl p-6 hover:border-red-400/50 transition-all"
+            className="group block bg-gradient-to-br from-red-500/15 to-[#0f1f38] border border-red-500/40 rounded-2xl p-6 hover:border-red-400/60 transition-all"
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="relative flex h-2 w-2">
@@ -117,15 +116,15 @@ export default function CountryBreakingNews() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-400" />
               </span>
               <span className="text-xs font-black text-red-400 uppercase tracking-widest">Breaking</span>
-              <span className="text-[10px] text-muted-foreground ml-auto">{top.source}</span>
+              <span className="text-[11px] text-gray-300 ml-auto">{top.source}</span>
             </div>
-            <h2 className="text-lg font-black leading-snug text-foreground group-hover:text-primary transition-colors mb-2">
+            <h2 className="text-lg font-black text-white leading-snug group-hover:text-cyan-300 transition-colors mb-2">
               {top.title}
             </h2>
             {top.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{top.description}</p>
+              <p className="text-sm text-gray-300 line-clamp-2 mb-3 leading-relaxed">{top.description}</p>
             )}
-            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <div className="flex items-center justify-between text-[11px] text-gray-400">
               {top.publishedAt && (
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
@@ -139,12 +138,12 @@ export default function CountryBreakingNews() {
           </motion.a>
         )}
 
-        {/* News ticker list */}
+        {/* News list */}
         {rest.length > 0 && (
-          <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-border/30 flex items-center gap-2">
+          <div className="bg-[#0f1f38] border border-white/10 rounded-2xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
               <Zap className="w-4 h-4 text-yellow-400" />
-              <span className="text-sm font-black">Latest Updates</span>
+              <span className="text-sm font-black text-white">Latest Updates</span>
             </div>
             <AnimatePresence>
               {rest.map((article, i) => {
@@ -161,24 +160,28 @@ export default function CountryBreakingNews() {
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.03 }}
-                    className="group flex items-start gap-4 px-4 py-3.5 border-b border-border/20 last:border-0 hover:bg-muted/30 transition-colors"
+                    className="group flex items-start gap-4 px-4 py-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors"
                   >
                     <div className="flex items-center gap-1.5 shrink-0 mt-0.5 w-20">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${urgency.dot.split(" ")[0]}`} />
-                      <span className="text-[10px] font-semibold" style={{ color: urgency.color }}>
+                      <span className="text-[10px] font-bold" style={{ color: urgency.color }}>
                         {urgency.label}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                      <p className="text-sm font-semibold text-white leading-snug group-hover:text-cyan-300 transition-colors line-clamp-2">
                         {article.title}
                       </p>
-                      <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
+                      <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400">
                         <span>{article.source}</span>
-                        {timeAgo && <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{timeAgo}</span>}
+                        {timeAgo && (
+                          <span className="flex items-center gap-0.5">
+                            <Clock className="w-2.5 h-2.5" />{timeAgo}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground/60 group-hover:text-primary transition-colors shrink-0 mt-1" />
+                    <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-cyan-400 transition-colors shrink-0 mt-1" />
                   </motion.a>
                 );
               })}
@@ -187,9 +190,9 @@ export default function CountryBreakingNews() {
         )}
 
         {data && articles.length === 0 && (
-          <div className="text-center py-16 text-muted-foreground">
-            <Bell className="w-10 h-10 mx-auto mb-3 opacity-20" />
-            <p className="text-sm">No breaking news right now.</p>
+          <div className="text-center py-16">
+            <Bell className="w-10 h-10 mx-auto mb-3 text-gray-600" />
+            <p className="text-sm text-gray-400">No breaking news right now.</p>
             <Button size="sm" variant="outline" className="mt-4" onClick={() => refetch()}>Check again</Button>
           </div>
         )}
