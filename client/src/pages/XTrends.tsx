@@ -182,7 +182,18 @@ export default function XTrends() {
     const pestelLabel = PESTEL.find(p => p.value === message.pestelCategory)?.label || message.pestelCategory || "Intelligence";
     const geoLabel = message.geoScope ? message.geoScope.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "Africa";
     const url = "https://viralbeat.io/x-trends";
-    const shareText = `📡 ${pestelLabel} Signal — ${geoLabel}\n\n${message.topic || "Africa Intelligence"}\n\nAnalysis powered by ViralBeat Africa Signal Monitor 🌍\n\n${url}`;
+
+    // Extract headline: first non-empty line that isn't a markdown heading marker,
+    // then the first substantive sentence from the body as a supporting line.
+    const lines = message.content
+      .split("\n")
+      .map(l => l.replace(/^#{1,4}\s*/, "").replace(/\*\*/g, "").trim())
+      .filter(Boolean);
+    const headline = lines[0] || message.topic || "Africa Intelligence Signal";
+    // First sentence from the body (skip the headline line)
+    const bodySentence = lines.slice(1).join(" ").split(/(?<=[.!?])\s+/).find(s => s.length > 30) || "";
+
+    const shareText = `📡 ${pestelLabel} Signal — ${geoLabel}\n\n${headline}${bodySentence ? `\n\n${bodySentence}` : ""}\n\nAnalysis powered by ViralBeat Africa Signal Monitor 🌍\n${url}`;
 
     if (navigator.share) {
       try {
