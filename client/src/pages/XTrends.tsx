@@ -301,7 +301,7 @@ export default function XTrends() {
               <div className="font-bold text-sm">X Trends AI Agent</div>
               <div className="text-[10px] text-muted-foreground flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-                Online · GPT-powered
+                Online · Claude-powered
               </div>
             </div>
             <Badge variant="secondary" className="ml-auto bg-purple-500/10 text-purple-400 text-xs">
