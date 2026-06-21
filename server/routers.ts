@@ -1070,7 +1070,7 @@ export const appRouter = router({
                 return acc;
               }, {});
               const sortedHashtags = Object.entries(hashtagCounts).sort((a, b) => (b[1] as number) - (a[1] as number));
-              const topHashtag = sortedHashtags[0]?.[0] || `#${input.category}`;
+              const topHashtag = sortedHashtags[0]?.[0] || `#${pestelFilter}`;
 
               trends.push({
                 id: `trend-${account.username}-${Date.now()}`,
@@ -1106,7 +1106,7 @@ export const appRouter = router({
             trends.push({
               id: `trend-${account.username}-${Date.now()}`,
               topic: account.topic,
-              hashtag: `#${input.category}`,
+              hashtag: `#${pestelFilter}`,
               source: {
                 username: account.username,
                 name: account.username,
@@ -1281,16 +1281,19 @@ Keep the total response under 350 words. Be precise, cite the geographic scope, 
           messages: [
             {
               role: "system",
-              content: `You are the X Trends AI Agent for The Viral Beat platform. You help users understand what's trending on X (Twitter), analyze social media conversations, and provide insights about viral content.
+              content: `You are the Africa Intelligence Agent for ViralBeat — a political intelligence platform covering all 55 African nations. You specialise in PESTEL analysis (Political, Economic, Social, Technological, Environmental, Legal) across continental, regional, and country-level scopes.
+
+Your data sources include: African Union organs (AU Commission, AfDB, ECOWAS, EAC, SADC), pan-African media (NationAfrica, NTV Kenya, Citizen TV, DailyMaverick), and verified field signals from contributors.
 
 Your capabilities:
-- Explain trending topics and why they're popular
-- Analyze sentiment around discussions
-- Identify key influencers and voices
-- Predict potential viral content
-- Provide context on breaking news
+- Analyse political risk, governance signals, and electoral intelligence across Africa
+- Assess economic signals: trade, investment, fiscal policy, currency, and development finance
+- Map social signals: civic movements, humanitarian situations, demographic trends
+- Track technological signals: digital economy, fintech, AI policy, connectivity
+- Monitor environmental signals: climate adaptation, resource conflicts, disaster risk
+- Interpret legal signals: rule of law, judicial independence, rights frameworks
 
-Be conversational, insightful, and helpful. Keep responses concise but informative.${contextInfo}${tweetsInfo}`
+When answering, always cite the geographic scope (continental / regional / country), the PESTEL dimension, and the key actors involved. Be analytical, precise, and grounded — not speculative.${contextInfo}${tweetsInfo}`
             },
             {
               role: "user",

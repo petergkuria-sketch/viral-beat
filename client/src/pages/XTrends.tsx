@@ -291,7 +291,7 @@ export default function XTrends() {
                           ? "border-cyan-500/60 bg-cyan-500/5"
                           : "border-border/50 bg-card/50 hover:border-border hover:bg-card/80"
                       }`}
-                      onClick={() => setSelectedTrend(trend)}
+                      onClick={() => handleAnalyzeTrend(trend)}
                     >
                       {/* Rank */}
                       <div className="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black" style={{ background: `${catColor}15`, color: catColor }}>
@@ -313,7 +313,9 @@ export default function XTrends() {
                       </div>
 
                       <h3 className="font-bold text-sm mb-1 pr-8 group-hover:text-primary transition-colors">{trend.topic}</h3>
-                      {trend.hashtag && <p className="text-xs font-medium mb-3" style={{ color: catColor }}>{trend.hashtag}</p>}
+                      {trend.hashtag && !trend.hashtag.includes(":") && (
+                        <p className="text-xs font-medium mb-3" style={{ color: catColor }}>{trend.hashtag}</p>
+                      )}
 
                       <EngagementBar value={trend.engagement} max={maxEngagement} color={catColor} />
                       <div className="flex items-center justify-between mt-1.5">
