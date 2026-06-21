@@ -2606,6 +2606,34 @@ Be concise, technical, and actionable. When discussing features, consider:
         return { success: true };
       }),
   }),
+
+  // ── STRIPE BILLING ──────────────────────────────────────────────────────────
+  billing: router({
+    createCheckoutSession: protectedProcedure
+      .input(z.object({
+        planId: z.enum(["analyst"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { createCheckoutSession } = await import("./stripe");
+        const origin = process.env.APP_URL || "https://viralbeat.io";
+        const session = await createCheckoutSession({
+          userId: ctx.user.id,
+          userEmail: ctx.user.email || "",
+          planId: input.planId,
+          successUrl: `${origin}/pricing?success=1`,
+          cancelUrl: `${origin}/pricing?cancelled=1`,
+        });
+        return { url: session.url };
+      }),
+
+    getSubscription: protectedProcedure
+      .query(async ({ ctx }) => {
+        return {
+          tier: ctx.user.subscriptionTier || "free",
+          expiresAt: ctx.user.subscriptionExpiresAt || null,
+        };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
