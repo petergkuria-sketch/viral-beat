@@ -46,7 +46,7 @@ function StabilityBar({ score }: { score: number }) {
       <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${score}%`, background: color }} />
       </div>
-      <span className="text-[10px] font-bold tabular-nums" style={{ color }}>{score}</span>
+      <span className="text-[10px] font-bold tabular-nums" style={{ color }}>{score}<span className="text-gray-600 font-normal">/100</span></span>
     </div>
   );
 }
@@ -241,12 +241,21 @@ export default function LandingPage() {
                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Live Intelligence Feed</span>
               </div>
               <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e3a5f]">
-                  <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                    <Globe className="w-3.5 h-3.5 text-cyan-400" />
-                    Africa Political Monitor
+                <div className="px-4 pt-3 pb-2 border-b border-[#1e3a5f]">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+                      <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                      Africa Political Monitor
+                    </div>
+                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Live</Badge>
                   </div>
-                  <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Live</Badge>
+                  {/* Scale legend */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] text-red-400 font-medium">0 = Critical</span>
+                    <div className="flex-1 h-1 rounded-full" style={{ background: "linear-gradient(to right, #f87171, #fbbf24, #34d399)" }} />
+                    <span className="text-[9px] text-emerald-400 font-medium">100 = Stable</span>
+                  </div>
+                  <p className="text-[9px] text-gray-600 mt-1">Stability score — higher is safer</p>
                 </div>
                 <div className="divide-y divide-[#1e3a5f]">
                   {DEMO_INTEL.map((c, i) => (
