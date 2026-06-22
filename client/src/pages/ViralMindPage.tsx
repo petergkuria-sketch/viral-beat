@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Loader2, Send, Sparkles, TrendingUp, Target, Lightbulb, CheckCircle2, ArrowRight, Download, Share2, Check, Zap } from "lucide-react";
+import { Loader2, Send, Sparkles, TrendingUp, Target, Lightbulb, CheckCircle2, ArrowRight, Download, Share2, Check, Zap, Paperclip, X as XIcon, FileText } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
@@ -47,6 +47,9 @@ export default function ViralMindPage() {
 
   // Chat state
   const [chatMessage, setChatMessage] = useState("");
+  const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
+  const [fileExtracting, setFileExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Content analyzer state
   const [contentTitle, setContentTitle] = useState("");
@@ -152,9 +155,51 @@ export default function ViralMindPage() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileExtracting(true);
+    try {
+      if (file.type === "application/pdf") {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+          "pdfjs-dist/build/pdf.worker.min.mjs",
+          import.meta.url
+        ).toString();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const pages: string[] = [];
+        for (let i = 1; i <= Math.min(pdf.numPages, 40); i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          pages.push(content.items.map((item: any) => item.str).join(" "));
+        }
+        const text = pages.join("\n\n").slice(0, 60000); // cap at 60k chars
+        setAttachedFile({ name: file.name, content: text });
+        toast.success(`Document extracted: ${pdf.numPages} pages from ${file.name}`);
+      } else {
+        // Plain text / markdown / csv
+        const text = await file.text();
+        setAttachedFile({ name: file.name, content: text.slice(0, 60000) });
+        toast.success(`Document ready: ${file.name}`);
+      }
+    } catch (err) {
+      toast.error("Could not extract document text. Try a plain text or PDF file.");
+    } finally {
+      setFileExtracting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleSendMessage = () => {
-    if (!chatMessage.trim()) return;
-    sendMessage.mutate({ message: chatMessage, sessionId: sessionId || undefined });
+    if (!chatMessage.trim() && !attachedFile) return;
+    sendMessage.mutate({
+      message: chatMessage.trim() || (attachedFile ? `Analyse this document: ${attachedFile.name}` : ""),
+      sessionId: sessionId || undefined,
+      fileContent: attachedFile?.content,
+      fileName: attachedFile?.name,
+    });
+    setAttachedFile(null);
   };
 
   const handleAnalyzeContent = () => {
@@ -569,15 +614,53 @@ export default function ViralMindPage() {
                 <div ref={chatEndRef} />
               </div>
 
-              <div className="flex gap-2">
+              {/* File attachment chip */}
+              {attachedFile && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-sm">
+                  <FileText className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span className="text-cyan-300 text-xs truncate flex-1">{attachedFile.name}</span>
+                  <span className="text-gray-500 text-xs shrink-0">{Math.round(attachedFile.content.length / 1000)}k chars</span>
+                  <button onClick={() => setAttachedFile(null)} className="text-gray-500 hover:text-white shrink-0">
+                    <XIcon className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              <div className="flex gap-2 items-center">
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.txt,.md,.csv,.docx"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+                {/* Upload button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 border-white/10 text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={fileExtracting || sendMessage.isPending}
+                  title="Attach a document (PDF, TXT, CSV)"
+                >
+                  {fileExtracting
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Paperclip className="w-4 h-4" />}
+                </Button>
+
                 <Input
-                  placeholder="e.g. What's the dominant strategy for Ghana legal content this week?"
+                  placeholder={attachedFile ? "Add context or a specific question about this document…" : "e.g. What's the dominant strategy for Ghana legal content this week?"}
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   disabled={sendMessage.isPending}
+                  className="flex-1"
                 />
-                <Button onClick={handleSendMessage} disabled={sendMessage.isPending || !chatMessage.trim()}>
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={sendMessage.isPending || (!chatMessage.trim() && !attachedFile)}
+                >
                   {sendMessage.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (

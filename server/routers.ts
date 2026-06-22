@@ -1617,6 +1617,8 @@ Keep the total response under 450 words. Every finding must be anchored to ${sco
         geoLayer: z.string().optional(),
         geoScope: z.string().optional(),
         pestelCategory: z.string().optional(),
+        fileContent: z.string().optional(),  // extracted text from uploaded document
+        fileName: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const contextInfo = input.context?.currentTopic
@@ -1659,7 +1661,9 @@ When answering, always cite the geographic scope (continental / regional / count
             },
             {
               role: "user",
-              content: input.message
+              content: input.fileContent
+                ? `[ATTACHED DOCUMENT: ${input.fileName ?? "document"}]\n\n${input.fileContent}\n\n---\n\n${input.message}`
+                : input.message
             }
           ]
         });
