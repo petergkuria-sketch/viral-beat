@@ -528,6 +528,16 @@ export default function IntelligencePage() {
             {signalsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
           </div>
 
+          {/* Geo mismatch warning — shown when country selected but signals are regional */}
+          {geoLayer === "country" && !signalsLoading && signals?.trends && signals.trends.length > 0 && (
+            <div className="mx-3 mt-2 px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/25 flex items-start gap-2">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+              <p className="text-[10px] text-amber-300 leading-relaxed">
+                No {AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label}-specific signals — showing nearest regional data. Verify signal relevance before running pipeline.
+              </p>
+            </div>
+          )}
+
           <div className="flex-1 p-3 space-y-2">
             {signalsLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
@@ -711,6 +721,21 @@ export default function IntelligencePage() {
                       })}
                     </div>
                   </div>
+
+                  {/* Geo mismatch warning in pipeline */}
+                  {geoLayer === "country" && pipelineSignal && (() => {
+                    const countryLabel = AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label ?? "";
+                    const signalMentionsCountry = pipelineSignal.topic.toLowerCase().includes(countryLabel.toLowerCase());
+                    return !signalMentionsCountry ? (
+                      <div className="bg-amber-500/8 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-0.5">Signal may not be {countryLabel}-specific</p>
+                          <p className="text-xs text-slate-400">This signal appears to be regional, not country-level. The pipeline will analyse it in the <strong className="text-amber-300">{countryLabel}</strong> context — verify it's relevant before proceeding.</p>
+                        </div>
+                      </div>
+                    ) : null;
+                  })()}
 
                   <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-3 flex items-start gap-2.5">
                     <Lock className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
