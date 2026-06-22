@@ -2689,7 +2689,7 @@ Apply the full triangulation framework. Mark any assertion that is only supporte
             await db.execute(sql.raw(stmt));
             results.push(`OK: ${stmt.slice(0, 50)}`);
           } catch (e: any) {
-            results.push(`SKIP: ${String(e.message ?? e).slice(0, 80)}`);
+            results.push(`SKIP: ${String(e.message ?? e).slice(0, 300)}`);
           }
         }
         return { results };
