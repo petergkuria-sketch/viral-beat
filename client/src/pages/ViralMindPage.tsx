@@ -1,4 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import * as pdfjsLib from "pdfjs-dist";
+// Vite ?url import — bundles the worker and returns a resolvable URL at runtime
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -163,10 +167,6 @@ export default function ViralMindPage() {
     try {
       if (file.type === "application/pdf") {
         const arrayBuffer = await file.arrayBuffer();
-        // Dynamic import with CDN worker — avoids Vite bundler issues with pdfjs v6
-        const pdfjsLib = await import("pdfjs-dist");
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
         const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
         const pages: string[] = [];
         for (let i = 1; i <= Math.min(pdf.numPages, 50); i++) {
