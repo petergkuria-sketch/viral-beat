@@ -174,12 +174,17 @@ export const aiAssistantRouter = router({
         .orderBy(desc(assistantConversations.createdAt))
         .limit(10);
 
-      // Save user message
+      // Build the full message the LLM will see (document + user text)
+      const fullUserMessage = input.fileContent
+        ? `[ATTACHED DOCUMENT: ${input.fileName ?? "document"}]\n\n${input.fileContent}\n\n---\n\n${input.message}`
+        : input.message;
+
+      // Save full message to DB so conversation history retains document context
       await db.insert(assistantConversations).values({
         userId: ctx.user.id,
         sessionId,
         role: "user",
-        message: input.message,
+        message: fullUserMessage,
       });
 
       // Build context for AI
@@ -239,12 +244,7 @@ HOW TO RESPOND:
           role: msg.role as "user" | "assistant",
           content: msg.message,
         })),
-        {
-          role: "user",
-          content: input.fileContent
-            ? `[ATTACHED DOCUMENT: ${input.fileName ?? "document"}]\n\n${input.fileContent}\n\n---\n\n${input.message}`
-            : input.message,
-        },
+        { role: "user", content: fullUserMessage },
       ];
 
       // Call LLM

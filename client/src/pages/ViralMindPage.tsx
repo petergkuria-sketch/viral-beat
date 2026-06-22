@@ -79,7 +79,7 @@ export default function ViralMindPage() {
     onSuccess: (data) => {
       setSessionId(data.sessionId);
       setChatMessage("");
-      setAttachedFile(null);
+      // intentionally NOT clearing attachedFile — document stays active until user dismisses
     },
   });
 
