@@ -365,8 +365,13 @@ export default function IntelligencePage() {
   const handleRunGameTheory = () => {
     if (!pipelineSignal) return;
     setPipelineStage("gametheory");
+    const geoLabel =
+      geoLayer === "continental" ? "Africa (Continental)" :
+      geoLayer === "regional" ? (AFRICA_REGIONS.find(r => r.id === selectedRegion)?.label ?? selectedRegion) :
+      (AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label ?? selectedCountry);
+    const gtTitle = `[${geoLabel} · ${selectedCategory.toUpperCase()}] ${pipelineSignal.topic}`;
     pipelineGT.mutate(
-      { title: pipelineSignal.topic, contentType: "text", platform: "twitter" },
+      { title: gtTitle, contentType: "research", platform: "journal" },
       {
         onSuccess: (data) => { setGtOutput(data); setPipelineStage("gametheory_done"); },
         onError: (err) => { toast.error("Game Theory failed: " + err.message); setPipelineStage("pestel_done"); },
@@ -948,10 +953,10 @@ export default function IntelligencePage() {
                       ← New Pipeline
                     </button>
                     <button
-                      onClick={() => { handleResetPipeline(); setRightTab("insights"); }}
+                      onClick={handleResetPipeline}
                       className="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-xl py-2.5 transition-colors"
                     >
-                      View GT History →
+                      Run Another Signal →
                     </button>
                   </div>
                 </div>
