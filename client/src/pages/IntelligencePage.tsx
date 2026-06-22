@@ -333,6 +333,7 @@ export default function IntelligencePage() {
           <div className="flex items-center gap-2 shrink-0">
             <Sparkles className="w-5 h-5 text-cyan-400" />
             <span className="font-bold text-lg tracking-tight text-white">Intelligence Workspace</span>
+            {/* v2 color fix */}
           </div>
 
           {/* Geo scope */}
