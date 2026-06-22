@@ -186,12 +186,25 @@ export default function ViralMindPage() {
         if (!text) throw new Error("No text found — the PDF may be image-based (scanned).");
         const capped = text.slice(0, 80000);
         setAttachedFile({ name: file.name, content: capped });
-        toast.success(`Extracted ${pdf.numPages} pages (${Math.round(capped.length / 1000)}k chars) — ready to send`);
+        toast.success(`${pdf.numPages} pages extracted — document active`);
+        // Auto-trigger opening analysis
+        sendMessage.mutate({
+          message: `I've attached "${file.name}". Please provide an overview: summarise the key findings, identify the primary PESTEL dimensions active in this document, map the key actors and their positions, and flag any signals relevant to East Africa.`,
+          sessionId: sessionId || undefined,
+          fileContent: capped,
+          fileName: file.name,
+        });
       } else {
         const text = (await file.text()).trim().slice(0, 80000);
         if (!text) throw new Error("File appears empty.");
         setAttachedFile({ name: file.name, content: text });
-        toast.success(`${file.name} ready — ${Math.round(text.length / 1000)}k chars`);
+        toast.success(`${file.name} active — document grounding enabled`);
+        sendMessage.mutate({
+          message: `I've attached "${file.name}". Please summarise the key content, identify the primary themes and PESTEL dimensions, and flag any signals relevant to Africa.`,
+          sessionId: sessionId || undefined,
+          fileContent: text,
+          fileName: file.name,
+        });
       }
     } catch (err: any) {
       toast.error(err?.message ?? "Could not read this file. Try PDF or plain text.");
@@ -584,15 +597,65 @@ export default function ViralMindPage() {
 
         <TabsContent value="chat" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                ViralMind — Game Theory Strategist
-              </CardTitle>
-              <CardDescription>Explore dominant strategies, signal angles, and Nash positions in Africa's intelligence landscape — then build content that wins</CardDescription>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    ViralMind — Game Theory Strategist
+                  </CardTitle>
+                  <CardDescription className="mt-0.5">Explore dominant strategies, signal angles, and Nash positions in Africa's intelligence landscape</CardDescription>
+                </div>
+                {/* Upload button in header */}
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.txt,.md,.csv"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`gap-2 text-xs ${attachedFile ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10" : "border-white/10 text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30"}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={fileExtracting || sendMessage.isPending}
+                  >
+                    {fileExtracting
+                      ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Extracting…</>
+                      : attachedFile
+                      ? <><FileText className="w-3.5 h-3.5" />Document active</>
+                      : <><Paperclip className="w-3.5 h-3.5" />Attach document</>}
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="h-[400px] overflow-y-auto border rounded-lg p-4 space-y-4 bg-muted/20">
+            <CardContent className="space-y-3 pt-0">
+
+              {/* Research context banner — inside the chat window */}
+              {attachedFile && (
+                <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/8 px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <FileText className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Research Context Active</span>
+                        <span className="text-[10px] text-gray-500">Grounding all analyses ✓</span>
+                      </div>
+                      <p className="text-xs text-gray-300 truncate">{attachedFile.name}</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        {Math.round(attachedFile.content.length / 1000)}k chars extracted · every message in this session is grounded in this document
+                      </p>
+                    </div>
+                    <button onClick={() => setAttachedFile(null)} className="text-gray-600 hover:text-gray-300 shrink-0 mt-0.5">
+                      <XIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="h-[380px] overflow-y-auto border rounded-lg p-4 space-y-4 bg-muted/20">
                 {conversations && conversations.length > 0 ? (
                   conversations.map((msg) => (
                     <div
@@ -618,49 +681,17 @@ export default function ViralMindPage() {
                   <div className="text-center text-muted-foreground py-12">
                     <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p className="font-semibold">What signal do you want to own?</p>
-                    <p className="text-sm mt-1 max-w-sm mx-auto">Start with a country, theme, or political moment — ViralMind maps the Game Theory landscape and tells you the dominant move.</p>
+                    <p className="text-sm mt-1 max-w-sm mx-auto">Ask a question or attach a document — ViralMind maps the Game Theory landscape and tells you the dominant move.</p>
                   </div>
                 )}
                 <div ref={chatEndRef} />
               </div>
 
-              {/* File attachment chip */}
-              {attachedFile && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-sm">
-                  <FileText className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span className="text-cyan-300 text-xs truncate flex-1">{attachedFile.name}</span>
-                  <span className="text-gray-500 text-xs shrink-0">{Math.round(attachedFile.content.length / 1000)}k chars</span>
-                  <button onClick={() => setAttachedFile(null)} className="text-gray-500 hover:text-white shrink-0">
-                    <XIcon className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
-
               <div className="flex gap-2 items-center">
-                {/* Hidden file input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.txt,.md,.csv,.docx"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-                {/* Upload button */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 border-white/10 text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={fileExtracting || sendMessage.isPending}
-                  title="Attach a document (PDF, TXT, CSV)"
-                >
-                  {fileExtracting
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Paperclip className="w-4 h-4" />}
-                </Button>
-
                 <Input
-                  placeholder={attachedFile ? "Add context or a specific question about this document…" : "e.g. What's the dominant strategy for Ghana legal content this week?"}
+                  placeholder={attachedFile
+                    ? `Ask about ${attachedFile.name.replace(/\.[^.]+$/, "")} — e.g. "Summarise the Economic findings" or "What are the key signals for East Africa?"`
+                    : "Ask a question or attach a document above…"}
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
