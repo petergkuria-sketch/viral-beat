@@ -2682,6 +2682,9 @@ Apply the full triangulation framework. Mark any assertion that is only supporte
           `ALTER TABLE creatorProfiles ADD COLUMN aiGoals TEXT NULL`,
           `ALTER TABLE creatorProfiles ADD COLUMN aiChallenges TEXT NULL`,
           `UPDATE creatorProfiles cp JOIN aiAssistantProfiles ap ON cp.userId = ap.userId SET cp.onboardingCompleted = ap.onboardingCompleted, cp.niche = COALESCE(cp.niche, ap.niche), cp.primaryPlatform = COALESCE(cp.primaryPlatform, ap.primaryPlatform), cp.tone = COALESCE(cp.tone, ap.contentStyle), cp.aiGoals = COALESCE(cp.aiGoals, ap.goals) WHERE ap.userId IS NOT NULL`,
+          // 0028: Admin token top-up for peter.g.kuria@gmail.com
+          `INSERT INTO userTokens (userId, balance, totalEarned, totalSpent) SELECT id, 500, 500, 0 FROM users WHERE email = 'peter.g.kuria@gmail.com' ON DUPLICATE KEY UPDATE balance = balance + 500, totalEarned = totalEarned + 500`,
+          `INSERT INTO tokenTransactions (userId, amount, type, description) SELECT id, 500, 'earn_admin_grant', 'Admin top-up: development testing allocation' FROM users WHERE email = 'peter.g.kuria@gmail.com'`,
         ]) {
           try {
             await db.execute(sql.raw(stmt));
