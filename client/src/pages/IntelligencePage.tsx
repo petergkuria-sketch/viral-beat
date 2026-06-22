@@ -65,6 +65,15 @@ export default function IntelligencePage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── onboarding banner ──
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { return localStorage.getItem("vb_intel_onboarded") !== "1"; } catch { return true; }
+  });
+  const dismissOnboarding = () => {
+    setShowOnboarding(false);
+    try { localStorage.setItem("vb_intel_onboarded", "1"); } catch {}
+  };
+
   // ── geo / PESTEL filter state ──
   const [geoLayer, setGeoLayer] = useState<GeoLayer>("continental");
   const [selectedRegion, setSelectedRegion] = useState("east-africa");
@@ -1661,6 +1670,65 @@ export default function IntelligencePage() {
           )} {/* end pipeline ternary */}
         </div>
       </div>
+
+      {/* ── First-time onboarding banner ── */}
+      <AnimatePresence>
+        {showOnboarding && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="shrink-0 border-t border-slate-700 bg-slate-800/95 px-5 py-4"
+          >
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <p className="text-sm font-bold text-white">How the Intelligence Workspace works</p>
+                </div>
+                <button
+                  onClick={dismissOnboarding}
+                  className="text-slate-500 hover:text-slate-300 transition-colors shrink-0"
+                  aria-label="Dismiss"
+                >
+                  <XIcon className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                {[
+                  { step: "1", color: "text-cyan-400 border-cyan-500/30 bg-cyan-500/8", icon: <Globe className="w-3.5 h-3.5" />, title: "Set your scope", body: "Choose Africa, a Region, or a Country at the top. Then pick a PESTEL dimension (P · E · S · T · En · L) to filter live signals." },
+                  { step: "2", color: "text-blue-400 border-blue-500/30 bg-blue-500/8",  icon: <Zap className="w-3.5 h-3.5" />,  title: "Click a Live Signal", body: "Clicking any signal on the left starts the 4-stage pipeline. You can optionally attach a research document (PDF, TXT, MD) to ground the analysis." },
+                  { step: "3", color: "text-purple-400 border-purple-500/30 bg-purple-500/8", icon: <Target className="w-3.5 h-3.5" />, title: "Approve each stage", body: "The pipeline runs PESTEL → Game Theory → Reports in sequence. You review and approve each output before the next stage runs — nothing proceeds without you." },
+                  { step: "4", color: "text-pink-400 border-pink-500/30 bg-pink-500/8",   icon: <Download className="w-3.5 h-3.5" />, title: "Download your report", body: "Stage 4 generates your chosen formats (Thread · Newsletter · Sitrep · Cable). Download each as PDF, Markdown, or TXT — or grab all formats in one file." },
+                ].map(({ step, color, icon, title, body }) => (
+                  <div key={step} className={`rounded-xl border p-3 ${color}`}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`text-[10px] font-black w-4 h-4 rounded-full border flex items-center justify-center ${color}`}>{step}</span>
+                      {icon}
+                      <p className={`text-xs font-bold ${color.split(" ")[0]}`}>{title}</p>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">{body}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] text-slate-500">
+                  The workspace remembers your last scope and PESTEL selection. Use the <span className="text-slate-400 font-medium">Chat</span> tab (idle state) for free-form intelligence questions without running the full pipeline.
+                </p>
+                <button
+                  onClick={dismissOnboarding}
+                  className="shrink-0 ml-4 bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition-colors"
+                >
+                  Got it ✓
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
