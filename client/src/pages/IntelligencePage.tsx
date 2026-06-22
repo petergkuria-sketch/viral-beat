@@ -354,7 +354,7 @@ export default function IntelligencePage() {
     if (!pipelineSignal) return;
     setPipelineStage("pestel");
     pipelinePestel.mutate(
-      { topic: pipelineSignal.topic, geoScope: scopeKey, pestelCategory: selectedCategory },
+      { topic: pipelineSignal.topic, geoScope: scopeKey, geoLayer, pestelCategory: selectedCategory, researchContext: attachedFile?.content },
       {
         onSuccess: (data) => { setPestelOutput(data.summary || ""); setPipelineStage("pestel_done"); },
         onError: (err) => { toast.error("PESTEL failed: " + err.message); setPipelineStage("confirming"); },
@@ -421,6 +421,69 @@ export default function IntelligencePage() {
     a.href = url; a.download = filename; a.click();
     URL.revokeObjectURL(url);
   };
+
+  const handleDownloadMd = (content: string, basename: string) => {
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${basename}.md`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdf = async (content: string, basename: string) => {
+    try {
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const maxW = pageW - margin * 2;
+
+      // Header
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, pageW, 20, "F");
+      doc.setTextColor(56, 189, 248);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("VIRALBEAT AFRICA POLITICAL INTELLIGENCE", margin, 13);
+      doc.setTextColor(100, 116, 139);
+      doc.setFontSize(8);
+      doc.text(new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }), pageW - margin, 13, { align: "right" });
+
+      // Body — strip markdown markers, wrap lines
+      doc.setTextColor(30, 30, 30);
+      let y = 30;
+      const lines = content.split("\n");
+      for (const raw of lines) {
+        const line = raw.replace(/^#{1,4}\s*/, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").trim();
+        if (!line) { y += 4; continue; }
+        const isH = raw.startsWith("#");
+        doc.setFontSize(isH ? 12 : 10);
+        doc.setFont("helvetica", isH ? "bold" : "normal");
+        const wrapped = doc.splitTextToSize(line, maxW);
+        if (y + wrapped.length * 5 > doc.internal.pageSize.getHeight() - 20) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(wrapped, margin, y);
+        y += wrapped.length * (isH ? 7 : 5);
+      }
+
+      // Footer
+      const totalPages = (doc.internal as any).getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(8);
+        doc.text(`viralbeat.io  ·  Page ${i} of ${totalPages}`, pageW / 2, doc.internal.pageSize.getHeight() - 8, { align: "center" });
+      }
+      doc.save(`${basename}.pdf`);
+    } catch (e) {
+      toast.error("PDF generation failed — downloading as TXT instead.");
+      handleDownloadReport(content, `${basename}.txt`);
+    }
+  };
+
+  const [dlDropdown, setDlDropdown] = useState<string | null>(null);
 
   const PIPELINE_STEPS = [
     { key: "signal",     label: "Signal",      stages: ["confirming"] },
@@ -722,6 +785,29 @@ export default function IntelligencePage() {
                     </div>
                   </div>
 
+                  {/* Optional research document upload */}
+                  <div>
+                    <p className="text-xs font-semibold text-slate-300 mb-2">Attach Research Document <span className="text-slate-500 font-normal">(optional — grounds PESTEL in your data)</span></p>
+                    {attachedFile ? (
+                      <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-3 py-2.5">
+                        <FileText className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="text-xs text-emerald-300 flex-1 truncate">{attachedFile.name}</span>
+                        <button onClick={() => setAttachedFile(null)} className="text-slate-500 hover:text-slate-300"><XIcon className="w-3.5 h-3.5" /></button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={fileExtracting}
+                        className="w-full flex items-center gap-2 rounded-xl border border-dashed border-white/10 hover:border-cyan-500/40 hover:bg-cyan-500/5 px-3 py-2.5 transition-all group"
+                      >
+                        {fileExtracting ? <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" /> : <Paperclip className="w-4 h-4 text-slate-400 group-hover:text-cyan-400 transition-colors" />}
+                        <span className="text-xs text-slate-400 group-hover:text-slate-200 transition-colors">
+                          {fileExtracting ? "Extracting…" : "PDF · TXT · MD · CSV — drag & drop or click"}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+
                   {/* Geo mismatch warning in pipeline */}
                   {geoLayer === "country" && pipelineSignal && (() => {
                     const countryLabel = AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label ?? "";
@@ -943,32 +1029,57 @@ export default function IntelligencePage() {
                   )}
 
                   {/* Per-format output cards */}
-                  {reportsOutput.map((out: any, i: number) => (
-                    <div key={i} className="bg-slate-800 border border-slate-600 rounded-xl overflow-hidden">
-                      <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-700">
-                        <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">{out.format ?? out.platform}</p>
-                        <div className="flex gap-1.5">
-                          <button
-                            className="inline-flex items-center gap-1 h-7 px-2 text-xs rounded text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                            onClick={() => { navigator.clipboard.writeText(out.content); toast.success("Copied!"); }}
-                          >
-                            <Copy className="w-3 h-3" /> Copy
-                          </button>
-                          <button
-                            className="inline-flex items-center gap-1 h-7 px-2 text-xs rounded text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                            onClick={() => handleDownloadReport(out.content, `viralbeat-${out.platform ?? out.format}-${Date.now()}.txt`)}
-                          >
-                            <Download className="w-3 h-3" /> Download
-                          </button>
+                  {reportsOutput.map((out: any, i: number) => {
+                    const basename = `viralbeat-${out.platform ?? out.format}-${Date.now()}`;
+                    const cardId = `card-${i}`;
+                    return (
+                      <div key={i} className="bg-slate-800 border border-slate-600 rounded-xl overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-700">
+                          <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">{out.format ?? out.platform}</p>
+                          <div className="flex gap-1.5 items-center">
+                            <button
+                              className="inline-flex items-center gap-1 h-7 px-2 text-xs rounded text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                              onClick={() => { navigator.clipboard.writeText(out.content); toast.success("Copied!"); }}
+                            >
+                              <Copy className="w-3 h-3" /> Copy
+                            </button>
+                            {/* Download format picker */}
+                            <div className="relative">
+                              <button
+                                className="inline-flex items-center gap-1 h-7 px-2 text-xs rounded text-slate-300 hover:text-white hover:bg-white/10 transition-colors border border-slate-600"
+                                onClick={() => setDlDropdown(dlDropdown === cardId ? null : cardId)}
+                              >
+                                <Download className="w-3 h-3" /> Download <ChevronRight className={`w-3 h-3 transition-transform ${dlDropdown === cardId ? "rotate-90" : ""}`} />
+                              </button>
+                              {dlDropdown === cardId && (
+                                <div className="absolute right-0 top-8 z-20 bg-slate-800 border border-slate-600 rounded-lg shadow-xl overflow-hidden min-w-36">
+                                  {[
+                                    { label: "Markdown (.md)",  icon: "M", action: () => handleDownloadMd(out.content, basename) },
+                                    { label: "PDF (.pdf)",       icon: "P", action: () => handleDownloadPdf(out.content, basename) },
+                                    { label: "Text (.txt)",      icon: "T", action: () => handleDownloadReport(out.content, `${basename}.txt`) },
+                                  ].map(fmt => (
+                                    <button
+                                      key={fmt.label}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-left"
+                                      onClick={() => { fmt.action(); setDlDropdown(null); }}
+                                    >
+                                      <span className="w-5 h-5 rounded bg-slate-700 text-[9px] font-bold text-slate-400 flex items-center justify-center shrink-0">{fmt.icon}</span>
+                                      {fmt.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <div className="text-sm text-slate-200 [&_*]:text-slate-200 [&_strong]:text-white [&_li]:text-slate-200 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white">
+                            <Streamdown>{out.content}</Streamdown>
+                          </div>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <div className="text-sm text-slate-200 [&_*]:text-slate-200 [&_strong]:text-white [&_li]:text-slate-200 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white">
-                          <Streamdown>{out.content}</Streamdown>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   <div className="flex gap-2 pt-1">
                     <button
