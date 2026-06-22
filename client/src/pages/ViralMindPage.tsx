@@ -1,8 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import * as pdfjsLib from "pdfjs-dist";
-// Vite ?url import — bundles the worker and returns a resolvable URL at runtime
-import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -160,56 +156,36 @@ export default function ViralMindPage() {
     }
   };
 
+  const extractDocument = trpc.aiAssistant.extractDocument.useMutation({
+    onSuccess: (data) => {
+      setFileExtracting(false);
+      setAttachedFile({ name: data.fileName, content: data.text });
+      toast.success(`${data.fileName} — ${Math.round(data.charCount / 1000)}k chars extracted`);
+      sendMessage.mutate({
+        message: `I've attached "${data.fileName}". Please provide an overview: summarise the key findings, identify the primary PESTEL dimensions active in this document, map the key actors and their positions, and flag any signals relevant to East Africa.`,
+        sessionId: sessionId || undefined,
+        fileContent: data.text,
+        fileName: data.fileName,
+      });
+    },
+    onError: (err) => {
+      toast.error("Extraction failed: " + err.message);
+      setFileExtracting(false);
+    },
+  });
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setFileExtracting(true);
     try {
-      if (file.type === "application/pdf") {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
-        const pages: string[] = [];
-        for (let i = 1; i <= Math.min(pdf.numPages, 50); i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          // Reconstruct lines by grouping items with same Y position
-          const lineMap = new Map<number, string[]>();
-          for (const item of content.items as any[]) {
-            const y = Math.round(item.transform[5]);
-            if (!lineMap.has(y)) lineMap.set(y, []);
-            lineMap.get(y)!.push(item.str);
-          }
-          const sortedY = [...lineMap.keys()].sort((a, b) => b - a);
-          pages.push(sortedY.map(y => lineMap.get(y)!.join(" ")).join("\n"));
-        }
-        const text = pages.join("\n\n").trim();
-        if (!text) throw new Error("No text found — the PDF may be image-based (scanned).");
-        const capped = text.slice(0, 80000);
-        setAttachedFile({ name: file.name, content: capped });
-        toast.success(`${pdf.numPages} pages extracted — document active`);
-        // Auto-trigger opening analysis
-        sendMessage.mutate({
-          message: `I've attached "${file.name}". Please provide an overview: summarise the key findings, identify the primary PESTEL dimensions active in this document, map the key actors and their positions, and flag any signals relevant to East Africa.`,
-          sessionId: sessionId || undefined,
-          fileContent: capped,
-          fileName: file.name,
-        });
-      } else {
-        const text = (await file.text()).trim().slice(0, 80000);
-        if (!text) throw new Error("File appears empty.");
-        setAttachedFile({ name: file.name, content: text });
-        toast.success(`${file.name} active — document grounding enabled`);
-        sendMessage.mutate({
-          message: `I've attached "${file.name}". Please summarise the key content, identify the primary themes and PESTEL dimensions, and flag any signals relevant to Africa.`,
-          sessionId: sessionId || undefined,
-          fileContent: text,
-          fileName: file.name,
-        });
-      }
-    } catch (err: any) {
-      toast.error(err?.message ?? "Could not read this file. Try PDF or plain text.");
-    } finally {
+      const arrayBuffer = await file.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      extractDocument.mutate({ base64, fileName: file.name, mimeType: file.type || "application/pdf" });
+    } catch {
+      toast.error("Could not read file.");
       setFileExtracting(false);
+    } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };

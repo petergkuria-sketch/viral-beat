@@ -12,7 +12,38 @@ import { eq, and, desc } from "drizzle-orm";
 import { invokeLLM } from "../_core/llm";
 import { randomBytes } from "crypto";
 
+// Extract text from a PDF using pdfjs-dist legacy (Node build — no worker needed)
+async function extractPdfText(base64: string): Promise<string> {
+  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs" as any);
+  const buffer = Buffer.from(base64, "base64");
+  const pdf = await getDocument({ data: new Uint8Array(buffer), useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
+  const pages: string[] = [];
+  for (let i = 1; i <= Math.min(pdf.numPages, 50); i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    pages.push((content.items as any[]).map((item: any) => item.str).join(" "));
+  }
+  return pages.join("\n\n").trim().slice(0, 30000);
+}
+
 export const aiAssistantRouter = router({
+  // Extract text from an uploaded PDF — called before chat, returns text for grounding
+  extractDocument: protectedProcedure
+    .input(z.object({
+      base64: z.string().min(1),
+      fileName: z.string(),
+      mimeType: z.string().default("application/pdf"),
+    }))
+    .mutation(async ({ input }) => {
+      if (input.mimeType === "application/pdf") {
+        const text = await extractPdfText(input.base64);
+        if (!text) throw new Error("No text found — this PDF may be image-based (scanned).");
+        return { text, charCount: text.length, fileName: input.fileName };
+      }
+      // Plain text files — base64 decode
+      const text = Buffer.from(input.base64, "base64").toString("utf-8").slice(0, 30000);
+      return { text, charCount: text.length, fileName: input.fileName };
+    }),
   // Get or create AI assistant profile for current user
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
