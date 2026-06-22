@@ -56,6 +56,7 @@ import { kenyaRouter } from "./routers/kenya";
 import { africaRouter } from "./routers/africa";
 import { subscriptionRouter } from "./routers/subscription";
 import { countryRouter } from "./routers/country";
+import { intelligenceRouter } from "./routers/intelligence";
 
 // Types for API responses
 interface YouTubeVideo {
@@ -2685,6 +2686,8 @@ Apply the full triangulation framework. Mark any assertion that is only supporte
           // 0028: Admin token top-up for peter.g.kuria@gmail.com
           `INSERT INTO userTokens (userId, balance, totalEarned, totalSpent) SELECT id, 500, 500, 0 FROM users WHERE email = 'peter.g.kuria@gmail.com' ON DUPLICATE KEY UPDATE balance = balance + 500, totalEarned = totalEarned + 500`,
           `INSERT INTO tokenTransactions (userId, amount, type, description) SELECT id, 500, 'earn_admin_grant', 'Admin top-up: development testing allocation' FROM users WHERE email = 'peter.g.kuria@gmail.com'`,
+          // 0029: Signal Memory — pipelineRuns table for self-learning platform
+          `CREATE TABLE IF NOT EXISTS pipelineRuns (id INT AUTO_INCREMENT PRIMARY KEY, userId INT NOT NULL, signalTopic TEXT NOT NULL, geoLayer VARCHAR(20), geoScope VARCHAR(50), pestelCategory VARCHAR(20), pestelOutput LONGTEXT, gtScore DECIMAL(3,1), gtDominantMove TEXT, gtAlignment VARCHAR(50), reportFormats TEXT, completedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_geo (geoScope), INDEX idx_pestel (pestelCategory), INDEX idx_user (userId))`,
         ]) {
           try {
             await db.execute(sql.raw(stmt));
@@ -2885,6 +2888,7 @@ Be concise, technical, and actionable. When discussing features, consider:
   africa: africaRouter,
   subscription: subscriptionRouter,
   country: countryRouter,
+  intelligence: intelligenceRouter,
 
   briefs: router({
     // Save a brief and return a shareable ID

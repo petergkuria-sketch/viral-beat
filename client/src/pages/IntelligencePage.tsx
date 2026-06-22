@@ -191,6 +191,11 @@ export default function IntelligencePage() {
   const pipelinePestel = trpc.xTrends.summarizeTrends.useMutation();
   const pipelineGT = trpc.aiAssistant.analyzeContent.useMutation();
   const pipelineReports = trpc.aiAgents.repurposeContent.useMutation();
+  const saveRun = trpc.intelligence.savePipelineRun.useMutation();
+  const { data: historyData } = trpc.intelligence.getRelevantHistory.useQuery(
+    { geoScope: scopeKey, pestelCategory: selectedCategory, limit: 3 },
+    { enabled: pipelineStage === "confirming" }
+  );
 
   const extractDocument = trpc.aiAssistant.extractDocument.useMutation({
     onSuccess: (data) => {
@@ -363,7 +368,21 @@ export default function IntelligencePage() {
     if (!pipelineSignal) return;
     setPipelineStage("pestel");
     pipelinePestel.mutate(
-      { topic: pipelineSignal.topic, geoScope: scopeKey, geoLayer, pestelCategory: selectedCategory, researchContext: attachedFile?.content },
+      {
+        topic: pipelineSignal.topic,
+        geoScope: scopeKey,
+        geoLayer,
+        pestelCategory: selectedCategory,
+        researchContext: [
+          attachedFile?.content,
+          historyData?.runs?.length
+            ? `\n\n--- PRIOR ANALYSES (${historyData.runs.length} past runs for this region/category) ---\n` +
+              (historyData.runs as any[]).map((r: any, i: number) =>
+                `[${i+1}] Topic: ${r.signalTopic}\nPESTEL Summary: ${(r.pestelOutput ?? "").slice(0, 400)}...\nGT Score: ${r.gtScore ?? "N/A"}`
+              ).join("\n\n")
+            : undefined,
+        ].filter(Boolean).join("\n\n") || undefined
+      },
       {
         onSuccess: (data) => { setPestelOutput(data.summary || ""); setPipelineStage("pestel_done"); },
         onError: (err) => { toast.error("PESTEL failed: " + err.message); setPipelineStage("confirming"); },
@@ -408,6 +427,17 @@ export default function IntelligencePage() {
           setReportsOutput(data.adaptations ?? []);
           setReportsMeta(data);
           setPipelineStage("complete");
+          saveRun.mutate({
+            signalTopic: pipelineSignal!.topic,
+            geoLayer,
+            geoScope: scopeKey,
+            pestelCategory: selectedCategory,
+            pestelOutput,
+            gtScore: gtOutput?.gtScore ?? undefined,
+            gtDominantMove: gtOutput?.dominantStrategy ?? undefined,
+            gtAlignment: gtOutput?.alignment ?? undefined,
+            reportFormats,
+          });
         },
         onError: (err) => { toast.error("Report generation failed: " + err.message); setPipelineStage("gametheory_done"); },
       }
@@ -763,6 +793,15 @@ export default function IntelligencePage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Signal memory badge */}
+                  {historyData?.runs && (historyData.runs as any[]).length > 0 && (
+                    <div className="flex items-center gap-2 rounded-lg border border-violet-500/30 bg-violet-500/8 px-3 py-2">
+                      <span className="text-[10px] text-violet-300 font-semibold">
+                        ⚡ {(historyData.runs as any[]).length} prior {(historyData.runs as any[]).length === 1 ? "analysis" : "analyses"} found for this region — PESTEL will be enriched with past context.
+                      </span>
+                    </div>
+                  )}
 
                   {/* Report format selection */}
                   <div>
