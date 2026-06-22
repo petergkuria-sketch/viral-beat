@@ -2681,7 +2681,7 @@ Apply the full triangulation framework. Mark any assertion that is only supporte
           `ALTER TABLE creatorProfiles ADD COLUMN contentTopics TEXT NULL`,
           `ALTER TABLE creatorProfiles ADD COLUMN aiGoals TEXT NULL`,
           `ALTER TABLE creatorProfiles ADD COLUMN aiChallenges TEXT NULL`,
-          `UPDATE creatorProfiles cp JOIN aiAssistantProfiles ap ON cp.userId = ap.userId SET cp.onboardingCompleted = ap.onboardingCompleted, cp.niche = COALESCE(cp.niche, ap.niche), cp.primaryPlatform = COALESCE(cp.primaryPlatform, ap.primaryPlatform), cp.tone = COALESCE(cp.tone, ap.contentStyle), cp.contentTopics = COALESCE(cp.contentTopics, ap.targetAudience), cp.aiGoals = COALESCE(cp.aiGoals, ap.goals) WHERE ap.userId IS NOT NULL`,
+          `UPDATE creatorProfiles cp JOIN aiAssistantProfiles ap ON cp.userId = ap.userId SET cp.onboardingCompleted = ap.onboardingCompleted, cp.niche = COALESCE(cp.niche, ap.niche), cp.primaryPlatform = COALESCE(cp.primaryPlatform, ap.primaryPlatform), cp.tone = COALESCE(cp.tone, ap.contentStyle), cp.aiGoals = COALESCE(cp.aiGoals, ap.goals) WHERE ap.userId IS NOT NULL`,
         ]) {
           try {
             await db.execute(sql.raw(stmt));
