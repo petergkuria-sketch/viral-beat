@@ -324,7 +324,7 @@ export default function IntelligencePage() {
   // ── render ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden text-foreground">
 
       {/* ── Top bar ── */}
       <div className="shrink-0 border-b border-border/50 bg-background/95 backdrop-blur px-4 py-3">
@@ -419,14 +419,14 @@ export default function IntelligencePage() {
                     transition={{ delay: idx * 0.04 }}
                   >
                     <button
-                      className={`w-full text-left rounded-xl border p-3 transition-all group ${isActive ? "border-cyan-500/50 bg-cyan-500/8" : "border-border/40 hover:border-border/80 hover:bg-muted/30"}`}
+                      className={`w-full text-left rounded-xl border p-3 transition-all group text-foreground ${isActive ? "border-cyan-500/50 bg-cyan-500/8" : "border-border/40 hover:border-border/80 hover:bg-muted/30"}`}
                       onClick={() => handleAnalyzeSignal({ id: signal.id ?? String(idx), topic: signal.topic, summary: signal.summary, geoScope: scopeKey, pestelCategory: pestelDim })}
                     >
                       <div className="flex items-start gap-2">
                         {/* Rank badge */}
                         <span className="text-[10px] font-black text-muted-foreground shrink-0 mt-0.5 w-4 text-right">{idx + 1}</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-snug line-clamp-2">{signal.topic}</p>
+                          <p className="text-sm font-semibold leading-snug line-clamp-2 text-foreground">{signal.topic}</p>
                           {signal.summary && (
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{signal.summary}</p>
                           )}
@@ -575,9 +575,11 @@ export default function IntelligencePage() {
                   <>
                     {conversations.map((msg: any) => (
                       <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[85%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-cyan-600 text-white" : "bg-card border border-border/60 text-foreground"}`}>
+                        <div className={`max-w-[85%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-cyan-600 text-white" : "bg-muted/60 border border-border/60 text-foreground"}`}>
                           {msg.role === "assistant" ? (
-                            <Streamdown className="text-sm text-foreground">{msg.message}</Streamdown>
+                            <div className="text-sm text-foreground [&_*]:text-foreground [&_strong]:text-white [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white">
+                              <Streamdown>{msg.message}</Streamdown>
+                            </div>
                           ) : (
                             <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                           )}
