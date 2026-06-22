@@ -2688,7 +2688,7 @@ Apply the full triangulation framework. Mark any assertion that is only supporte
             results.push(`OK: ${stmt.slice(0, 50)}`);
           } catch (e: any) {
             const errMsg = e?.cause?.message ?? e?.cause?.sqlMessage ?? e?.sqlMessage ?? e?.message ?? String(e);
-            results.push(`SKIP: ${String(errMsg).slice(0, 300)}`);
+            results.push(`SKIP: ${String(errMsg).slice(0, 120)}`);
           }
         }
         return { results };
