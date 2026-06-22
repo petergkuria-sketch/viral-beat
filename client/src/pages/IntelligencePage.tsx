@@ -342,7 +342,7 @@ export default function IntelligencePage() {
                 <button
                   key={l}
                   onClick={() => setGeoLayer(l)}
-                  className={`px-3 py-1.5 capitalize transition-colors ${geoLayer === l ? "bg-cyan-500/20 text-cyan-400 font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`px-3 py-1.5 capitalize transition-colors ${geoLayer === l ? "bg-cyan-500/20 text-cyan-400 font-semibold" : "text-slate-400 hover:text-foreground"}`}
                 >
                   {l === "continental" ? <Globe className="w-3.5 h-3.5 inline mr-1" /> : <MapPin className="w-3.5 h-3.5 inline mr-1" />}
                   {l === "continental" ? "Africa" : l}
@@ -379,7 +379,7 @@ export default function IntelligencePage() {
               <button
                 key={p.id}
                 onClick={() => setSelectedCategory(p.id)}
-                className={`px-2 py-1 rounded-md border text-[11px] font-bold transition-all ${selectedCategory === p.id ? `${p.bg} ${p.color}` : "border-border/40 text-muted-foreground hover:border-border"}`}
+                className={`px-2 py-1 rounded-md border text-[11px] font-bold transition-all ${selectedCategory === p.id ? `${p.bg} ${p.color}` : "border-border/40 text-slate-400 hover:border-border"}`}
               >
                 {p.label}
               </button>
@@ -397,8 +397,8 @@ export default function IntelligencePage() {
         {/* ══ LEFT — Signal feed ══ */}
         <div className="lg:col-span-2 border-r border-border/50 overflow-y-auto flex flex-col">
           <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Live Signals</p>
-            {signalsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+            <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">Live Signals</p>
+            {signalsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
           </div>
 
           <div className="flex-1 p-3 space-y-2">
@@ -419,23 +419,23 @@ export default function IntelligencePage() {
                     transition={{ delay: idx * 0.04 }}
                   >
                     <button
-                      className={`w-full text-left rounded-xl border p-3 transition-all group text-foreground ${isActive ? "border-cyan-500/50 bg-cyan-500/8" : "border-border/40 hover:border-border/80 hover:bg-muted/30"}`}
+                      className={`w-full text-left rounded-xl border p-3 transition-all group ${isActive ? "border-cyan-500/50 bg-cyan-500/10" : "border-white/10 hover:border-white/25 hover:bg-white/5"}`}
                       onClick={() => handleAnalyzeSignal({ id: signal.id ?? String(idx), topic: signal.topic, summary: signal.summary, geoScope: scopeKey, pestelCategory: pestelDim })}
                     >
                       <div className="flex items-start gap-2">
                         {/* Rank badge */}
-                        <span className="text-[10px] font-black text-muted-foreground shrink-0 mt-0.5 w-4 text-right">{idx + 1}</span>
+                        <span className="text-[10px] font-black text-slate-400 shrink-0 mt-0.5 w-4 text-right">{idx + 1}</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold leading-snug line-clamp-2 text-foreground">{signal.topic}</p>
+                          <p className="text-sm font-semibold leading-snug line-clamp-2 text-white">{signal.topic}</p>
                           {signal.summary && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{signal.summary}</p>
+                            <p className="text-xs text-slate-400 mt-1 line-clamp-2">{signal.summary}</p>
                           )}
                           <div className="flex items-center gap-2 mt-2">
                             {pestelDim && (
                               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${p.bg} ${p.color}`}>{pestelDim.toUpperCase().slice(0, 3)}</span>
                             )}
                             {signal.trendScore != null && (
-                              <span className="text-[10px] text-muted-foreground">Score {signal.trendScore}</span>
+                              <span className="text-[10px] text-slate-400">Score {signal.trendScore}</span>
                             )}
                             <span className="ml-auto text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 flex items-center gap-0.5">
                               Analyse <ChevronRight className="w-2.5 h-2.5" />
@@ -454,7 +454,7 @@ export default function IntelligencePage() {
                             onClick={() => handleRateSignal(signal.id ?? String(idx), star)}
                             className="p-0.5"
                           >
-                            <Star className={`w-3 h-3 ${star <= (hoverRatings[signal.id ?? idx] ?? ratings[signal.id ?? idx] ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/40"}`} />
+                            <Star className={`w-3 h-3 ${star <= (hoverRatings[signal.id ?? idx] ?? ratings[signal.id ?? idx] ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-slate-400/40"}`} />
                           </button>
                         ))}
                       </div>
@@ -464,9 +464,9 @@ export default function IntelligencePage() {
               })
             ) : (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <AlertCircle className="w-8 h-8 text-muted-foreground/40 mb-3" />
-                <p className="text-sm text-muted-foreground font-medium">No signals yet</p>
-                <p className="text-xs text-muted-foreground mt-1">Try a different geo scope or PESTEL dimension</p>
+                <AlertCircle className="w-8 h-8 text-slate-500 mb-3" />
+                <p className="text-sm text-slate-300 font-medium">No signals yet</p>
+                <p className="text-xs text-slate-400 mt-1">Try a different geo scope or PESTEL dimension</p>
               </div>
             )}
           </div>
@@ -591,7 +591,7 @@ export default function IntelligencePage() {
                       <div className="flex justify-start">
                         <div className="bg-card border border-border/60 rounded-xl px-4 py-3 flex items-center gap-2.5">
                           <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin shrink-0" />
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-slate-400">
                             {fileExtracting ? "Extracting document…" : "Analysing…"}
                           </span>
                         </div>
@@ -603,24 +603,24 @@ export default function IntelligencePage() {
                     {fileExtracting ? (
                       <>
                         <Loader2 className="w-10 h-10 mb-3 text-cyan-400 animate-spin" />
-                        <p className="font-semibold text-muted-foreground">Extracting document…</p>
-                        <p className="text-xs text-muted-foreground mt-1">Reading content and preparing analysis</p>
+                        <p className="font-semibold text-slate-400">Extracting document…</p>
+                        <p className="text-xs text-slate-400 mt-1">Reading content and preparing analysis</p>
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-10 h-10 mb-3 text-cyan-400/40" />
-                        <p className="font-semibold text-muted-foreground">Intelligence workspace ready</p>
-                        <p className="text-xs text-muted-foreground mt-1 max-w-xs">Click a signal on the left to analyse it, or ask a question below.</p>
+                        <p className="font-semibold text-white">Intelligence workspace ready</p>
+                        <p className="text-xs text-slate-300 mt-1 max-w-xs">Click a signal on the left to analyse it, or ask a question below.</p>
                         <div className="mt-6 w-full max-w-xs">
                           <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={fileExtracting}
                             className="w-full flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border/50 hover:border-cyan-500/40 hover:bg-cyan-500/5 px-4 py-5 transition-all group"
                           >
-                            <Paperclip className="w-6 h-6 text-muted-foreground/50 group-hover:text-cyan-400 transition-colors" />
+                            <Paperclip className="w-6 h-6 text-slate-400/50 group-hover:text-cyan-400 transition-colors" />
                             <div>
-                              <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Upload a research document</p>
-                              <p className="text-xs text-muted-foreground/60 mt-0.5">PDF · TXT · MD · CSV — drag & drop or click</p>
+                              <p className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">Upload a research document</p>
+                              <p className="text-xs text-slate-400 mt-0.5">PDF · TXT · MD · CSV — drag & drop or click</p>
                             </div>
                           </button>
                         </div>
@@ -635,7 +635,7 @@ export default function IntelligencePage() {
               <div className="shrink-0 px-4 pb-4 pt-2 border-t border-border/40 space-y-2">
                 {/* File type hint — shown only when no file attached */}
                 {!attachedFile && !fileExtracting && (
-                  <p className="text-[10px] text-muted-foreground/50 text-center">
+                  <p className="text-[10px] text-slate-400/50 text-center">
                     Drag & drop a PDF, TXT, MD or CSV into this window — or use the paperclip
                   </p>
                 )}
@@ -647,10 +647,10 @@ export default function IntelligencePage() {
                     disabled={fileExtracting}
                     className={`shrink-0 h-9 w-9 rounded-lg border flex items-center justify-center transition-all ${
                       fileExtracting
-                        ? "border-border/30 text-muted-foreground/40 cursor-wait"
+                        ? "border-border/30 text-slate-400/40 cursor-wait"
                         : attachedFile
                         ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
-                        : "border-border/50 text-muted-foreground hover:text-cyan-400 hover:border-cyan-500/40 hover:bg-cyan-500/5"
+                        : "border-border/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/40 hover:bg-cyan-500/5"
                     }`}
                   >
                     {fileExtracting
@@ -739,7 +739,7 @@ export default function IntelligencePage() {
                     </div>
                   </div>
                   {gtTitleHint && !gtTitle.trim() && (
-                    <p className="text-xs text-muted-foreground/60 italic -mt-2">
+                    <p className="text-xs text-slate-400/60 italic -mt-2">
                       Tip: a specific title produces a more targeted analysis — or run without one for a general Africa political landscape assessment.
                     </p>
                   )}
@@ -770,11 +770,11 @@ export default function IntelligencePage() {
                       )}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-xl bg-muted/30 border border-border/50 px-4 py-3 text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">GT Score</p>
-                          <p className="text-3xl font-black text-cyan-400">{analyzeContent.data.viralityScore}<span className="text-xs text-muted-foreground font-normal">/10</span></p>
+                          <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">GT Score</p>
+                          <p className="text-3xl font-black text-cyan-400">{analyzeContent.data.viralityScore}<span className="text-xs text-slate-400 font-normal">/10</span></p>
                         </div>
                         <div className="rounded-xl bg-muted/30 border border-border/50 px-4 py-3 text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Mission Alignment</p>
+                          <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Mission Alignment</p>
                           <p className={`text-xl font-black ${analyzeContent.data.missionAlignment?.startsWith("High") ? "text-green-400" : analyzeContent.data.missionAlignment?.startsWith("Medium") ? "text-yellow-400" : "text-red-400"}`}>
                             {analyzeContent.data.missionAlignment?.split(" — ")[0]}
                           </p>
@@ -782,7 +782,7 @@ export default function IntelligencePage() {
                       </div>
                       {analyzeContent.data.optimizedTitle && (
                         <div className="rounded-xl bg-muted/20 border border-border/50 px-4 py-3">
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Optimised Title (Nash Signal)</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Optimised Title (Nash Signal)</p>
                           <p className="text-sm font-semibold">{analyzeContent.data.optimizedTitle}</p>
                         </div>
                       )}
@@ -790,20 +790,20 @@ export default function IntelligencePage() {
                         {analyzeContent.data.strengths?.length > 0 && (
                           <div>
                             <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-1.5">Strengths</p>
-                            <ul className="space-y-1">{analyzeContent.data.strengths.map((s: string, i: number) => <li key={i} className="text-xs text-muted-foreground flex gap-1.5"><span className="text-green-400 shrink-0">+</span>{s}</li>)}</ul>
+                            <ul className="space-y-1">{analyzeContent.data.strengths.map((s: string, i: number) => <li key={i} className="text-xs text-slate-400 flex gap-1.5"><span className="text-green-400 shrink-0">+</span>{s}</li>)}</ul>
                           </div>
                         )}
                         {analyzeContent.data.weaknesses?.length > 0 && (
                           <div>
                             <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1.5">Gaps</p>
-                            <ul className="space-y-1">{analyzeContent.data.weaknesses.map((w: string, i: number) => <li key={i} className="text-xs text-muted-foreground flex gap-1.5"><span className="text-red-400 shrink-0">−</span>{w}</li>)}</ul>
+                            <ul className="space-y-1">{analyzeContent.data.weaknesses.map((w: string, i: number) => <li key={i} className="text-xs text-slate-400 flex gap-1.5"><span className="text-red-400 shrink-0">−</span>{w}</li>)}</ul>
                           </div>
                         )}
                       </div>
                       {analyzeContent.data.recommendations?.length > 0 && (
                         <div>
                           <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-1.5">Strategic Moves</p>
-                          <ol className="space-y-1">{analyzeContent.data.recommendations.map((r: string, i: number) => <li key={i} className="text-xs text-muted-foreground flex gap-2"><span className="text-cyan-400 font-bold shrink-0">{i + 1}.</span>{r}</li>)}</ol>
+                          <ol className="space-y-1">{analyzeContent.data.recommendations.map((r: string, i: number) => <li key={i} className="text-xs text-slate-400 flex gap-2"><span className="text-cyan-400 font-bold shrink-0">{i + 1}.</span>{r}</li>)}</ol>
                         </div>
                       )}
                       {analyzeContent.data.optimizedHashtags?.length > 0 && (
@@ -846,11 +846,11 @@ export default function IntelligencePage() {
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <Badge variant="outline" className="text-[10px] capitalize">{insight.platform}</Badge>
                             <Badge variant="outline" className="text-[10px] capitalize">{insight.contentType}</Badge>
-                            <span className="text-[10px] text-muted-foreground">{new Date(insight.createdAt).toLocaleDateString()}</span>
+                            <span className="text-[10px] text-slate-400">{new Date(insight.createdAt).toLocaleDateString()}</span>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-2xl font-black text-cyan-400">{insight.viralityScore}<span className="text-xs text-muted-foreground font-normal">/10</span></p>
+                          <p className="text-2xl font-black text-cyan-400">{insight.viralityScore}<span className="text-xs text-slate-400 font-normal">/10</span></p>
                         </div>
                       </div>
                     </CardHeader>
@@ -862,11 +862,11 @@ export default function IntelligencePage() {
                         </div>
                       )}
                       {missionAlign && (
-                        <p className="text-xs"><span className="text-muted-foreground">Mission Alignment: </span><span className={alignColor + " font-semibold"}>{missionAlign.split(" — ")[0]}</span></p>
+                        <p className="text-xs"><span className="text-slate-400">Mission Alignment: </span><span className={alignColor + " font-semibold"}>{missionAlign.split(" — ")[0]}</span></p>
                       )}
                       {insight.optimizedTitle && (
                         <div className="rounded-lg bg-muted/20 px-3 py-2">
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Optimised Title</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Optimised Title</p>
                           <p className="text-xs font-semibold">{insight.optimizedTitle}</p>
                         </div>
                       )}
@@ -875,13 +875,13 @@ export default function IntelligencePage() {
                           {strengths.length > 0 && (
                             <div>
                               <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-1">Strengths</p>
-                              <ul className="space-y-0.5">{strengths.slice(0, 3).map((s, i) => <li key={i} className="text-xs text-muted-foreground flex gap-1"><span className="text-green-400 shrink-0">+</span>{s}</li>)}</ul>
+                              <ul className="space-y-0.5">{strengths.slice(0, 3).map((s, i) => <li key={i} className="text-xs text-slate-400 flex gap-1"><span className="text-green-400 shrink-0">+</span>{s}</li>)}</ul>
                             </div>
                           )}
                           {recs.length > 0 && (
                             <div>
                               <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-1">Moves</p>
-                              <ol className="space-y-0.5">{recs.slice(0, 3).map((r, i) => <li key={i} className="text-xs text-muted-foreground flex gap-1"><span className="text-cyan-400 font-bold shrink-0">{i + 1}.</span>{r}</li>)}</ol>
+                              <ol className="space-y-0.5">{recs.slice(0, 3).map((r, i) => <li key={i} className="text-xs text-slate-400 flex gap-1"><span className="text-cyan-400 font-bold shrink-0">{i + 1}.</span>{r}</li>)}</ol>
                             </div>
                           )}
                         </div>
@@ -905,8 +905,8 @@ export default function IntelligencePage() {
               }) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <Target className="w-10 h-10 mb-3 opacity-30" />
-                  <p className="font-semibold text-muted-foreground text-sm">No analyses yet</p>
-                  <p className="text-xs text-muted-foreground mt-1">Run your first Game Theory analysis in the tab above.</p>
+                  <p className="font-semibold text-slate-400 text-sm">No analyses yet</p>
+                  <p className="text-xs text-slate-400 mt-1">Run your first Game Theory analysis in the tab above.</p>
                   <Button variant="outline" size="sm" className="mt-4" onClick={() => setRightTab("analyze")}>Open Game Theory Analyser</Button>
                 </div>
               )}
@@ -920,7 +920,7 @@ export default function IntelligencePage() {
                     <Crown className="w-7 h-7 text-amber-400" />
                   </div>
                   <h3 className="font-bold text-base mb-1">Predictive Forecasting</h3>
-                  <p className="text-sm text-muted-foreground max-w-xs mb-2">AI-powered 7-day and 30-day signal forecasts with virality scoring, growth trajectory, and confidence levels.</p>
+                  <p className="text-sm text-slate-400 max-w-xs mb-2">AI-powered 7-day and 30-day signal forecasts with virality scoring, growth trajectory, and confidence levels.</p>
                   <p className="text-xs text-amber-400/80 mb-6">Premium feature — 100 VBT / 30 days</p>
                   <a href="/marketplace">
                     <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">
@@ -939,7 +939,7 @@ export default function IntelligencePage() {
                         value={forecastTopic}
                         onChange={e => setForecastTopic(e.target.value)}
                       />
-                      <p className="text-[10px] text-muted-foreground/60 mt-1 italic">Optional — leave blank to forecast the current active signal</p>
+                      <p className="text-[10px] text-slate-400/60 mt-1 italic">Optional — leave blank to forecast the current active signal</p>
                     </div>
                     <div>
                       <Label className="text-xs">Timeframe</Label>
@@ -972,24 +972,24 @@ export default function IntelligencePage() {
                       <CardContent className="space-y-3">
                         <div className="grid grid-cols-3 gap-2">
                           <div className="rounded-lg bg-muted/30 px-3 py-2 text-center">
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Virality</p>
-                            <p className="text-xl font-black text-amber-400">{forecastData.forecast?.viralityScore ?? "—"}<span className="text-xs text-muted-foreground">/10</span></p>
+                            <p className="text-[10px] text-slate-400 uppercase tracking-widest">Virality</p>
+                            <p className="text-xl font-black text-amber-400">{forecastData.forecast?.viralityScore ?? "—"}<span className="text-xs text-slate-400">/10</span></p>
                           </div>
                           <div className="rounded-lg bg-muted/30 px-3 py-2 text-center">
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Growth</p>
+                            <p className="text-[10px] text-slate-400 uppercase tracking-widest">Growth</p>
                             <p className="text-xl font-black text-green-400">{forecastData.forecast?.growthRate ?? "—"}%</p>
                           </div>
                           <div className="rounded-lg bg-muted/30 px-3 py-2 text-center">
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Confidence</p>
+                            <p className="text-[10px] text-slate-400 uppercase tracking-widest">Confidence</p>
                             <p className="text-xl font-black text-blue-400">{forecastData.forecast?.confidenceLevel ?? "—"}%</p>
                           </div>
                         </div>
                         {forecastData.forecast?.keyFactors?.length > 0 && (
                           <div>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Key Factors</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Key Factors</p>
                             <ul className="space-y-1">
                               {forecastData.forecast.keyFactors.map((f: string, i: number) => (
-                                <li key={i} className="text-xs text-muted-foreground flex gap-2"><span className="text-amber-400 shrink-0">•</span>{f}</li>
+                                <li key={i} className="text-xs text-slate-400 flex gap-2"><span className="text-amber-400 shrink-0">•</span>{f}</li>
                               ))}
                             </ul>
                           </div>
@@ -1007,7 +1007,7 @@ export default function IntelligencePage() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        <Streamdown className="text-sm text-muted-foreground">{insightsData.insights}</Streamdown>
+                        <Streamdown className="text-sm text-slate-400">{insightsData.insights}</Streamdown>
                         <div className="grid grid-cols-2 gap-2">
                           {[
                             { label: "Mentions", val: insightsData.metrics?.totalMentions },
@@ -1016,7 +1016,7 @@ export default function IntelligencePage() {
                             { label: "Reach Est.", val: insightsData.metrics?.reachEstimate },
                           ].map(({ label, val }) => val != null && (
                             <div key={label} className="rounded-lg bg-muted/30 px-3 py-2">
-                              <p className="text-[10px] text-muted-foreground">{label}</p>
+                              <p className="text-[10px] text-slate-400">{label}</p>
                               <p className="text-sm font-bold">{typeof val === "number" ? val.toLocaleString() : val}</p>
                             </div>
                           ))}
