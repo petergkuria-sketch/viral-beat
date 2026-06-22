@@ -180,10 +180,17 @@ export default function ViralMindPage() {
     setFileExtracting(true);
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      // Chunked base64 — avoids call stack overflow on large files (spread crashes >~500k bytes)
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = "";
+      const chunk = 8192;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      const base64 = btoa(binary);
       extractDocument.mutate({ base64, fileName: file.name, mimeType: file.type || "application/pdf" });
-    } catch {
-      toast.error("Could not read file.");
+    } catch (err: any) {
+      toast.error("Could not read file: " + (err?.message ?? "unknown error"));
       setFileExtracting(false);
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
