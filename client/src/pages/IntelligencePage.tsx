@@ -132,9 +132,11 @@ export default function IntelligencePage() {
   const rateSignal = trpc.xTrends.rateSignal.useMutation();
 
   const sendMessage = trpc.aiAssistant.chat.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setSessionId(data.sessionId);
       setChatMessage("");
+      setAttachedFile(null);
+      await utils.aiAssistant.getConversations.invalidate();
     },
   });
 
@@ -251,6 +253,7 @@ export default function IntelligencePage() {
 
   const handleSendMessage = () => {
     if (!chatMessage.trim() && !attachedFile) return;
+    if (sendMessage.isPending) return;
     const signalPrefix = activeSignal
       ? `[Signal context: "${activeSignal.topic}" — ${selectedCategory} / ${scopeKey}]\n\n`
       : "";
