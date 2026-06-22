@@ -174,17 +174,25 @@ export const aiAssistantRouter = router({
         .orderBy(desc(assistantConversations.createdAt))
         .limit(10);
 
-      // Build the full message the LLM will see (document + user text)
-      const fullUserMessage = input.fileContent
-        ? `[ATTACHED DOCUMENT: ${input.fileName ?? "document"}]\n\n${input.fileContent}\n\n---\n\n${input.message}`
+      // Cap document injection to 30k chars — safe under MySQL TEXT (64k) and LLM context
+      const docSnippet = input.fileContent ? input.fileContent.slice(0, 30000) : null;
+
+      // Build the full message the LLM will see (document block + user question)
+      const fullUserMessage = docSnippet
+        ? `[ATTACHED DOCUMENT: ${input.fileName ?? "document"}]\n\n${docSnippet}\n\n---\n\n${input.message}`
         : input.message;
 
-      // Save full message to DB so conversation history retains document context
+      // Store a compact stub in DB history — prevents 30k-char blowup on every turn
+      // The document is re-injected fresh on each request from the client
+      const dbMessage = docSnippet
+        ? `[Document grounded: ${input.fileName ?? "document"} — ${Math.round(docSnippet.length / 1000)}k chars]\n\n${input.message}`
+        : input.message;
+
       await db.insert(assistantConversations).values({
         userId: ctx.user.id,
         sessionId,
         role: "user",
-        message: fullUserMessage,
+        message: dbMessage,
       });
 
       // Build context for AI
@@ -228,6 +236,12 @@ Creator Profile:
 - Content Style: ${profile?.contentStyle || "Not specified"}
 - Goals: ${profile?.goals || "Not specified"}
 - Challenges: ${profile?.challenges || "Not specified"}
+
+DOCUMENT ANALYSIS (critical):
+- When the user message begins with [ATTACHED DOCUMENT: ...], the full document text follows between that header and the --- divider. Treat it as ground truth and analyse it directly.
+- NEVER say "please attach a document" or "I don't see an attachment" when [ATTACHED DOCUMENT:] is present in the message. The document is there — read it.
+- Cite specific findings, figures, and sections from the document. Do not fall back to general Africa knowledge when the document contains relevant content.
+- When [Document grounded: ...] appears in conversation history, it means the document was previously shared. Continue your analysis in that context.
 
 HOW TO RESPOND:
 - Always frame content recommendations through at least one Game Theory lens
