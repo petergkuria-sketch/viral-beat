@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useViewPreference } from "@/_core/hooks/useViewPreference";
+import { ViewToggle } from "@/components/ViewToggle";
 import { 
   TrendingUp, 
   Search,
@@ -109,6 +111,7 @@ function PlatformBadge({ platform }: { platform: string }) {
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [topic, setTopic] = useState("");
+  const [dashView, setDashView] = useViewPreference("dashboard", "widget");
   const [searchInput, setSearchInput] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState<"all" | "youtube" | "tiktok" | "twitter" | "instagram">("all");
   const { user, loading: authLoading, logout } = useAuth();
@@ -494,11 +497,45 @@ export default function Dashboard() {
                 <h2 className="text-xl font-black">Africa Intelligence Signals</h2>
                 <p className="text-sm text-muted-foreground mt-0.5">Search a topic above or click any signal to analyse it</p>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                Live
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  Live
+                </div>
+                <ViewToggle
+                  options={[{ value: "widget", label: "Widget" }, { value: "classic", label: "Classic" }]}
+                  current={dashView}
+                  onChange={setDashView}
+                />
               </div>
             </div>
+
+            {/* Widget view — icon tiles for quick navigation */}
+            {dashView === "widget" && (
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 pb-2">
+                {[
+                  { icon: "🌍", label: "Africa Map", href: "/africa", color: "#22d3ee" },
+                  { icon: "📡", label: "Intelligence", href: "/intelligence", color: "#a78bfa" },
+                  { icon: "🤖", label: "AI Agents", href: "/ai-agents", color: "#f472b6" },
+                  { icon: "🪙", label: "VBT Tokens", href: "/tokens", color: "#fbbf24" },
+                  { icon: "🏪", label: "Marketplace", href: "/marketplace", color: "#34d399" },
+                  { icon: "🛠️", label: "Dev Hub", href: "/developer-hub", color: "#60a5fa" },
+                ].map((item) => (
+                  <button
+                    key={item.href}
+                    onClick={() => setLocation(item.href)}
+                    className="group flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border/50 hover:border-primary/40 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border border-border/30 transition-transform group-hover:scale-105" style={{ background: `${item.color}18` }}>
+                      {item.icon}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className={dashView === "widget" ? "" : ""} />{/* spacer */}
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {(liveTrends?.youtube?.slice(0, 10) || Array.from({ length: 10 }, (_, i) => ({ topic: `Trend ${i + 1}`, viralityScore: 70 + i * 3 }))).map((t: any, i: number) => (

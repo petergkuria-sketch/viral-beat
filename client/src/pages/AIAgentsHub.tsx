@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useViewPreference } from "@/_core/hooks/useViewPreference";
+import { ViewToggle } from "@/components/ViewToggle";
 import { Loader2, Copy, CheckCircle2, Globe, Radio, Network, FileOutput, Landmark, LogIn, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -112,6 +114,7 @@ export default function AIAgentsHub() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const [activeAgent, setActiveAgent] = useState("brief-writer");
+  const [agentView, setAgentView] = useViewPreference("ai_agents", "icon");
   const [copied, setCopied] = useState(false);
 
   // Brief Writer state
@@ -257,34 +260,62 @@ export default function AIAgentsHub() {
             <h1 className="text-xl font-black text-white">Intelligence Agents</h1>
             <p className="text-xs text-gray-400 mt-0.5">AI-powered tools for Africa political intelligence — built for journalists, analysts, NGOs, and researchers</p>
           </div>
+          <ViewToggle
+            options={[{ value: "icon", label: "Icon" }, { value: "classic", label: "Classic" }]}
+            current={agentView}
+            onChange={setAgentView}
+          />
         </div>
       </div>
 
       <div className="p-4 sm:p-6 space-y-6">
 
-        {/* Agent selector */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {AGENTS.map(agent => (
-            <button
-              key={agent.id}
-              onClick={() => setActiveAgent(agent.id)}
-              className={`group text-left rounded-xl border px-4 py-4 transition-all ${
-                activeAgent === agent.id
-                  ? `${agent.bg} ${agent.border}`
-                  : "bg-white/3 border-white/8 hover:bg-white/5 hover:border-white/15"
-              }`}
-            >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
-                style={{ background: activeAgent === agent.id ? `${agent.accent}20` : "rgba(255,255,255,0.05)" }}>
-                <agent.icon className="w-4 h-4" style={{ color: activeAgent === agent.id ? agent.accent : "#6b7280" }} />
-              </div>
-              <p className={`text-sm font-bold leading-snug mb-1 ${activeAgent === agent.id ? "text-white" : "text-gray-300"}`}>
-                {agent.name}
-              </p>
-              <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2">{agent.tagline}</p>
-            </button>
-          ))}
-        </div>
+        {/* Agent selector — icon mode */}
+        {agentView === "icon" && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {AGENTS.map(agent => (
+              <button
+                key={agent.id}
+                onClick={() => setActiveAgent(agent.id)}
+                className={`group flex flex-col items-center gap-2.5 rounded-2xl border px-3 py-4 transition-all ${
+                  activeAgent === agent.id ? `${agent.bg} ${agent.border}` : "bg-white/3 border-white/8 hover:bg-white/5 hover:border-white/15"
+                }`}
+              >
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105"
+                  style={{ background: activeAgent === agent.id ? `${agent.accent}22` : "rgba(255,255,255,0.05)" }}>
+                  <agent.icon className="w-6 h-6" style={{ color: activeAgent === agent.id ? agent.accent : "#6b7280" }} />
+                </div>
+                <p className={`text-xs font-bold text-center leading-tight ${activeAgent === agent.id ? "text-white" : "text-gray-300"}`}>
+                  {agent.name}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Agent selector — classic mode */}
+        {agentView === "classic" && (
+          <div className="flex flex-col gap-2">
+            {AGENTS.map(agent => (
+              <button
+                key={agent.id}
+                onClick={() => setActiveAgent(agent.id)}
+                className={`group flex items-center gap-3 rounded-xl border px-4 py-3 transition-all text-left ${
+                  activeAgent === agent.id ? `${agent.bg} ${agent.border}` : "bg-white/3 border-white/8 hover:bg-white/5 hover:border-white/15"
+                }`}
+              >
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: activeAgent === agent.id ? `${agent.accent}20` : "rgba(255,255,255,0.05)" }}>
+                  <agent.icon className="w-4 h-4" style={{ color: activeAgent === agent.id ? agent.accent : "#6b7280" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-bold ${activeAgent === agent.id ? "text-white" : "text-gray-300"}`}>{agent.name}</p>
+                  <p className="text-[11px] text-gray-500 truncate">{agent.tagline}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Active agent workspace */}
         <Card className="bg-[#0d1e36] border-[#1e3a5f]">

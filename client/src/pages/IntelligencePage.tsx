@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useViewPreference } from "@/_core/hooks/useViewPreference";
+import { ViewToggle } from "@/components/ViewToggle";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,6 +124,9 @@ export default function IntelligencePage() {
   // ── ratings ──
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [hoverRatings, setHoverRatings] = useState<Record<string, number>>({});
+
+  // ── signal feed view preference ──
+  const [signalView, setSignalView] = useViewPreference("intelligence_signals", "cards");
 
   // ── derived scope ──
   const scopeKey =
@@ -625,9 +630,16 @@ export default function IntelligencePage() {
 
         {/* ══ LEFT — Signal feed ══ */}
         <div className="lg:col-span-2 border-r border-slate-700 overflow-y-auto flex flex-col bg-slate-900">
-          <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
-            <p className="text-xs font-bold text-white uppercase tracking-widest">Live Signals</p>
-            {signalsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
+          <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-bold text-white uppercase tracking-widest">Live Signals</p>
+              {signalsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
+            </div>
+            <ViewToggle
+              options={[{ value: "cards", label: "Cards" }, { value: "feed", label: "Feed" }]}
+              current={signalView}
+              onChange={setSignalView}
+            />
           </div>
 
           {/* Geo mismatch warning — shown when country selected but signals are regional */}
@@ -650,6 +662,25 @@ export default function IntelligencePage() {
                 const pestelDim = signal.pestelCategory as PestelCategory | undefined;
                 const p = PESTEL.find(x => x.id === pestelDim) ?? PESTEL[0];
                 const isActive = pipelineSignal?.id === signal.id || pipelineSignal?.topic === signal.topic;
+
+                // ── Feed (compact) view ──
+                if (signalView === "feed") {
+                  return (
+                    <motion.div key={signal.id ?? idx} initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.03 }}>
+                      <button
+                        className={`w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all group ${isActive ? "border-cyan-500/40 bg-cyan-500/8" : "border-white/6 hover:border-white/20 hover:bg-white/3"}`}
+                        onClick={() => handleStartPipeline({ id: signal.id ?? String(idx), topic: signal.topic, summary: signal.summary, geoScope: scopeKey, pestelCategory: pestelDim })}
+                      >
+                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${p.color.replace("text-", "bg-").split(" ")[0]}`} style={{ background: isActive ? "#00d4ff" : undefined }} />
+                        <span className="text-xs font-medium text-slate-200 flex-1 truncate">{signal.topic}</span>
+                        {pestelDim && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${p.bg} ${p.color}`}>{pestelDim.toUpperCase().slice(0,3)}</span>}
+                        <ChevronRight className="w-3 h-3 text-slate-600 shrink-0 opacity-0 group-hover:opacity-100" />
+                      </button>
+                    </motion.div>
+                  );
+                }
+
+                // ── Cards (default) view ──
                 return (
                   <motion.div
                     key={signal.id ?? idx}
@@ -662,7 +693,6 @@ export default function IntelligencePage() {
                       onClick={() => handleStartPipeline({ id: signal.id ?? String(idx), topic: signal.topic, summary: signal.summary, geoScope: scopeKey, pestelCategory: pestelDim })}
                     >
                       <div className="flex items-start gap-2">
-                        {/* Rank badge */}
                         <span className="text-[10px] font-black text-slate-400 shrink-0 mt-0.5 w-4 text-right">{idx + 1}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold leading-snug line-clamp-2 text-white">{signal.topic}</p>
@@ -686,8 +716,6 @@ export default function IntelligencePage() {
                           </div>
                         </div>
                       </div>
-
-                      {/* Star rating row */}
                       <div className="flex items-center gap-0.5 mt-2 ml-6" onClick={e => e.stopPropagation()}>
                         {[1,2,3,4,5].map(star => (
                           <button

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
+import { useViewPreference } from "@/_core/hooks/useViewPreference";
+import { ViewToggle } from "@/components/ViewToggle";
 import { trpc } from "@/lib/trpc";
 import { BackToDashboard } from "@/components/BackToDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,9 +28,12 @@ const SENTIMENT_COLOR = (score: number) =>
 
 // ── Hub page (no country selected) ───────────────────────────────────────────
 
+const RISK_SCORE: Record<string, number> = { low: 80, medium: 55, high: 35, critical: 15 };
+
 function AfricaHub() {
   const [, setLocation] = useLocation();
   const { data: overview } = trpc.africa.getContinentOverview.useQuery();
+  const [view, setView] = useViewPreference("africa", "grid");
 
   const sentimentMap = new Map(
     (overview?.sentiments || []).map(s => [s.countryCode, s])
@@ -36,14 +41,21 @@ function AfricaHub() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Globe className="w-6 h-6 text-cyan-400" />
-          Africa Intelligence
-        </h1>
-        <p className="text-gray-400 text-sm mt-1">
-          Political intelligence, civic movements, and sentiment analysis for all 55 African nations.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Globe className="w-6 h-6 text-cyan-400" />
+            Africa Intelligence
+          </h1>
+          <p className="text-gray-400 text-sm mt-1">
+            Political intelligence, civic movements, and sentiment analysis for all 55 African nations.
+          </p>
+        </div>
+        <ViewToggle
+          options={[{ value: "grid", label: "Grid" }, { value: "list", label: "List" }]}
+          current={view}
+          onChange={setView}
+        />
       </div>
 
       {/* Trend Search card */}
@@ -69,32 +81,69 @@ function AfricaHub() {
             <MapPin className="w-3.5 h-3.5" />
             {region}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-            {getCountriesByRegion(region).map(c => {
-              const s = sentimentMap.get(c.code);
-              return (
-                <button
-                  key={c.code}
-                  onClick={() => setLocation(`/africa/${c.code}`)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[#0d1e36] border border-[#1e3a5f] hover:border-cyan-500/50 hover:bg-[#0d2846] transition-all text-left group"
-                >
-                  <span className="text-xl leading-none">{c.flag}</span>
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium truncate group-hover:text-cyan-300 transition-colors">
+
+          {/* ── GRID VIEW ── */}
+          {view === "grid" && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              {getCountriesByRegion(region).map(c => {
+                const s = sentimentMap.get(c.code);
+                const score = s ? RISK_SCORE[s.riskLevel] : null;
+                const barColor = s?.riskLevel === "low" ? "#34d399" : s?.riskLevel === "medium" ? "#fbbf24" : s?.riskLevel === "high" ? "#f97316" : s?.riskLevel === "critical" ? "#f87171" : "#475569";
+                return (
+                  <button
+                    key={c.code}
+                    onClick={() => setLocation(`/africa/${c.code}`)}
+                    className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-[#0d1e36] border border-[#1e3a5f] hover:border-cyan-500/50 hover:bg-[#0d2846] transition-all group"
+                  >
+                    <span className="text-2xl leading-none">{c.flag}</span>
+                    <div className="text-xs font-medium truncate w-full text-center group-hover:text-cyan-300 transition-colors">
                       {c.name}
                     </div>
-                    {s ? (
-                      <div className={`text-[10px] font-semibold ${RISK_COLOR[s.riskLevel].split(" ")[1]}`}>
-                        {s.riskLevel}
-                      </div>
-                    ) : c.hasRichData ? (
-                      <div className="text-[10px] text-cyan-400">Rich data</div>
-                    ) : null}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    {score !== null && (
+                      <>
+                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${score}%`, background: barColor }} />
+                        </div>
+                        <span className="text-[9px] font-bold" style={{ color: barColor }}>{s?.riskLevel}</span>
+                      </>
+                    )}
+                    {!s && c.hasRichData && <span className="text-[9px] text-cyan-400">rich data</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── LIST VIEW ── */}
+          {view === "list" && (
+            <div className="flex flex-col gap-1.5">
+              {getCountriesByRegion(region).map(c => {
+                const s = sentimentMap.get(c.code);
+                const score = s ? RISK_SCORE[s.riskLevel] : null;
+                const barColor = s?.riskLevel === "low" ? "#34d399" : s?.riskLevel === "medium" ? "#fbbf24" : s?.riskLevel === "high" ? "#f97316" : s?.riskLevel === "critical" ? "#f87171" : "#475569";
+                return (
+                  <button
+                    key={c.code}
+                    onClick={() => setLocation(`/africa/${c.code}`)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#0d1e36] border border-[#1e3a5f] hover:border-cyan-500/50 hover:bg-[#0d2846] transition-all text-left group"
+                  >
+                    <span className="text-xl leading-none w-7 text-center">{c.flag}</span>
+                    <span className="text-sm font-medium flex-1 group-hover:text-cyan-300 transition-colors">{c.name}</span>
+                    {score !== null && (
+                      <>
+                        <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${score}%`, background: barColor }} />
+                        </div>
+                        <span className="text-[10px] font-semibold w-14 text-right" style={{ color: barColor }}>{s?.riskLevel}</span>
+                      </>
+                    )}
+                    {!s && c.hasRichData && <span className="text-[10px] text-cyan-400 ml-auto">rich data</span>}
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-600 shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       ))}
     </div>
