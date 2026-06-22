@@ -739,28 +739,54 @@ export default function AIAgentsHub() {
                       </div>
                     )}
 
-                    {adaptedOutputs.length > 0 ? adaptedOutputs.map((out, i) => (
-                      <div key={i} className="bg-[#050b1a] border border-[#1e3a5f] rounded-xl overflow-hidden">
-                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#1e3a5f]">
-                          <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">
-                            {out.format ?? out.platform}
-                          </p>
-                          <div className="flex gap-1.5">
-                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-gray-500 hover:text-white"
-                              onClick={() => handleCopy(out.content)}>
-                              {copied ? <CheckCircle2 className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                            </Button>
-                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-gray-500 hover:text-white"
-                              onClick={() => handleDownload(out.content, `viralbeat-${out.platform}-${Date.now()}.txt`)}>
-                              <Download className="w-3 h-3" />
+                    {adaptedOutputs.length > 0 ? (
+                      <>
+                        {/* Download All button */}
+                        {adaptedOutputs.length > 1 && (
+                          <div className="flex justify-end">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs gap-1.5 border-pink-500/40 text-pink-400 hover:bg-pink-500/10 hover:text-pink-300"
+                              onClick={() => {
+                                const combined = adaptedOutputs.map(o =>
+                                  `=== ${(o.format ?? o.platform).toUpperCase()} ===\n\n${o.content}`
+                                ).join("\n\n---\n\n");
+                                handleDownload(combined, `viralbeat-brief-adaptor-${Date.now()}.txt`);
+                              }}
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Download All ({adaptedOutputs.length} formats)
                             </Button>
                           </div>
-                        </div>
-                        <div className="p-4">
-                          <Streamdown className="prose prose-invert prose-sm max-w-none">{out.content}</Streamdown>
-                        </div>
-                      </div>
-                    )) : (
+                        )}
+
+                        {adaptedOutputs.map((out, i) => (
+                          <div key={i} className="bg-[#050b1a] border border-[#1e3a5f] rounded-xl overflow-hidden">
+                            <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#1e3a5f]">
+                              <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">
+                                {out.format ?? out.platform}
+                              </p>
+                              <div className="flex gap-1.5">
+                                <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs text-slate-400 hover:text-white hover:bg-white/5"
+                                  onClick={() => handleCopy(out.content)}>
+                                  {copied ? <CheckCircle2 className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                                  {copied ? "Copied" : "Copy"}
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs text-slate-400 hover:text-white hover:bg-white/5"
+                                  onClick={() => handleDownload(out.content, `viralbeat-${out.platform ?? out.format}-${Date.now()}.txt`)}>
+                                  <Download className="w-3 h-3" />
+                                  Download
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="p-4">
+                              <Streamdown className="prose prose-invert prose-sm max-w-none">{out.content}</Streamdown>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
                       <div className="flex flex-col items-center justify-center h-full text-center py-16">
                         <FileOutput className="w-10 h-10 text-gray-700 mb-3" />
                         <p className="text-sm text-gray-500">Triangulated outputs appear here</p>
