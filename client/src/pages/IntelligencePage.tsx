@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import {
   Loader2, Send, Sparkles, TrendingUp, Target, Lightbulb, Zap, Paperclip, X as XIcon,
-  FileText, Star, Share2, Download, Check, Globe, MapPin, ChevronRight, AlertCircle,
+  FileText, Star, Share2, Download, Check, Globe, MapPin, ChevronRight, AlertCircle, Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
@@ -91,6 +91,12 @@ export default function IntelligencePage() {
   const [gtType, setGtType] = useState<"video" | "image" | "text" | "audio" | "research">("text");
   const [gtPlatform, setGtPlatform] = useState<"youtube" | "tiktok" | "instagram" | "twitter" | "journal">("twitter");
   const [copiedInsight, setCopiedInsight] = useState(false);
+  const [gtTitleHint, setGtTitleHint] = useState(false);
+
+  // ── forecast (premium) ──
+  const [forecastTopic, setForecastTopic] = useState("");
+  const [forecastTimeframe, setForecastTimeframe] = useState<"7days" | "30days">("7days");
+  const [forecastRun, setForecastRun] = useState(false);
 
   // ── ratings ──
   const [ratings, setRatings] = useState<Record<string, number>>({});
@@ -141,6 +147,21 @@ export default function IntelligencePage() {
       setRightTab("insights");
     },
   });
+
+  // Premium analytics
+  const { data: premiumAccess } = trpc.premiumAnalytics.checkAccess.useQuery();
+  const hasPremium = premiumAccess?.hasAccess ?? false;
+
+  const { data: forecastData, isLoading: forecastLoading, refetch: runForecast } =
+    trpc.premiumAnalytics.getForecast.useQuery(
+      { topic: forecastTopic || "Africa political signals", timeframe: forecastTimeframe },
+      { enabled: false }
+    );
+  const { data: insightsData, isLoading: insightsLoading, refetch: runInsights } =
+    trpc.premiumAnalytics.getAdvancedInsights.useQuery(
+      { topic: forecastTopic || "Africa political signals" },
+      { enabled: false }
+    );
 
   const extractDocument = trpc.aiAssistant.extractDocument.useMutation({
     onSuccess: (data) => {
@@ -451,10 +472,13 @@ export default function IntelligencePage() {
         <div className="lg:col-span-3 flex flex-col overflow-hidden">
           <Tabs value={rightTab} onValueChange={setRightTab} className="flex-1 flex flex-col overflow-hidden">
             <div className="shrink-0 px-4 pt-3 border-b border-border/40">
-              <TabsList className="grid w-full max-w-sm grid-cols-3 h-8">
+              <TabsList className="grid w-full max-w-lg grid-cols-4 h-8">
                 <TabsTrigger value="chat" className="text-xs">Chat</TabsTrigger>
                 <TabsTrigger value="analyze" className="text-xs">Game Theory</TabsTrigger>
                 <TabsTrigger value="insights" className="text-xs">Insights</TabsTrigger>
+                <TabsTrigger value="forecast" className="text-xs flex items-center gap-1">
+                  Forecast {hasPremium ? null : <span className="text-[9px] text-amber-400">★</span>}
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -708,10 +732,20 @@ export default function IntelligencePage() {
                       </Select>
                     </div>
                   </div>
+                  {gtTitleHint && !gtTitle.trim() && (
+                    <p className="text-xs text-muted-foreground/60 italic -mt-2">
+                      Tip: a specific title produces a more targeted analysis — or run without one for a general Africa political landscape assessment.
+                    </p>
+                  )}
                   <Button
                     onClick={() => {
-                      if (!gtTitle.trim()) { toast.error("Please provide a title."); return; }
-                      analyzeContent.mutate({ title: gtTitle, contentUrl: gtUrl || undefined, contentType: gtType, platform: gtPlatform });
+                      if (!gtTitle.trim()) setGtTitleHint(true);
+                      analyzeContent.mutate({
+                        title: gtTitle.trim() || "General Africa political intelligence landscape",
+                        contentUrl: gtUrl || undefined,
+                        contentType: gtType,
+                        platform: gtPlatform,
+                      });
                     }}
                     disabled={analyzeContent.isPending}
                     className="w-full"
@@ -868,6 +902,122 @@ export default function IntelligencePage() {
                   <p className="font-semibold text-muted-foreground text-sm">No analyses yet</p>
                   <p className="text-xs text-muted-foreground mt-1">Run your first Game Theory analysis in the tab above.</p>
                   <Button variant="outline" size="sm" className="mt-4" onClick={() => setRightTab("analyze")}>Open Game Theory Analyser</Button>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* ── FORECAST TAB ── */}
+            <TabsContent value="forecast" className="flex-1 overflow-y-auto p-4 m-0 space-y-4">
+              {!hasPremium ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+                  <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-4">
+                    <Crown className="w-7 h-7 text-amber-400" />
+                  </div>
+                  <h3 className="font-bold text-base mb-1">Predictive Forecasting</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mb-2">AI-powered 7-day and 30-day signal forecasts with virality scoring, growth trajectory, and confidence levels.</p>
+                  <p className="text-xs text-amber-400/80 mb-6">Premium feature — 100 VBT / 30 days</p>
+                  <a href="/marketplace">
+                    <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">
+                      Unlock in Marketplace
+                    </Button>
+                  </a>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-2">
+                      <Label className="text-xs">Signal or Topic to Forecast</Label>
+                      <Input
+                        className="mt-1 text-sm"
+                        placeholder={activeSignal?.topic ?? "e.g. Kenya election integrity, Ethiopia Tigray ceasefire…"}
+                        value={forecastTopic}
+                        onChange={e => setForecastTopic(e.target.value)}
+                      />
+                      <p className="text-[10px] text-muted-foreground/60 mt-1 italic">Optional — leave blank to forecast the current active signal</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Timeframe</Label>
+                      <Select value={forecastTimeframe} onValueChange={(v: any) => setForecastTimeframe(v)}>
+                        <SelectTrigger className="mt-1 h-9 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="7days" className="text-xs">7 Days</SelectItem>
+                          <SelectItem value="30days" className="text-xs">30 Days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <Button
+                    className="w-full"
+                    disabled={forecastLoading || insightsLoading}
+                    onClick={() => { setForecastRun(true); runForecast(); runInsights(); }}
+                  >
+                    {(forecastLoading || insightsLoading) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Run Forecast
+                  </Button>
+
+                  {forecastData && (
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-amber-400" />
+                          {forecastTimeframe === "7days" ? "7-Day" : "30-Day"} Forecast — {forecastData.topic}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="rounded-lg bg-muted/30 px-3 py-2 text-center">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Virality</p>
+                            <p className="text-xl font-black text-amber-400">{forecastData.forecast?.viralityScore ?? "—"}<span className="text-xs text-muted-foreground">/10</span></p>
+                          </div>
+                          <div className="rounded-lg bg-muted/30 px-3 py-2 text-center">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Growth</p>
+                            <p className="text-xl font-black text-green-400">{forecastData.forecast?.growthRate ?? "—"}%</p>
+                          </div>
+                          <div className="rounded-lg bg-muted/30 px-3 py-2 text-center">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Confidence</p>
+                            <p className="text-xl font-black text-blue-400">{forecastData.forecast?.confidenceLevel ?? "—"}%</p>
+                          </div>
+                        </div>
+                        {forecastData.forecast?.keyFactors?.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Key Factors</p>
+                            <ul className="space-y-1">
+                              {forecastData.forecast.keyFactors.map((f: string, i: number) => (
+                                <li key={i} className="text-xs text-muted-foreground flex gap-2"><span className="text-amber-400 shrink-0">•</span>{f}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {insightsData && (
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-purple-400" />
+                          Advanced Insights
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <Streamdown className="text-sm text-muted-foreground">{insightsData.insights}</Streamdown>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { label: "Mentions", val: insightsData.metrics?.totalMentions },
+                            { label: "Avg Engagement", val: insightsData.metrics?.averageEngagement },
+                            { label: "Sentiment", val: insightsData.metrics?.sentimentScore ? `${insightsData.metrics.sentimentScore}/10` : null },
+                            { label: "Reach Est.", val: insightsData.metrics?.reachEstimate },
+                          ].map(({ label, val }) => val != null && (
+                            <div key={label} className="rounded-lg bg-muted/30 px-3 py-2">
+                              <p className="text-[10px] text-muted-foreground">{label}</p>
+                              <p className="text-sm font-bold">{typeof val === "number" ? val.toLocaleString() : val}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               )}
             </TabsContent>

@@ -261,12 +261,12 @@ CONTENT THEMATIC PILLARS (aligned to ViralBeat's mission):
 
 Creator Profile:
 - Name: ${ctx.user.name}
-- Focus Area / Niche: ${profile?.niche || "Africa political intelligence"}
-- Platform: ${profile?.primaryPlatform || "Not specified"}
-- Audience Size: ${profile?.audienceSize || "Not specified"}
-- Content Style: ${profile?.contentStyle || "Not specified"}
-- Goals: ${profile?.goals || "Not specified"}
-- Challenges: ${profile?.challenges || "Not specified"}
+- Focus Area / Niche: ${profile?.niche || "Africa political intelligence (default — user can personalise via profile)"}
+- Platform: ${profile?.primaryPlatform || "general audience (multi-platform)"}
+- Audience Size: ${profile?.audienceSize || "not yet set — assume engaged professional audience"}
+- Content Style: ${profile?.contentStyle || "analytical, evidence-based"}
+- Goals: ${profile?.goals || "build authority in Africa political intelligence space"}
+- Challenges: ${profile?.challenges || "not yet specified"}
 
 DOCUMENT ANALYSIS (critical):
 - When the user message begins with [ATTACHED DOCUMENT: ...], the full document text follows between that header and the --- divider. Treat it as ground truth and analyse it directly.

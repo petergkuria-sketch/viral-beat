@@ -28,6 +28,8 @@ export function Breadcrumb() {
     "/x-trends": "X Trends",
     "/intelligence": "Intelligence Workspace",
     "/viralmind": "ViralMind",
+    "/kenya/actors": "Political Actors",
+    "/premium-analytics": "Premium Analytics",
   };
 
   // Generate breadcrumb items from current path

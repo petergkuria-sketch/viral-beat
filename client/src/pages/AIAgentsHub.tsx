@@ -589,6 +589,7 @@ export default function AIAgentsHub() {
                         onChange={e => setAdaptorSignal(e.target.value)}
                         className="mt-1.5 bg-[#050b1a] border-[#1e3a5f] text-white min-h-[100px] text-sm"
                       />
+                      <p className="text-xs text-gray-600 mt-1 italic">Optional — a specific signal gives targeted output. Leave blank to run a general Africa political landscape triangulation.</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -696,14 +697,14 @@ export default function AIAgentsHub() {
 
                     <Button
                       onClick={() => adaptBrief.mutate({
-                        signal: adaptorSignal,
+                        signal: adaptorSignal.trim() || "General Africa political landscape — surface the most significant current PESTEL signals",
                         country: adaptorCountry || undefined,
                         actors: adaptorActors || undefined,
                         pestelDimensions: adaptorPestel as any,
                         confidenceTier: adaptorConfidence,
                         targetFormats: adaptorFormats as any,
                       })}
-                      disabled={adaptBrief.isPending || !adaptorSignal.trim() || adaptorPestel.length === 0 || adaptorFormats.length === 0}
+                      disabled={adaptBrief.isPending || adaptorPestel.length === 0 || adaptorFormats.length === 0}
                       className="w-full bg-pink-500 hover:bg-pink-400 text-white font-bold"
                     >
                       {adaptBrief.isPending

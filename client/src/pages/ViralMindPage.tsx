@@ -123,12 +123,8 @@ export default function ViralMindPage() {
     },
   });
 
-  // Check if onboarding is needed
-  useEffect(() => {
-    if (!profileLoading && profile && !profile.onboardingCompleted) {
-      setShowOnboarding(true);
-    }
-  }, [profile, profileLoading]);
+  // Onboarding is voluntary — chat is always accessible.
+  // The "Complete profile" button in the chat header opens the wizard.
 
   // Auto-scroll chat
   useEffect(() => {
@@ -298,11 +294,16 @@ export default function ViralMindPage() {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardHeader>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-6 h-6 text-cyan-400" />
-              <CardTitle className="text-2xl">Welcome to ViralMind</CardTitle>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-cyan-400" />
+                <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setShowOnboarding(false)}>
+                Skip for now ✕
+              </Button>
             </div>
-            <CardDescription>Your Game Theory strategist for Africa intelligence content — powered by ViralBeat signals</CardDescription>
+            <CardDescription>Optional — adding your profile lets ViralMind tailor analysis to your audience and platform. You can chat right now without it.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {onboardingStep === "welcome" && (
@@ -559,16 +560,28 @@ export default function ViralMindPage() {
           </h1>
           <p className="text-muted-foreground">Africa intelligence through Game Theory — strategy, signal, and story</p>
         </div>
-        {profile && (
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-sm">
-              {profile.niche || "Creator"} • {profile.primaryPlatform || "Multi-platform"}
-            </Badge>
-            {(profile.youtubeVerified || profile.tiktokVerified || profile.instagramVerified || profile.twitterVerified) && (
-              <VerifiedBadge size="sm" variant="inline" tooltipText="Verified social media account" />
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {profile && (
+            <>
+              <Badge variant="outline" className="text-sm">
+                {profile.niche || "Africa intelligence"} • {profile.primaryPlatform || "Multi-platform"}
+              </Badge>
+              {(profile.youtubeVerified || profile.tiktokVerified || profile.instagramVerified || profile.twitterVerified) && (
+                <VerifiedBadge size="sm" variant="inline" tooltipText="Verified social media account" />
+              )}
+            </>
+          )}
+          {profile && !profile.onboardingCompleted && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+              onClick={() => setShowOnboarding(true)}
+            >
+              Complete profile →
+            </Button>
+          )}
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

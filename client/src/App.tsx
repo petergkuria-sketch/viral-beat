@@ -41,6 +41,7 @@ const MigratePage = lazy(() => import("./pages/MigratePage"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const ViralMindPage = lazy(() => import("./pages/ViralMindPage"));
 const IntelligencePage = lazy(() => import("./pages/IntelligencePage"));
+const KenyaActorsPage = lazy(() => import("./pages/KenyaActorsPage"));
 const NewsletterSettings = lazy(() => import("./pages/NewsletterSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -122,11 +123,11 @@ function Router() {
     { path: "/admin", component: AdminDashboard },
     { path: "/admin/users", component: AdminUsers },
     { path: "/developer-hub", component: DeveloperHub },
-    { path: "/developer-hub/agent", component: DeveloperAgent },
+    { path: "/developer-hub/agent", component: () => <RedirectTo path="/developer-hub" /> },
     { path: "/developer-hub/thread/:threadId", component: ThreadDetail },
     { path: "/tokens", component: TokenDashboard },
     { path: "/marketplace", component: Marketplace },
-    { path: "/premium-analytics", component: PremiumAnalytics },
+    { path: "/premium-analytics", component: () => <RedirectTo path="/intelligence" /> },
     { path: "/creator-verification", component: CreatorVerification },
     { path: "/haa", component: HumansAsAgents },
     { path: "/advanced-features", component: AdvancedFeatures },
@@ -151,11 +152,13 @@ function Router() {
     { path: "/kenya/regional-map", component: KenyaRegionalMap },
     { path: "/kenya/balkanization", component: KenyaBalkanization },
     { path: "/kenya/icc-agent", component: KenyaICCAgent },
-    { path: "/kenya/executive", component: KenyaExecutiveAgent },
-    { path: "/kenya/parliament", component: KenyaParliamentAgent },
-    { path: "/kenya/senate", component: KenyaSenateAgent },
-    { path: "/kenya/governors", component: KenyaGovernorsAgent },
-    { path: "/kenya/women-reps", component: KenyaWomenRepsAgent },
+    { path: "/kenya/actors", component: KenyaActorsPage },
+    // Legacy branch routes → unified actors page
+    { path: "/kenya/executive",   component: () => <RedirectTo path="/kenya/actors?branch=executive" /> },
+    { path: "/kenya/parliament",  component: () => <RedirectTo path="/kenya/actors?branch=parliament" /> },
+    { path: "/kenya/senate",      component: () => <RedirectTo path="/kenya/actors?branch=senate" /> },
+    { path: "/kenya/governors",   component: () => <RedirectTo path="/kenya/actors?branch=governors" /> },
+    { path: "/kenya/women-reps",  component: () => <RedirectTo path="/kenya/actors?branch=women-reps" /> },
     { path: "/kenya/newsfeed", component: KenyaNewsfeedAgent },
     { path: "/kenya/breaking-news", component: () => <RedirectTo path="/country/ke/breaking-news" /> },
     { path: "/kenya/social-media", component: KenyaSocialMediaAgent },
