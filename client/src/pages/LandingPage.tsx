@@ -4,11 +4,11 @@ import {
   Globe, Shield, TrendingUp, ArrowRight, ChevronRight, X, Menu,
   Zap, Users, Newspaper, AlertTriangle, BarChart3, Coins,
   CheckCircle2, Star, Activity, MapPin, Code2, Calendar,
-  Rss, Brain, Database, Clock, FileText,
+  Rss, Brain, Database, Clock, FileText, LayoutGrid, Rows,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { ThemeSelector } from "@/components/ThemeSelector";
@@ -56,6 +56,15 @@ export default function LandingPage() {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+
+  // ── view mode (icon / classic) ──
+  const [viewMode, setViewMode] = useState<"icon" | "classic">(() => {
+    try { return (localStorage.getItem("vb_landing_view") as "icon" | "classic") || "classic"; } catch { return "classic"; }
+  });
+  const setView = (v: "icon" | "classic") => {
+    setViewMode(v);
+    try { localStorage.setItem("vb_landing_view", v); } catch {}
+  };
 
   const handleExplore = () => {
     if (user) setLocation("/africa");
@@ -158,6 +167,23 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* View mode toggle */}
+            <div className="hidden sm:flex items-center bg-white/5 border border-white/10 rounded-lg p-0.5 gap-0.5">
+              <button
+                onClick={() => setView("icon")}
+                title="Icon view"
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all ${viewMode === "icon" ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" : "text-slate-400 hover:text-white"}`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" /> Icon
+              </button>
+              <button
+                onClick={() => setView("classic")}
+                title="Classic view"
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all ${viewMode === "classic" ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" : "text-slate-400 hover:text-white"}`}
+              >
+                <Rows className="w-3.5 h-3.5" /> Classic
+              </button>
+            </div>
             <ThemeSelector />
             {user ? (
               <Button onClick={() => setLocation("/africa")} size="sm" className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-lg shadow-cyan-500/20">
@@ -187,6 +213,112 @@ export default function LandingPage() {
           </motion.div>
         )}
       </nav>
+
+      {/* ── PHONE / ICON VIEW ──────────────────────────────────────────────── */}
+      <AnimatePresence mode="wait">
+        {viewMode === "icon" && (
+          <motion.div
+            key="icon-view"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="min-h-screen pt-16 flex flex-col items-center justify-center bg-[#050b1a] px-4 pb-8"
+          >
+            {/* Ambient glow */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-cyan-500/8 rounded-full blur-3xl" />
+              <div className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-blue-600/8 rounded-full blur-3xl" />
+            </div>
+
+            {/* Phone frame */}
+            <div className="relative w-full max-w-[360px] bg-[#0a0a0f] rounded-[40px] border border-white/10 overflow-hidden shadow-2xl shadow-cyan-500/5 mt-6">
+              {/* Status bar */}
+              <div className="flex items-center justify-between px-6 pt-4 pb-2">
+                <span className="text-xs font-medium text-white/80">{new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                <div className="flex items-center gap-1.5">
+                  <Activity className="w-3 h-3 text-white/60" />
+                  <Rss className="w-3 h-3 text-white/60" />
+                </div>
+              </div>
+
+              {/* Brand */}
+              <div className="text-center py-3">
+                <p className="text-[11px] font-bold tracking-[3px] text-cyan-400 uppercase">ViralBeat</p>
+                <p className="text-[9px] text-slate-500 tracking-wider mt-0.5">Africa's Political Intelligence Layer</p>
+              </div>
+
+              {/* Live signal strip */}
+              <div className="mx-4 mb-4 flex items-center gap-2 bg-cyan-500/8 border border-cyan-500/20 rounded-xl px-3 py-2">
+                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse shrink-0" />
+                <span className="text-[9px] text-cyan-300/80 truncate">3 new signals · AU Commission · East Africa</span>
+              </div>
+
+              {/* App grid */}
+              <div className="grid grid-cols-4 gap-y-5 gap-x-3 px-5 pb-4">
+                {[
+                  { emoji: "🌍", label: "Africa Map",    path: "/africa",        badge: 0,  bg: "from-[#1a3a2a] to-[#0d5c3a]" },
+                  { emoji: "📡", label: "Intelligence",  path: "/intelligence",  badge: 3,  bg: "from-[#0d2240] to-[#0a4080]" },
+                  { emoji: "🤖", label: "AI Agents",     path: "/ai-agents",     badge: 0,  bg: "from-[#2a0d40] to-[#5a1a8a]" },
+                  { emoji: "📊", label: "Dashboard",     path: "/dashboard",     badge: 0,  bg: "from-[#3a2000] to-[#7a4a00]" },
+                  { emoji: "🏪", label: "Marketplace",   path: "/marketplace",   badge: 0,  bg: "from-[#3a0d20] to-[#8a1a40]" },
+                  { emoji: "🛠️", label: "Dev Hub",       path: "/developer-hub", badge: 0,  bg: "from-[#0d1a3a] to-[#1a3a6a]" },
+                  { emoji: "🪙", label: "VBT Tokens",    path: "/tokens",        badge: 0,  bg: "from-[#2a1a00] to-[#6a4000]" },
+                  { emoji: "👁️", label: "HAA",           path: "/haa",           badge: 0,  bg: "from-[#001a1a] to-[#003a3a]" },
+                  { emoji: "💎", label: "Pricing",       path: "/pricing",       badge: 0,  bg: "from-[#1a2a00] to-[#3a5a00]" },
+                  { emoji: "📖", label: "About",         path: "/about",         badge: 0,  bg: "from-[#1a1a2a] to-[#3a3a5a]" },
+                  { emoji: "⚙️", label: "Settings",      path: "/settings",      badge: 0,  bg: "from-[#1a1a1a] to-[#3a3a3a]" },
+                  { emoji: "📰", label: "Newsletter",    path: "/marketplace",   badge: 0,  bg: "from-[#0d1f0d] to-[#1a3a1a]" },
+                ].map(app => (
+                  <button
+                    key={app.path + app.label}
+                    onClick={() => user ? setLocation(app.path) : (window.location.href = getLoginUrl())}
+                    className="flex flex-col items-center gap-1.5 group"
+                  >
+                    <div className="relative">
+                      <div className={`w-14 h-14 rounded-[18px] bg-gradient-to-br ${app.bg} flex items-center justify-center text-2xl border border-white/6 transition-transform group-hover:scale-105 group-active:scale-95`}>
+                        {app.emoji}
+                      </div>
+                      {app.badge > 0 && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[8px] font-bold text-white flex items-center justify-center border border-[#0a0a0f]">{app.badge}</span>
+                      )}
+                    </div>
+                    <span className="text-[9px] text-white/70 text-center leading-tight">{app.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Dock */}
+              <div className="mx-3 mb-4 bg-white/6 backdrop-blur rounded-2xl px-4 py-3 flex justify-around border border-white/8">
+                {[
+                  { emoji: "📡", label: "Intel",   path: "/intelligence" },
+                  { emoji: "🌍", label: "Africa",  path: "/africa" },
+                  { emoji: "🤖", label: "Agents",  path: "/ai-agents" },
+                  { emoji: "👤", label: "Profile", path: "/dashboard" },
+                ].map(d => (
+                  <button key={d.path} onClick={() => user ? setLocation(d.path) : (window.location.href = getLoginUrl())} className="flex flex-col items-center gap-1 group">
+                    <div className="w-12 h-12 rounded-[15px] bg-white/8 flex items-center justify-center text-xl transition-transform group-hover:scale-105 group-active:scale-95">{d.emoji}</div>
+                    <span className="text-[8px] text-white/50">{d.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Home bar */}
+              <div className="flex justify-center pb-3">
+                <div className="w-24 h-1 bg-white/20 rounded-full" />
+              </div>
+            </div>
+
+            {/* Switch hint */}
+            <p className="text-[10px] text-slate-600 mt-4">
+              Switch to <button onClick={() => setView("classic")} className="text-cyan-600 hover:text-cyan-400 underline-offset-2 underline">Classic view</button> for the full overview
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── CLASSIC VIEW (hero + all sections + footer) ────────────────────── */}
+      {viewMode === "classic" && <>
 
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
@@ -841,6 +973,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+      </>}
     </div>
   );
 }
