@@ -145,6 +145,8 @@ export const aiAssistantRouter = router({
       z.object({
         message: z.string(),
         sessionId: z.string().optional(),
+        fileContent: z.string().optional(),
+        fileName: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -237,7 +239,12 @@ HOW TO RESPOND:
           role: msg.role as "user" | "assistant",
           content: msg.message,
         })),
-        { role: "user", content: input.message },
+        {
+          role: "user",
+          content: input.fileContent
+            ? `[ATTACHED DOCUMENT: ${input.fileName ?? "document"}]\n\n${input.fileContent}\n\n---\n\n${input.message}`
+            : input.message,
+        },
       ];
 
       // Call LLM
