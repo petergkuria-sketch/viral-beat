@@ -76,7 +76,7 @@ export default function IntelligencePage() {
   const [analysisLoading, setAnalysisLoading] = useState(false);
 
   // ── chat ──
-  const [sessionId, setSessionId] = useState("");
+  const [sessionId, setSessionId] = useState(() => `intel-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
   const [chatMessage, setChatMessage] = useState("");
   const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
   const [fileExtracting, setFileExtracting] = useState(false);
@@ -118,7 +118,8 @@ export default function IntelligencePage() {
     { refetchInterval: 120_000 }
   );
 
-  const { data: conversations } = trpc.aiAssistant.getConversations.useQuery({ sessionId });
+  const { data: conversationsRaw } = trpc.aiAssistant.getConversations.useQuery({ sessionId });
+  const conversations = conversationsRaw ? [...conversationsRaw].reverse() : [];
   const { data: insights } = trpc.aiAssistant.getAnalyses.useQuery({ limit: 10 });
 
   const summarizeTrends = trpc.xTrends.summarizeTrends.useMutation({
@@ -405,8 +406,8 @@ export default function IntelligencePage() {
               Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="h-24 rounded-xl bg-muted/30 animate-pulse" />
               ))
-            ) : signals && signals.length > 0 ? (
-              signals.map((signal: any, idx: number) => {
+            ) : signals?.trends && signals.trends.length > 0 ? (
+              signals.trends.map((signal: any, idx: number) => {
                 const pestelDim = signal.pestelCategory as PestelCategory | undefined;
                 const p = PESTEL.find(x => x.id === pestelDim) ?? PESTEL[0];
                 const isActive = activeSignal?.id === signal.id || activeSignal?.topic === signal.topic;
