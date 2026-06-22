@@ -327,7 +327,7 @@ export default function IntelligencePage() {
     <div className="flex flex-col h-screen overflow-hidden text-slate-100 bg-slate-900">
 
       {/* ── Top bar ── */}
-      <div className="shrink-0 border-b border-white/10 bg-slate-900/95 backdrop-blur px-4 py-3">
+      <div className="shrink-0 border-b border-slate-700 bg-slate-800 px-4 py-3">
         <div className="flex items-center gap-4 flex-wrap">
           {/* Title */}
           <div className="flex items-center gap-2 shrink-0">
@@ -337,22 +337,26 @@ export default function IntelligencePage() {
 
           {/* Geo scope */}
           <div className="flex items-center gap-2 ml-auto">
-            <div className="flex items-center rounded-lg border border-white/20 overflow-hidden text-xs">
+            <div className="flex items-center rounded-lg border border-slate-600 overflow-hidden text-xs bg-slate-900">
               {(["continental","regional","country"] as GeoLayer[]).map(l => (
                 <button
                   key={l}
                   onClick={() => setGeoLayer(l)}
-                  className={`px-3 py-1.5 capitalize transition-colors ${geoLayer === l ? "bg-cyan-500/30 text-cyan-300 font-semibold" : "text-slate-300 hover:text-white hover:bg-white/5"}`}
+                  className={`px-3 py-1.5 capitalize font-medium transition-colors flex items-center gap-1 ${
+                    geoLayer === l
+                      ? "bg-cyan-500 text-white font-semibold"
+                      : "text-slate-300 hover:text-white hover:bg-slate-700"
+                  }`}
                 >
-                  {l === "continental" ? <Globe className="w-3.5 h-3.5 inline mr-1" /> : <MapPin className="w-3.5 h-3.5 inline mr-1" />}
-                  {l === "continental" ? "Africa" : l}
+                  {l === "continental" ? <Globe className="w-3.5 h-3.5" /> : <MapPin className="w-3.5 h-3.5" />}
+                  {l === "continental" ? "Africa" : l === "regional" ? "Regional" : "Country"}
                 </button>
               ))}
             </div>
 
             {geoLayer === "regional" && (
               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                <SelectTrigger className="h-8 w-36 text-xs">
+                <SelectTrigger className="h-8 w-36 text-xs bg-slate-900 border-slate-600 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -363,7 +367,7 @@ export default function IntelligencePage() {
 
             {geoLayer === "country" && (
               <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                <SelectTrigger className="h-8 w-36 text-xs">
+                <SelectTrigger className="h-8 w-36 text-xs bg-slate-900 border-slate-600 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -374,12 +378,16 @@ export default function IntelligencePage() {
           </div>
 
           {/* PESTEL filter chips */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             {PESTEL.map(p => (
               <button
                 key={p.id}
                 onClick={() => setSelectedCategory(p.id)}
-                className={`px-2 py-1 rounded-md border text-[11px] font-bold transition-all ${selectedCategory === p.id ? `${p.bg} ${p.color} border-transparent` : "border-white/20 text-slate-300 hover:border-white/40 hover:text-white"}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all border ${
+                  selectedCategory === p.id
+                    ? `${p.bg} ${p.color} border-current`
+                    : "bg-slate-900 border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white"
+                }`}
               >
                 {p.label}
               </button>
@@ -395,8 +403,8 @@ export default function IntelligencePage() {
       <div className="flex-1 overflow-hidden grid lg:grid-cols-5">
 
         {/* ══ LEFT — Signal feed ══ */}
-        <div className="lg:col-span-2 border-r border-white/10 overflow-y-auto flex flex-col">
-          <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+        <div className="lg:col-span-2 border-r border-slate-700 overflow-y-auto flex flex-col bg-slate-900">
+          <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
             <p className="text-xs font-bold text-white uppercase tracking-widest">Live Signals</p>
             {signalsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
           </div>
@@ -473,7 +481,7 @@ export default function IntelligencePage() {
         </div>
 
         {/* ══ RIGHT — Analysis workspace ══ */}
-        <div className="lg:col-span-3 flex flex-col overflow-hidden">
+        <div className="lg:col-span-3 flex flex-col overflow-hidden bg-slate-900">
           <Tabs value={rightTab} onValueChange={setRightTab} className="flex-1 flex flex-col overflow-hidden">
             <div className="shrink-0 px-4 pt-3 border-b border-white/10">
               <TabsList className="grid w-full max-w-lg grid-cols-4 h-8">
