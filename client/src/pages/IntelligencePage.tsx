@@ -80,6 +80,7 @@ export default function IntelligencePage() {
   const [chatMessage, setChatMessage] = useState("");
   const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
   const [fileExtracting, setFileExtracting] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   // ── right panel tabs ──
   const [rightTab, setRightTab] = useState("chat");
@@ -165,10 +166,20 @@ export default function IntelligencePage() {
   }, [conversations]);
 
   // ── handlers ──
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const ACCEPTED_TYPES = ["application/pdf", "text/plain", "text/markdown", "text/csv"];
+  const ACCEPTED_EXT = [".pdf", ".txt", ".md", ".csv"];
+
+  const processFile = async (file: File) => {
+    if (!ACCEPTED_TYPES.includes(file.type) && !ACCEPTED_EXT.some(ext => file.name.toLowerCase().endsWith(ext))) {
+      toast.error(`Unsupported file type. Please upload a PDF, TXT, MD, or CSV file.`);
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("File too large — maximum 20 MB.");
+      return;
+    }
     setFileExtracting(true);
+    setRightTab("chat");
     try {
       const arrayBuffer = await file.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
@@ -184,6 +195,18 @@ export default function IntelligencePage() {
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
   };
 
   const handleAnalyzeSignal = (signal: Signal) => {
@@ -337,22 +360,11 @@ export default function IntelligencePage() {
               </button>
             ))}
           </div>
-
-          {/* Document upload */}
-          <input ref={fileInputRef} type="file" accept=".pdf,.txt,.md,.csv" className="hidden" onChange={handleFileUpload} />
-          <Button
-            variant="outline"
-            size="sm"
-            className={`gap-2 text-xs shrink-0 ${attachedFile ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10" : "border-white/10 text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30"}`}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={fileExtracting || sendMessage.isPending}
-          >
-            {fileExtracting ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Extracting…</> :
-             attachedFile   ? <><FileText className="w-3.5 h-3.5" />Doc active</> :
-                              <><Paperclip className="w-3.5 h-3.5" />Attach doc</>}
-          </Button>
         </div>
       </div>
+
+      {/* hidden file input — triggered from chat input row */}
+      <input ref={fileInputRef} type="file" accept=".pdf,.txt,.md,.csv" className="hidden" onChange={handleFileUpload} />
 
       {/* ── Main split pane ── */}
       <div className="flex-1 overflow-hidden grid lg:grid-cols-5">
@@ -447,7 +459,30 @@ export default function IntelligencePage() {
             </div>
 
             {/* ── CHAT TAB ── */}
-            <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0 p-0 data-[state=active]:flex">
+            <TabsContent
+              value="chat"
+              className="flex-1 flex flex-col overflow-hidden m-0 p-0 data-[state=active]:flex relative"
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(false); }}
+              onDrop={handleDrop}
+            >
+              {/* Drag-over overlay */}
+              <AnimatePresence>
+                {dragOver && (
+                  <motion.div
+                    key="drag-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-cyan-400 bg-cyan-500/10 pointer-events-none"
+                  >
+                    <FileText className="w-10 h-10 text-cyan-400 mb-3" />
+                    <p className="text-sm font-bold text-cyan-400">Drop to upload</p>
+                    <p className="text-xs text-cyan-400/70 mt-1">PDF · TXT · MD · CSV</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Context banners */}
               <div className="shrink-0 px-4 pt-3 space-y-2">
                 <AnimatePresence>
@@ -509,45 +544,108 @@ export default function IntelligencePage() {
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
                 {conversations && conversations.length > 0 ? (
-                  conversations.map((msg: any) => (
-                    <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[85%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-cyan-600 text-white" : "bg-card border border-border/60"}`}>
-                        {msg.role === "assistant" ? (
-                          <Streamdown className="text-sm">{msg.message}</Streamdown>
-                        ) : (
-                          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-                        )}
+                  <>
+                    {conversations.map((msg: any) => (
+                      <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[85%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-cyan-600 text-white" : "bg-card border border-border/60"}`}>
+                          {msg.role === "assistant" ? (
+                            <Streamdown className="text-sm">{msg.message}</Streamdown>
+                          ) : (
+                            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                    {/* In-chat loading indicator */}
+                    {(sendMessage.isPending || fileExtracting) && (
+                      <div className="flex justify-start">
+                        <div className="bg-card border border-border/60 rounded-xl px-4 py-3 flex items-center gap-2.5">
+                          <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin shrink-0" />
+                          <span className="text-xs text-muted-foreground">
+                            {fileExtracting ? "Extracting document…" : "Analysing…"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                    <Sparkles className="w-10 h-10 mb-3 text-cyan-400/40" />
-                    <p className="font-semibold text-muted-foreground">Intelligence workspace ready</p>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-xs">Click a signal on the left to analyse it, or ask a direct intelligence question here.</p>
+                  <div className="flex flex-col items-center justify-center h-full text-center py-12 px-4">
+                    {fileExtracting ? (
+                      <>
+                        <Loader2 className="w-10 h-10 mb-3 text-cyan-400 animate-spin" />
+                        <p className="font-semibold text-muted-foreground">Extracting document…</p>
+                        <p className="text-xs text-muted-foreground mt-1">Reading content and preparing analysis</p>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-10 h-10 mb-3 text-cyan-400/40" />
+                        <p className="font-semibold text-muted-foreground">Intelligence workspace ready</p>
+                        <p className="text-xs text-muted-foreground mt-1 max-w-xs">Click a signal on the left to analyse it, or ask a question below.</p>
+                        <div className="mt-6 w-full max-w-xs">
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={fileExtracting}
+                            className="w-full flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border/50 hover:border-cyan-500/40 hover:bg-cyan-500/5 px-4 py-5 transition-all group"
+                          >
+                            <Paperclip className="w-6 h-6 text-muted-foreground/50 group-hover:text-cyan-400 transition-colors" />
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Upload a research document</p>
+                              <p className="text-xs text-muted-foreground/60 mt-0.5">PDF · TXT · MD · CSV — drag & drop or click</p>
+                            </div>
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
                 <div ref={chatEndRef} />
               </div>
 
               {/* Input */}
-              <div className="shrink-0 px-4 pb-4 pt-2 border-t border-border/40">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder={activeSignal
-                      ? `Follow up on "${activeSignal.topic.slice(0, 40)}…"`
+              <div className="shrink-0 px-4 pb-4 pt-2 border-t border-border/40 space-y-2">
+                {/* File type hint — shown only when no file attached */}
+                {!attachedFile && !fileExtracting && (
+                  <p className="text-[10px] text-muted-foreground/50 text-center">
+                    Drag & drop a PDF, TXT, MD or CSV into this window — or use the paperclip
+                  </p>
+                )}
+                <div className="flex gap-2 items-center">
+                  {/* Paperclip — prominent, left of input */}
+                  <button
+                    title={attachedFile ? `Remove ${attachedFile.name}` : "Attach a document (PDF, TXT, MD, CSV)"}
+                    onClick={() => attachedFile ? setAttachedFile(null) : fileInputRef.current?.click()}
+                    disabled={fileExtracting}
+                    className={`shrink-0 h-9 w-9 rounded-lg border flex items-center justify-center transition-all ${
+                      fileExtracting
+                        ? "border-border/30 text-muted-foreground/40 cursor-wait"
+                        : attachedFile
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
+                        : "border-border/50 text-muted-foreground hover:text-cyan-400 hover:border-cyan-500/40 hover:bg-cyan-500/5"
+                    }`}
+                  >
+                    {fileExtracting
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
                       : attachedFile
-                      ? `Ask about ${attachedFile.name.replace(/\.[^.]+$/, "")}…`
-                      : "Ask an intelligence question…"}
+                      ? <FileText className="w-4 h-4" />
+                      : <Paperclip className="w-4 h-4" />}
+                  </button>
+
+                  <Input
+                    placeholder={
+                      fileExtracting ? "Extracting document — please wait…" :
+                      activeSignal    ? `Follow up on "${activeSignal.topic.slice(0, 40)}…"` :
+                      attachedFile    ? `Ask about ${attachedFile.name.replace(/\.[^.]+$/, "")}…` :
+                                        "Ask an intelligence question…"
+                    }
                     value={chatMessage}
                     onChange={e => setChatMessage(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
-                    disabled={sendMessage.isPending}
+                    disabled={sendMessage.isPending || fileExtracting}
                     className="flex-1 text-sm"
                   />
                   <Button
                     onClick={handleSendMessage}
-                    disabled={sendMessage.isPending || (!chatMessage.trim() && !attachedFile)}
+                    disabled={sendMessage.isPending || fileExtracting || (!chatMessage.trim() && !attachedFile)}
                     size="icon"
                     className="shrink-0"
                   >
