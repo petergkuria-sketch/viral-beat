@@ -40,6 +40,7 @@ const AdvancedFeatures = lazy(() => import("./pages/AdvancedFeatures").then(m =>
 const MigratePage = lazy(() => import("./pages/MigratePage"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const ViralMindPage = lazy(() => import("./pages/ViralMindPage"));
+const IntelligencePage = lazy(() => import("./pages/IntelligencePage"));
 const NewsletterSettings = lazy(() => import("./pages/NewsletterSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -109,7 +110,8 @@ function Router() {
     { path: "/dashboard", component: Dashboard },
     { path: "/favorites", component: Favorites },
     { path: "/creator/:platform/:handle", component: CreatorProfile },
-    { path: "/x-trends", component: XTrends },
+    { path: "/intelligence", component: IntelligencePage },
+    { path: "/x-trends", component: () => <RedirectTo path="/intelligence" /> },
     { path: "/widget-builder", component: WidgetBuilder },
     { path: "/ai-agents", component: AIAgentsHub },
     { path: "/settings", component: Settings },
@@ -130,7 +132,7 @@ function Router() {
     { path: "/advanced-features", component: AdvancedFeatures },
     { path: "/migrate", component: MigratePage },
     { path: "/haa/leaderboard", component: HaaLeaderboard },
-    { path: "/viralmind", component: ViralMindPage },
+    { path: "/viralmind", component: () => <RedirectTo path="/intelligence" /> },
     { path: "/newsletter", component: NewsletterSettings },
     // Generic country intelligence routes
     { path: "/country/:code", component: CountryDashboard },

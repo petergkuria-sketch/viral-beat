@@ -26,6 +26,8 @@ export function Breadcrumb() {
     "/favorites": "Favorites",
     "/admin-dashboard": "Admin Dashboard",
     "/x-trends": "X Trends",
+    "/intelligence": "Intelligence Workspace",
+    "/viralmind": "ViralMind",
   };
 
   // Generate breadcrumb items from current path

@@ -85,11 +85,10 @@ const SECTIONS: Section[] = [
     icon: TrendingUp,
     accent: "#f472b6",
     items: [
-      { icon: TrendingUp,    label: "Signal Monitor",    path: "/x-trends" },
+      { icon: Sparkles,      label: "Intelligence",      path: "/intelligence" },
       { icon: Heart,         label: "Favorites",         path: "/favorites" },
       { icon: Users,         label: "Humans As Agents",  path: "/haa" },
       { icon: Crown,         label: "HAA Leaderboard",   path: "/haa/leaderboard" },
-      { icon: MessageSquare, label: "ViralMind",         path: "/viralmind" },
       { icon: Mail,          label: "Newsletter",        path: "/newsletter" },
       { icon: Bot,           label: "AI Agents",         path: "/ai-agents" },
       { icon: Code2,         label: "Widget Builder",    path: "/widget-builder" },
