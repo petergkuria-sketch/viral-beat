@@ -79,6 +79,7 @@ export default function ViralMindPage() {
     onSuccess: (data) => {
       setSessionId(data.sessionId);
       setChatMessage("");
+      setAttachedFile(null);
     },
   });
 
@@ -162,29 +163,38 @@ export default function ViralMindPage() {
     try {
       if (file.type === "application/pdf") {
         const arrayBuffer = await file.arrayBuffer();
+        // Dynamic import with CDN worker — avoids Vite bundler issues with pdfjs v6
         const pdfjsLib = await import("pdfjs-dist");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-          "pdfjs-dist/build/pdf.worker.min.mjs",
-          import.meta.url
-        ).toString();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
         const pages: string[] = [];
-        for (let i = 1; i <= Math.min(pdf.numPages, 40); i++) {
+        for (let i = 1; i <= Math.min(pdf.numPages, 50); i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
-          pages.push(content.items.map((item: any) => item.str).join(" "));
+          // Reconstruct lines by grouping items with same Y position
+          const lineMap = new Map<number, string[]>();
+          for (const item of content.items as any[]) {
+            const y = Math.round(item.transform[5]);
+            if (!lineMap.has(y)) lineMap.set(y, []);
+            lineMap.get(y)!.push(item.str);
+          }
+          const sortedY = [...lineMap.keys()].sort((a, b) => b - a);
+          pages.push(sortedY.map(y => lineMap.get(y)!.join(" ")).join("\n"));
         }
-        const text = pages.join("\n\n").slice(0, 60000); // cap at 60k chars
-        setAttachedFile({ name: file.name, content: text });
-        toast.success(`Document extracted: ${pdf.numPages} pages from ${file.name}`);
+        const text = pages.join("\n\n").trim();
+        if (!text) throw new Error("No text found — the PDF may be image-based (scanned).");
+        const capped = text.slice(0, 80000);
+        setAttachedFile({ name: file.name, content: capped });
+        toast.success(`Extracted ${pdf.numPages} pages (${Math.round(capped.length / 1000)}k chars) — ready to send`);
       } else {
-        // Plain text / markdown / csv
-        const text = await file.text();
-        setAttachedFile({ name: file.name, content: text.slice(0, 60000) });
-        toast.success(`Document ready: ${file.name}`);
+        const text = (await file.text()).trim().slice(0, 80000);
+        if (!text) throw new Error("File appears empty.");
+        setAttachedFile({ name: file.name, content: text });
+        toast.success(`${file.name} ready — ${Math.round(text.length / 1000)}k chars`);
       }
-    } catch (err) {
-      toast.error("Could not extract document text. Try a plain text or PDF file.");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not read this file. Try PDF or plain text.");
     } finally {
       setFileExtracting(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -193,13 +203,13 @@ export default function ViralMindPage() {
 
   const handleSendMessage = () => {
     if (!chatMessage.trim() && !attachedFile) return;
+    const snapshot = attachedFile; // capture before any re-render
     sendMessage.mutate({
-      message: chatMessage.trim() || (attachedFile ? `Analyse this document: ${attachedFile.name}` : ""),
+      message: chatMessage.trim() || `Analyse this document: ${snapshot?.name}`,
       sessionId: sessionId || undefined,
-      fileContent: attachedFile?.content,
-      fileName: attachedFile?.name,
+      fileContent: snapshot?.content,
+      fileName: snapshot?.name,
     });
-    setAttachedFile(null);
   };
 
   const handleAnalyzeContent = () => {
