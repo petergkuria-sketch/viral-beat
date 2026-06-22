@@ -324,25 +324,25 @@ export default function IntelligencePage() {
   // ── render ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden text-foreground">
+    <div className="flex flex-col h-screen overflow-hidden text-slate-100 bg-slate-900">
 
       {/* ── Top bar ── */}
-      <div className="shrink-0 border-b border-border/50 bg-background/95 backdrop-blur px-4 py-3">
+      <div className="shrink-0 border-b border-white/10 bg-slate-900/95 backdrop-blur px-4 py-3">
         <div className="flex items-center gap-4 flex-wrap">
           {/* Title */}
           <div className="flex items-center gap-2 shrink-0">
             <Sparkles className="w-5 h-5 text-cyan-400" />
-            <span className="font-bold text-lg tracking-tight">Intelligence Workspace</span>
+            <span className="font-bold text-lg tracking-tight text-white">Intelligence Workspace</span>
           </div>
 
           {/* Geo scope */}
           <div className="flex items-center gap-2 ml-auto">
-            <div className="flex items-center rounded-lg border border-border/50 overflow-hidden text-xs">
+            <div className="flex items-center rounded-lg border border-white/20 overflow-hidden text-xs">
               {(["continental","regional","country"] as GeoLayer[]).map(l => (
                 <button
                   key={l}
                   onClick={() => setGeoLayer(l)}
-                  className={`px-3 py-1.5 capitalize transition-colors ${geoLayer === l ? "bg-cyan-500/20 text-cyan-400 font-semibold" : "text-slate-400 hover:text-foreground"}`}
+                  className={`px-3 py-1.5 capitalize transition-colors ${geoLayer === l ? "bg-cyan-500/30 text-cyan-300 font-semibold" : "text-slate-300 hover:text-white hover:bg-white/5"}`}
                 >
                   {l === "continental" ? <Globe className="w-3.5 h-3.5 inline mr-1" /> : <MapPin className="w-3.5 h-3.5 inline mr-1" />}
                   {l === "continental" ? "Africa" : l}
@@ -379,7 +379,7 @@ export default function IntelligencePage() {
               <button
                 key={p.id}
                 onClick={() => setSelectedCategory(p.id)}
-                className={`px-2 py-1 rounded-md border text-[11px] font-bold transition-all ${selectedCategory === p.id ? `${p.bg} ${p.color}` : "border-border/40 text-slate-400 hover:border-border"}`}
+                className={`px-2 py-1 rounded-md border text-[11px] font-bold transition-all ${selectedCategory === p.id ? `${p.bg} ${p.color} border-transparent` : "border-white/20 text-slate-300 hover:border-white/40 hover:text-white"}`}
               >
                 {p.label}
               </button>
@@ -395,16 +395,16 @@ export default function IntelligencePage() {
       <div className="flex-1 overflow-hidden grid lg:grid-cols-5">
 
         {/* ══ LEFT — Signal feed ══ */}
-        <div className="lg:col-span-2 border-r border-border/50 overflow-y-auto flex flex-col">
-          <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
-            <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">Live Signals</p>
+        <div className="lg:col-span-2 border-r border-white/10 overflow-y-auto flex flex-col">
+          <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+            <p className="text-xs font-bold text-white uppercase tracking-widest">Live Signals</p>
             {signalsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />}
           </div>
 
           <div className="flex-1 p-3 space-y-2">
             {signalsLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-24 rounded-xl bg-muted/30 animate-pulse" />
+                <div key={i} className="h-24 rounded-xl bg-slate-700/40 animate-pulse" />
               ))
             ) : signals?.trends && signals.trends.length > 0 ? (
               signals.trends.map((signal: any, idx: number) => {
@@ -475,7 +475,7 @@ export default function IntelligencePage() {
         {/* ══ RIGHT — Analysis workspace ══ */}
         <div className="lg:col-span-3 flex flex-col overflow-hidden">
           <Tabs value={rightTab} onValueChange={setRightTab} className="flex-1 flex flex-col overflow-hidden">
-            <div className="shrink-0 px-4 pt-3 border-b border-border/40">
+            <div className="shrink-0 px-4 pt-3 border-b border-white/10">
               <TabsList className="grid w-full max-w-lg grid-cols-4 h-8">
                 <TabsTrigger value="chat" className="text-xs">Chat</TabsTrigger>
                 <TabsTrigger value="analyze" className="text-xs">Game Theory</TabsTrigger>
@@ -537,7 +537,7 @@ export default function IntelligencePage() {
                       </div>
                       {signalAnalysis && (
                         <div className="mt-2 ml-6">
-                          <Streamdown className="text-xs text-foreground/80">{signalAnalysis}</Streamdown>
+                          <Streamdown className="text-xs text-slate-200">{signalAnalysis}</Streamdown>
                         </div>
                       )}
                     </motion.div>
@@ -575,13 +575,13 @@ export default function IntelligencePage() {
                   <>
                     {conversations.map((msg: any) => (
                       <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[85%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-cyan-600 text-white" : "bg-muted/60 border border-border/60 text-foreground"}`}>
+                        <div className={`max-w-[85%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-cyan-600 text-white" : "bg-slate-700/80 border border-slate-600/60"}`}>
                           {msg.role === "assistant" ? (
-                            <div className="text-sm text-foreground [&_*]:text-foreground [&_strong]:text-white [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white">
+                            <div className="text-sm text-slate-100 [&_*]:text-slate-100 [&_strong]:text-white [&_b]:text-white [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white [&_li]:text-slate-100 [&_p]:text-slate-100">
                               <Streamdown>{msg.message}</Streamdown>
                             </div>
                           ) : (
-                            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                            <p className="text-sm whitespace-pre-wrap text-white">{msg.message}</p>
                           )}
                         </div>
                       </div>
@@ -589,7 +589,7 @@ export default function IntelligencePage() {
                     {/* In-chat loading indicator */}
                     {(sendMessage.isPending || fileExtracting) && (
                       <div className="flex justify-start">
-                        <div className="bg-card border border-border/60 rounded-xl px-4 py-3 flex items-center gap-2.5">
+                        <div className="bg-slate-700/80 border border-slate-600/60 rounded-xl px-4 py-3 flex items-center gap-2.5">
                           <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin shrink-0" />
                           <span className="text-xs text-slate-400">
                             {fileExtracting ? "Extracting document…" : "Analysing…"}
@@ -615,7 +615,7 @@ export default function IntelligencePage() {
                           <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={fileExtracting}
-                            className="w-full flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border/50 hover:border-cyan-500/40 hover:bg-cyan-500/5 px-4 py-5 transition-all group"
+                            className="w-full flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-white/10 hover:border-cyan-500/40 hover:bg-cyan-500/5 px-4 py-5 transition-all group"
                           >
                             <Paperclip className="w-6 h-6 text-slate-400/50 group-hover:text-cyan-400 transition-colors" />
                             <div>
@@ -632,7 +632,7 @@ export default function IntelligencePage() {
               </div>
 
               {/* Input */}
-              <div className="shrink-0 px-4 pb-4 pt-2 border-t border-border/40 space-y-2">
+              <div className="shrink-0 px-4 pb-4 pt-2 border-t border-white/10 space-y-2">
                 {/* File type hint — shown only when no file attached */}
                 {!attachedFile && !fileExtracting && (
                   <p className="text-[10px] text-slate-400/50 text-center">
@@ -650,7 +650,7 @@ export default function IntelligencePage() {
                         ? "border-border/30 text-slate-400/40 cursor-wait"
                         : attachedFile
                         ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
-                        : "border-border/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/40 hover:bg-cyan-500/5"
+                        : "border-white/10 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/40 hover:bg-cyan-500/5"
                     }`}
                   >
                     {fileExtracting
@@ -769,11 +769,11 @@ export default function IntelligencePage() {
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-xl bg-muted/30 border border-border/50 px-4 py-3 text-center">
+                        <div className="rounded-xl bg-slate-700/40 border border-white/10 px-4 py-3 text-center">
                           <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">GT Score</p>
                           <p className="text-3xl font-black text-cyan-400">{analyzeContent.data.viralityScore}<span className="text-xs text-slate-400 font-normal">/10</span></p>
                         </div>
-                        <div className="rounded-xl bg-muted/30 border border-border/50 px-4 py-3 text-center">
+                        <div className="rounded-xl bg-slate-700/40 border border-white/10 px-4 py-3 text-center">
                           <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Mission Alignment</p>
                           <p className={`text-xl font-black ${analyzeContent.data.missionAlignment?.startsWith("High") ? "text-green-400" : analyzeContent.data.missionAlignment?.startsWith("Medium") ? "text-yellow-400" : "text-red-400"}`}>
                             {analyzeContent.data.missionAlignment?.split(" — ")[0]}
@@ -781,7 +781,7 @@ export default function IntelligencePage() {
                         </div>
                       </div>
                       {analyzeContent.data.optimizedTitle && (
-                        <div className="rounded-xl bg-muted/20 border border-border/50 px-4 py-3">
+                        <div className="rounded-xl bg-slate-700/30 border border-white/10 px-4 py-3">
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Optimised Title (Nash Signal)</p>
                           <p className="text-sm font-semibold">{analyzeContent.data.optimizedTitle}</p>
                         </div>
@@ -838,7 +838,7 @@ export default function IntelligencePage() {
                 const missionAlign: string = perf.missionAlignment || insight.missionAlignment || "";
                 const alignColor = missionAlign.startsWith("High") ? "text-green-400" : missionAlign.startsWith("Medium") ? "text-yellow-400" : "text-red-400";
                 return (
-                  <Card key={insight.id} className="border border-border/60">
+                  <Card key={insight.id} className="border border-white/10">
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
@@ -865,7 +865,7 @@ export default function IntelligencePage() {
                         <p className="text-xs"><span className="text-slate-400">Mission Alignment: </span><span className={alignColor + " font-semibold"}>{missionAlign.split(" — ")[0]}</span></p>
                       )}
                       {insight.optimizedTitle && (
-                        <div className="rounded-lg bg-muted/20 px-3 py-2">
+                        <div className="rounded-lg bg-slate-700/30 px-3 py-2">
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Optimised Title</p>
                           <p className="text-xs font-semibold">{insight.optimizedTitle}</p>
                         </div>
@@ -971,15 +971,15 @@ export default function IntelligencePage() {
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div className="grid grid-cols-3 gap-2">
-                          <div className="rounded-lg bg-muted/30 px-3 py-2 text-center">
+                          <div className="rounded-lg bg-slate-700/40 px-3 py-2 text-center">
                             <p className="text-[10px] text-slate-400 uppercase tracking-widest">Virality</p>
                             <p className="text-xl font-black text-amber-400">{forecastData.forecast?.viralityScore ?? "—"}<span className="text-xs text-slate-400">/10</span></p>
                           </div>
-                          <div className="rounded-lg bg-muted/30 px-3 py-2 text-center">
+                          <div className="rounded-lg bg-slate-700/40 px-3 py-2 text-center">
                             <p className="text-[10px] text-slate-400 uppercase tracking-widest">Growth</p>
                             <p className="text-xl font-black text-green-400">{forecastData.forecast?.growthRate ?? "—"}%</p>
                           </div>
-                          <div className="rounded-lg bg-muted/30 px-3 py-2 text-center">
+                          <div className="rounded-lg bg-slate-700/40 px-3 py-2 text-center">
                             <p className="text-[10px] text-slate-400 uppercase tracking-widest">Confidence</p>
                             <p className="text-xl font-black text-blue-400">{forecastData.forecast?.confidenceLevel ?? "—"}%</p>
                           </div>
@@ -1015,7 +1015,7 @@ export default function IntelligencePage() {
                             { label: "Sentiment", val: insightsData.metrics?.sentimentScore ? `${insightsData.metrics.sentimentScore}/10` : null },
                             { label: "Reach Est.", val: insightsData.metrics?.reachEstimate },
                           ].map(({ label, val }) => val != null && (
-                            <div key={label} className="rounded-lg bg-muted/30 px-3 py-2">
+                            <div key={label} className="rounded-lg bg-slate-700/40 px-3 py-2">
                               <p className="text-[10px] text-slate-400">{label}</p>
                               <p className="text-sm font-bold">{typeof val === "number" ? val.toLocaleString() : val}</p>
                             </div>
