@@ -744,10 +744,8 @@ export default function AIAgentsHub() {
                         {/* Download All button */}
                         {adaptedOutputs.length > 1 && (
                           <div className="flex justify-end">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs gap-1.5 border-pink-500/40 text-pink-400 hover:bg-pink-500/10 hover:text-pink-300"
+                            <button
+                              className="inline-flex items-center gap-1.5 h-7 px-3 text-xs rounded border border-pink-500/40 text-pink-400 hover:bg-pink-500/10 hover:text-pink-300 transition-colors"
                               onClick={() => {
                                 const combined = adaptedOutputs.map(o =>
                                   `=== ${(o.format ?? o.platform).toUpperCase()} ===\n\n${o.content}`
@@ -757,7 +755,7 @@ export default function AIAgentsHub() {
                             >
                               <Download className="w-3.5 h-3.5" />
                               Download All ({adaptedOutputs.length} formats)
-                            </Button>
+                            </button>
                           </div>
                         )}
 
@@ -768,16 +766,16 @@ export default function AIAgentsHub() {
                                 {out.format ?? out.platform}
                               </p>
                               <div className="flex gap-1.5">
-                                <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs text-slate-400 hover:text-white hover:bg-white/5"
+                                <button className="inline-flex items-center gap-1 h-7 px-2 text-xs rounded text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
                                   onClick={() => handleCopy(out.content)}>
                                   {copied ? <CheckCircle2 className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                                   {copied ? "Copied" : "Copy"}
-                                </Button>
-                                <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs text-slate-400 hover:text-white hover:bg-white/5"
+                                </button>
+                                <button className="inline-flex items-center gap-1 h-7 px-2 text-xs rounded text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
                                   onClick={() => handleDownload(out.content, `viralbeat-${out.platform ?? out.format}-${Date.now()}.txt`)}>
                                   <Download className="w-3 h-3" />
                                   Download
-                                </Button>
+                                </button>
                               </div>
                             </div>
                             <div className="p-4">
