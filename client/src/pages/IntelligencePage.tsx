@@ -436,15 +436,19 @@ export default function IntelligencePage() {
                         <span className="text-[10px] font-black text-slate-400 shrink-0 mt-0.5 w-4 text-right">{idx + 1}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold leading-snug line-clamp-2 text-white">{signal.topic}</p>
-                          {signal.summary && (
-                            <p className="text-xs text-slate-400 mt-1 line-clamp-2">{signal.summary}</p>
+                          {(signal.summary || signal.tweets?.[0]?.text) && (
+                            <p className="text-xs text-slate-300 mt-1.5 line-clamp-3 leading-relaxed">
+                              {signal.summary || signal.tweets[0].text}
+                            </p>
                           )}
                           <div className="flex items-center gap-2 mt-2">
                             {pestelDim && (
                               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${p.bg} ${p.color}`}>{pestelDim.toUpperCase().slice(0, 3)}</span>
                             )}
-                            {signal.trendScore != null && (
-                              <span className="text-[10px] text-slate-400">Score {signal.trendScore}</span>
+                            {signal.engagement != null && (
+                              <span className="text-[10px] text-slate-400">
+                                {signal.engagement > 1000 ? `${(signal.engagement / 1000).toFixed(1)}k` : signal.engagement} eng.
+                              </span>
                             )}
                             <span className="ml-auto text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 flex items-center gap-0.5">
                               Analyse <ChevronRight className="w-2.5 h-2.5" />
