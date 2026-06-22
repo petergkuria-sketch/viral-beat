@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import {
   Loader2, Send, Sparkles, TrendingUp, Target, Lightbulb, Zap, Paperclip, X as XIcon,
-  FileText, Star, Share2, Download, Check, Globe, MapPin, ChevronRight, AlertCircle, Crown,
+  FileText, Star, Share2, Download, Check, Globe, MapPin, ChevronRight, AlertCircle, Crown, Copy,
+  CheckCircle2, Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
@@ -98,6 +99,17 @@ export default function IntelligencePage() {
   const [forecastTimeframe, setForecastTimeframe] = useState<"7days" | "30days">("7days");
   const [forecastRun, setForecastRun] = useState(false);
 
+  // ── pipeline ──
+  type PipelineStage = "idle" | "confirming" | "pestel" | "pestel_done" | "gametheory" | "gametheory_done" | "reports" | "complete";
+  const [pipelineStage, setPipelineStage] = useState<PipelineStage>("idle");
+  const [pipelineSignal, setPipelineSignal] = useState<Signal | null>(null);
+  const [pestelOutput, setPestelOutput] = useState("");
+  const [pestelEditing, setPestelEditing] = useState(false);
+  const [gtOutput, setGtOutput] = useState<any>(null);
+  const [reportFormats, setReportFormats] = useState<string[]>(["thread", "newsletter"]);
+  const [reportsOutput, setReportsOutput] = useState<any[]>([]);
+  const [reportsMeta, setReportsMeta] = useState<any>(null);
+
   // ── ratings ──
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [hoverRatings, setHoverRatings] = useState<Record<string, number>>({});
@@ -165,6 +177,11 @@ export default function IntelligencePage() {
       { topic: forecastTopic || "Africa political signals" },
       { enabled: false }
     );
+
+  // ── pipeline mutations ──
+  const pipelinePestel = trpc.xTrends.summarizeTrends.useMutation();
+  const pipelineGT = trpc.aiAssistant.analyzeContent.useMutation();
+  const pipelineReports = trpc.aiAgents.repurposeContent.useMutation();
 
   const extractDocument = trpc.aiAssistant.extractDocument.useMutation({
     onSuccess: (data) => {
@@ -321,6 +338,103 @@ export default function IntelligencePage() {
     ].filter(Boolean).join("\n");
   };
 
+  // ── pipeline handlers ────────────────────────────────────────────────────
+
+  const handleStartPipeline = (signal: Signal) => {
+    setPipelineSignal(signal);
+    setPestelOutput("");
+    setPestelEditing(false);
+    setGtOutput(null);
+    setReportsOutput([]);
+    setReportsMeta(null);
+    setPipelineStage("confirming");
+  };
+
+  const handleRunPestel = () => {
+    if (!pipelineSignal) return;
+    setPipelineStage("pestel");
+    pipelinePestel.mutate(
+      { topic: pipelineSignal.topic, geoScope: scopeKey, pestelCategory: selectedCategory },
+      {
+        onSuccess: (data) => { setPestelOutput(data.summary || ""); setPipelineStage("pestel_done"); },
+        onError: (err) => { toast.error("PESTEL failed: " + err.message); setPipelineStage("confirming"); },
+      }
+    );
+  };
+
+  const handleRunGameTheory = () => {
+    if (!pipelineSignal) return;
+    setPipelineStage("gametheory");
+    pipelineGT.mutate(
+      { title: pipelineSignal.topic, contentType: "text", platform: "twitter" },
+      {
+        onSuccess: (data) => { setGtOutput(data); setPipelineStage("gametheory_done"); },
+        onError: (err) => { toast.error("Game Theory failed: " + err.message); setPipelineStage("pestel_done"); },
+      }
+    );
+  };
+
+  const handleRunReports = () => {
+    if (!pipelineSignal || reportFormats.length === 0) return;
+    setPipelineStage("reports");
+    const geoLabel =
+      geoLayer === "continental" ? "Africa" :
+      geoLayer === "regional" ? (AFRICA_REGIONS.find(r => r.id === selectedRegion)?.label ?? selectedRegion) :
+      (AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label ?? selectedCountry);
+    pipelineReports.mutate(
+      {
+        signal: pipelineSignal.topic,
+        pestelDimensions: [selectedCategory] as any,
+        country: geoLabel,
+        confidenceTier: "single-source",
+        targetFormats: reportFormats as any,
+      },
+      {
+        onSuccess: (data) => {
+          setReportsOutput(data.adaptations ?? []);
+          setReportsMeta(data);
+          setPipelineStage("complete");
+        },
+        onError: (err) => { toast.error("Report generation failed: " + err.message); setPipelineStage("gametheory_done"); },
+      }
+    );
+  };
+
+  const handleResetPipeline = () => {
+    setPipelineStage("idle");
+    setPipelineSignal(null);
+    setPestelOutput("");
+    setGtOutput(null);
+    setReportsOutput([]);
+    setReportsMeta(null);
+  };
+
+  const handleDownloadReport = (content: string, filename: string) => {
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const PIPELINE_STEPS = [
+    { key: "signal",     label: "Signal",      stages: ["confirming"] },
+    { key: "pestel",     label: "PESTEL",       stages: ["pestel", "pestel_done"] },
+    { key: "gametheory", label: "Game Theory",  stages: ["gametheory", "gametheory_done"] },
+    { key: "reports",    label: "Reports",      stages: ["reports", "complete"] },
+  ];
+
+  const pipelineStepStatus = (stepIdx: number): "done" | "active" | "pending" => {
+    const order: PipelineStage[] = ["confirming", "pestel", "pestel_done", "gametheory", "gametheory_done", "reports", "complete"];
+    const cur = order.indexOf(pipelineStage);
+    if (cur < 0) return "pending";
+    const stepStart = [0, 1, 3, 5][stepIdx];
+    const stepEnd = [0, 2, 4, 6][stepIdx];
+    if (cur > stepEnd) return "done";
+    if (cur >= stepStart) return "active";
+    return "pending";
+  };
+
   // ── render ──────────────────────────────────────────────────────────────
 
   return (
@@ -418,7 +532,7 @@ export default function IntelligencePage() {
               signals.trends.map((signal: any, idx: number) => {
                 const pestelDim = signal.pestelCategory as PestelCategory | undefined;
                 const p = PESTEL.find(x => x.id === pestelDim) ?? PESTEL[0];
-                const isActive = activeSignal?.id === signal.id || activeSignal?.topic === signal.topic;
+                const isActive = pipelineSignal?.id === signal.id || pipelineSignal?.topic === signal.topic;
                 return (
                   <motion.div
                     key={signal.id ?? idx}
@@ -428,7 +542,7 @@ export default function IntelligencePage() {
                   >
                     <button
                       className={`w-full text-left rounded-xl border p-3 transition-all group ${isActive ? "border-cyan-500/50 bg-cyan-500/10" : "border-white/10 hover:border-white/25 hover:bg-white/5"}`}
-                      onClick={() => handleAnalyzeSignal({ id: signal.id ?? String(idx), topic: signal.topic, summary: signal.summary, geoScope: scopeKey, pestelCategory: pestelDim })}
+                      onClick={() => handleStartPipeline({ id: signal.id ?? String(idx), topic: signal.topic, summary: signal.summary, geoScope: scopeKey, pestelCategory: pestelDim })}
                     >
                       <div className="flex items-start gap-2">
                         {/* Rank badge */}
@@ -486,6 +600,369 @@ export default function IntelligencePage() {
 
         {/* ══ RIGHT — Analysis workspace ══ */}
         <div className="lg:col-span-3 flex flex-col overflow-hidden bg-slate-900">
+
+          {pipelineStage !== "idle" ? (
+          /* ════════════════════════════════════════
+             PIPELINE VIEW
+          ════════════════════════════════════════ */
+          <div className="flex-1 flex flex-col overflow-hidden">
+
+            {/* Pipeline header + stepper */}
+            <div className="shrink-0 px-4 pt-3 pb-3 border-b border-slate-700 bg-slate-800">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-pink-400" />
+                  <span className="text-sm font-bold text-white">Intelligence Pipeline</span>
+                </div>
+                <button
+                  onClick={handleResetPipeline}
+                  className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  <XIcon className="w-3 h-3" /> Exit
+                </button>
+              </div>
+
+              {/* Stepper */}
+              <div className="flex items-center">
+                {PIPELINE_STEPS.map((step, idx) => {
+                  const status = pipelineStepStatus(idx);
+                  return (
+                    <div key={step.key} className="flex items-center flex-1 last:flex-none">
+                      <div className="flex flex-col items-center">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
+                          status === "done"   ? "bg-emerald-500 text-white" :
+                          status === "active" ? "bg-blue-500 text-white ring-2 ring-blue-500/30" :
+                                               "bg-slate-700 text-slate-500 border border-slate-600"
+                        }`}>
+                          {status === "done" ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
+                        </div>
+                        <span className={`text-[9px] mt-1 font-semibold uppercase tracking-wider ${
+                          status === "done" ? "text-emerald-400" : status === "active" ? "text-blue-400" : "text-slate-500"
+                        }`}>{step.label}</span>
+                      </div>
+                      {idx < PIPELINE_STEPS.length - 1 && (
+                        <div className={`flex-1 h-px mx-2 mb-4 transition-colors ${
+                          pipelineStepStatus(idx) === "done" ? "bg-emerald-500" : "bg-slate-700"
+                        }`} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Pipeline body */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+              {/* ── STAGE 1: Signal confirmation ── */}
+              {pipelineStage === "confirming" && (
+                <div className="space-y-4">
+                  <div className="bg-slate-800 border border-cyan-500/30 rounded-xl p-4">
+                    <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-2">Selected Signal</p>
+                    <p className="text-sm font-semibold text-white leading-snug">{pipelineSignal?.topic}</p>
+                    {pipelineSignal?.summary && (
+                      <p className="text-xs text-slate-400 mt-2 line-clamp-3">{pipelineSignal.summary}</p>
+                    )}
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">
+                        {geoLayer === "continental" ? "🌍 Africa" :
+                         geoLayer === "regional" ? `📍 ${AFRICA_REGIONS.find(r => r.id === selectedRegion)?.label}` :
+                         `📍 ${AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label}`}
+                      </span>
+                      {PESTEL.filter(p => p.id === selectedCategory).map(p => (
+                        <span key={p.id} className={`text-[10px] px-2 py-0.5 rounded border font-bold ${p.bg} ${p.color}`}>
+                          {p.id.toUpperCase()}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Report format selection */}
+                  <div>
+                    <p className="text-xs font-semibold text-slate-300 mb-2">Select Report Formats <span className="text-slate-500 font-normal">(generated at Stage 4)</span></p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { id: "thread",     label: "X / Twitter Thread",          desc: "6–8 tweets, hook → Nash position" },
+                        { id: "newsletter", label: "Intelligence Newsletter",      desc: "PESTEL breakdown + actor matrix" },
+                        { id: "sitrep",     label: "NGO Situation Report",         desc: "Formal, citation-ready, risk matrix" },
+                        { id: "cable",      label: "Diplomatic Cable",             desc: "Actor positions + regional implications" },
+                      ] as const).map(fmt => {
+                        const on = reportFormats.includes(fmt.id);
+                        return (
+                          <button
+                            key={fmt.id}
+                            onClick={() => setReportFormats(prev => on ? prev.filter(f => f !== fmt.id) : [...prev, fmt.id])}
+                            className={`rounded-xl p-3 text-left border transition-all ${on ? "border-pink-500/50 bg-pink-500/8" : "border-slate-600 bg-slate-800 hover:border-slate-500"}`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${on ? "border-pink-500 bg-pink-500" : "border-slate-500"}`}>
+                                {on && <Check className="w-2.5 h-2.5 text-white" />}
+                              </div>
+                              <span className={`text-xs font-semibold ${on ? "text-pink-300" : "text-slate-300"}`}>{fmt.label}</span>
+                            </div>
+                            <p className="text-[10px] text-slate-500 mt-1.5 ml-5">{fmt.desc}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                    <Lock className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest mb-0.5">Approval Gates Active</p>
+                      <p className="text-xs text-slate-400">You review and approve each stage before the next one runs. Nothing proceeds without your confirmation.</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleRunPestel}
+                    disabled={reportFormats.length === 0}
+                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold text-sm rounded-xl py-3 transition-colors flex items-center justify-center gap-2"
+                  >
+                    Begin PESTEL Analysis <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* ── STAGE 2: PESTEL loading ── */}
+              {pipelineStage === "pestel" && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <Loader2 className="w-10 h-10 text-blue-400 animate-spin mb-4" />
+                  <p className="text-sm font-semibold text-white">Running PESTEL Analysis…</p>
+                  <p className="text-xs text-slate-400 mt-1 max-w-xs">{pipelineSignal?.topic}</p>
+                </div>
+              )}
+
+              {/* ── STAGE 2 DONE: PESTEL output + gate ── */}
+              {pipelineStage === "pestel_done" && (
+                <div className="space-y-4">
+                  <div className="bg-slate-800 border border-blue-500/30 rounded-xl p-4">
+                    <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      Stage 2 — PESTEL Analysis
+                    </p>
+                    {pestelEditing ? (
+                      <textarea
+                        className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-xs text-slate-200 min-h-52 resize-none focus:outline-none focus:border-blue-500 font-mono"
+                        value={pestelOutput}
+                        onChange={e => setPestelOutput(e.target.value)}
+                      />
+                    ) : (
+                      <div className="text-sm text-slate-200 [&_*]:text-slate-200 [&_strong]:text-white [&_li]:text-slate-200 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white">
+                        <Streamdown>{pestelOutput}</Streamdown>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-orange-500/5 border border-orange-500/40 rounded-xl p-3 flex items-start gap-2.5">
+                    <Lock className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-orange-400 mb-0.5">Approval Gate — Stage 2 of 4</p>
+                      <p className="text-xs text-slate-400">Review the PESTEL output. Approve to proceed to Game Theory, or edit before continuing.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPestelEditing(!pestelEditing)}
+                      className="flex-1 border border-slate-600 text-slate-300 hover:text-white text-sm rounded-xl py-2.5 transition-colors"
+                    >
+                      {pestelEditing ? "Preview" : "✏️ Edit"}
+                    </button>
+                    <button
+                      onClick={handleRunGameTheory}
+                      className="flex-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl py-2.5 px-5 transition-colors flex items-center justify-center gap-2"
+                    >
+                      Approve → Game Theory <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── STAGE 3: Game Theory loading ── */}
+              {pipelineStage === "gametheory" && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <Loader2 className="w-10 h-10 text-purple-400 animate-spin mb-4" />
+                  <p className="text-sm font-semibold text-white">Running Game Theory Analysis…</p>
+                  <p className="text-xs text-slate-400 mt-1">Mapping Nash equilibrium and dominant strategies</p>
+                </div>
+              )}
+
+              {/* ── STAGE 3 DONE: GT output + gate ── */}
+              {pipelineStage === "gametheory_done" && gtOutput && (
+                <div className="space-y-4">
+                  <div className="bg-slate-800 border border-purple-500/30 rounded-xl p-4 space-y-3">
+                    <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      Stage 3 — Game Theory Analysis
+                    </p>
+
+                    {gtOutput.gameTheoryMove && (
+                      <div className="rounded-xl bg-cyan-500/8 border border-cyan-500/25 px-3 py-2.5">
+                        <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-1">Dominant Strategy Move</p>
+                        <p className="text-sm text-slate-200">{gtOutput.gameTheoryMove}</p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-xl bg-slate-700/40 px-3 py-2.5 text-center">
+                        <p className="text-[10px] text-slate-400 uppercase tracking-widest">GT Score</p>
+                        <p className="text-2xl font-black text-cyan-400">{gtOutput.viralityScore}<span className="text-xs text-slate-400 font-normal">/10</span></p>
+                      </div>
+                      <div className="rounded-xl bg-slate-700/40 px-3 py-2.5 text-center">
+                        <p className="text-[10px] text-slate-400 uppercase tracking-widest">Alignment</p>
+                        <p className={`text-lg font-black ${gtOutput.missionAlignment?.startsWith("High") ? "text-emerald-400" : gtOutput.missionAlignment?.startsWith("Medium") ? "text-yellow-400" : "text-red-400"}`}>
+                          {gtOutput.missionAlignment?.split(" — ")[0] ?? "—"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {gtOutput.optimizedTitle && (
+                      <div className="rounded-xl bg-slate-700/30 px-3 py-2.5">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nash Signal Title</p>
+                        <p className="text-sm font-semibold text-white">{gtOutput.optimizedTitle}</p>
+                      </div>
+                    )}
+
+                    {gtOutput.recommendations?.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-1.5">Strategic Moves</p>
+                        <ol className="space-y-1">
+                          {gtOutput.recommendations.slice(0, 4).map((r: string, i: number) => (
+                            <li key={i} className="text-xs text-slate-300 flex gap-2">
+                              <span className="text-cyan-400 font-bold shrink-0">{i + 1}.</span>{r}
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-orange-500/5 border border-orange-500/40 rounded-xl p-3 flex items-start gap-2.5">
+                    <Lock className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-orange-400 mb-0.5">Approval Gate — Stage 3 of 4</p>
+                      <p className="text-xs text-slate-400">Approve to generate your {reportFormats.length} selected report format{reportFormats.length !== 1 ? "s" : ""}.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPipelineStage("pestel_done")}
+                      className="flex-1 border border-slate-600 text-slate-300 hover:text-white text-sm rounded-xl py-2.5 transition-colors"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      onClick={handleRunReports}
+                      disabled={reportFormats.length === 0}
+                      className="flex-2 bg-pink-600 hover:bg-pink-500 disabled:opacity-50 text-white font-semibold text-sm rounded-xl py-2.5 px-5 transition-colors flex items-center justify-center gap-2"
+                    >
+                      Approve → Generate Reports <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── STAGE 4: Reports loading ── */}
+              {pipelineStage === "reports" && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <Loader2 className="w-10 h-10 text-pink-400 animate-spin mb-4" />
+                  <p className="text-sm font-semibold text-white">Generating {reportFormats.length} Report Format{reportFormats.length !== 1 ? "s" : ""}…</p>
+                  <p className="text-xs text-slate-400 mt-1">Triangulating signal across all selected formats</p>
+                </div>
+              )}
+
+              {/* ── STAGE COMPLETE: Report outputs ── */}
+              {pipelineStage === "complete" && reportsOutput.length > 0 && (
+                <div className="space-y-4">
+                  {/* Completion receipt */}
+                  <div className="bg-emerald-500/5 border border-emerald-500/25 rounded-xl p-3 flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-emerald-400 mb-0.5">Pipeline Complete — All 4 Stages</p>
+                      <p className="text-xs text-slate-400">{pipelineSignal?.topic}</p>
+                      {reportsMeta?.pestelDimensions && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {reportsMeta.pestelDimensions.map((d: string) => (
+                            <span key={d} className="text-[10px] px-1.5 py-0.5 rounded bg-pink-500/10 text-pink-400 border border-pink-500/20 capitalize">{d}</span>
+                          ))}
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">⚠ Single-Source</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Download All */}
+                  {reportsOutput.length > 1 && (
+                    <div className="flex justify-end">
+                      <button
+                        className="inline-flex items-center gap-1.5 h-7 px-3 text-xs rounded border border-pink-500/40 text-pink-400 hover:bg-pink-500/10 transition-colors"
+                        onClick={() => {
+                          const combined = reportsOutput.map(o =>
+                            `=== ${(o.format ?? o.platform ?? "").toUpperCase()} ===\n\n${o.content}`
+                          ).join("\n\n---\n\n");
+                          handleDownloadReport(combined, `viralbeat-pipeline-${Date.now()}.txt`);
+                        }}
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Download All ({reportsOutput.length} formats)
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Per-format output cards */}
+                  {reportsOutput.map((out: any, i: number) => (
+                    <div key={i} className="bg-slate-800 border border-slate-600 rounded-xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-700">
+                        <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">{out.format ?? out.platform}</p>
+                        <div className="flex gap-1.5">
+                          <button
+                            className="inline-flex items-center gap-1 h-7 px-2 text-xs rounded text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                            onClick={() => { navigator.clipboard.writeText(out.content); toast.success("Copied!"); }}
+                          >
+                            <Copy className="w-3 h-3" /> Copy
+                          </button>
+                          <button
+                            className="inline-flex items-center gap-1 h-7 px-2 text-xs rounded text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                            onClick={() => handleDownloadReport(out.content, `viralbeat-${out.platform ?? out.format}-${Date.now()}.txt`)}
+                          >
+                            <Download className="w-3 h-3" /> Download
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <div className="text-sm text-slate-200 [&_*]:text-slate-200 [&_strong]:text-white [&_li]:text-slate-200 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white">
+                          <Streamdown>{out.content}</Streamdown>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={handleResetPipeline}
+                      className="flex-1 border border-slate-600 text-slate-300 hover:text-white text-sm rounded-xl py-2.5 transition-colors"
+                    >
+                      ← New Pipeline
+                    </button>
+                    <button
+                      onClick={() => { handleResetPipeline(); setRightTab("insights"); }}
+                      className="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-xl py-2.5 transition-colors"
+                    >
+                      View GT History →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          ) : (
+          /* ════════════════════════════════════════
+             ORIGINAL TABS (idle state / free chat)
+          ════════════════════════════════════════ */
           <Tabs value={rightTab} onValueChange={setRightTab} className="flex-1 flex flex-col overflow-hidden">
             <div className="shrink-0 px-4 pt-3 border-b border-white/10">
               <TabsList className="grid w-full max-w-lg grid-cols-4 h-8">
@@ -1040,6 +1517,7 @@ export default function IntelligencePage() {
               )}
             </TabsContent>
           </Tabs>
+          )} {/* end pipeline ternary */}
         </div>
       </div>
     </div>
