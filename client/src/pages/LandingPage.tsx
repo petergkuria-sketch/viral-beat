@@ -232,7 +232,7 @@ export default function LandingPage() {
             </div>
 
             {/* Phone frame */}
-            <div className="relative w-full max-w-[360px] bg-[#0a0a0f] rounded-[40px] border border-white/10 overflow-hidden shadow-2xl shadow-cyan-500/5 mt-6">
+            <div className="relative w-full max-w-[520px] bg-[#0a0a0f] rounded-[40px] border border-white/10 overflow-hidden shadow-2xl shadow-cyan-500/5 mt-6">
               {/* Status bar */}
               <div className="flex items-center justify-between px-6 pt-4 pb-2">
                 <span className="text-xs font-medium text-white/80">{new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
@@ -255,7 +255,7 @@ export default function LandingPage() {
               </div>
 
               {/* App grid */}
-              <div className="grid grid-cols-4 gap-y-5 gap-x-3 px-5 pb-4">
+              <div className="grid grid-cols-4 gap-y-6 gap-x-4 px-8 pb-4">
                 {[
                   { emoji: "🌍", label: "Africa Map",    path: "/africa",        badge: 0,  bg: "from-[#1a3a2a] to-[#0d5c3a]" },
                   { emoji: "📡", label: "Intelligence",  path: "/intelligence",  badge: 3,  bg: "from-[#0d2240] to-[#0a4080]" },
@@ -276,7 +276,7 @@ export default function LandingPage() {
                     className="flex flex-col items-center gap-1.5 group"
                   >
                     <div className="relative">
-                      <div className={`w-14 h-14 rounded-[18px] bg-gradient-to-br ${app.bg} flex items-center justify-center text-2xl border border-white/6 transition-transform group-hover:scale-105 group-active:scale-95`}>
+                      <div className={`w-16 h-16 rounded-[20px] bg-gradient-to-br ${app.bg} flex items-center justify-center text-3xl border border-white/6 transition-transform group-hover:scale-105 group-active:scale-95`}>
                         {app.emoji}
                       </div>
                       {app.badge > 0 && (
