@@ -114,7 +114,7 @@ export default function IntelligencePage() {
   const utils = trpc.useUtils();
 
   const { data: signals, isLoading: signalsLoading } = trpc.xTrends.getTrending.useQuery(
-    { topic: queryCategory, limit: 20 },
+    { category: queryCategory },
     { refetchInterval: 120_000 }
   );
 
@@ -536,7 +536,7 @@ export default function IntelligencePage() {
                       </div>
                       {signalAnalysis && (
                         <div className="mt-2 ml-6">
-                          <Streamdown className="text-xs text-muted-foreground">{signalAnalysis}</Streamdown>
+                          <Streamdown className="text-xs text-foreground/80">{signalAnalysis}</Streamdown>
                         </div>
                       )}
                     </motion.div>
@@ -574,9 +574,9 @@ export default function IntelligencePage() {
                   <>
                     {conversations.map((msg: any) => (
                       <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[85%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-cyan-600 text-white" : "bg-card border border-border/60"}`}>
+                        <div className={`max-w-[85%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-cyan-600 text-white" : "bg-card border border-border/60 text-foreground"}`}>
                           {msg.role === "assistant" ? (
-                            <Streamdown className="text-sm">{msg.message}</Streamdown>
+                            <Streamdown className="text-sm text-foreground">{msg.message}</Streamdown>
                           ) : (
                             <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                           )}
