@@ -253,20 +253,48 @@ export default function IntelligencePage() {
     { enabled: geoLayer === "country" && selectedCountryCode.length === 2, staleTime: 30 * 60 * 1000 }
   );
 
-  // Map RSS articles → Signal shape for unified display
+  // Keyword-based PESTEL classifier for RSS articles
+  const classifyPestel = (text: string): PestelCategory => {
+    const t = text.toLowerCase();
+    if (/\b(gdp|inflation|budget|trade|currency|debt|market|econom|revenue|investment|bank|financ|tax|tariff|imf|world bank|fiscal|monetary|naira|shilling|cedi|dirham)\b/.test(t)) return "economic";
+    if (/\b(health|education|protest|youth|migr|communit|welfare|employ|unemploy|poverty|food|water access|school|hospital|social|gender|women|refugee|displace)\b/.test(t)) return "social";
+    if (/\b(ai|artificial intelligence|digital|technolog|cyber|internet|mobile|data|satellite|innovation|startup|software|platform|drone|5g|broadband)\b/.test(t)) return "technological";
+    if (/\b(flood|drought|climate|water|land|forest|disaster|pollution|energy|solar|wind|renewable|carbon|emissions|rainfall|crop|harvest|famine|wildfire)\b/.test(t)) return "environmental";
+    if (/\b(court|law|constitution|parliament|bill|amendment|judicial|prosecution|sanction|treaty|legislation|verdict|arrest|human rights|icc|tribunal)\b/.test(t)) return "legal";
+    return "political";
+  };
+
+  // Map RSS articles → Signal shape, auto-classified to PESTEL dimension
   const rssSignals: Signal[] = (countryNews?.articles ?? []).map((a, i) => ({
     id: `rss-${selectedCountryCode}-${i}`,
     topic: a.title ?? "Untitled",
     summary: a.summary ?? "",
     geoScope: selectedCountryCode,
-    pestelCategory: "political",
+    pestelCategory: classifyPestel(`${a.title ?? ""} ${a.summary ?? ""}`),
     trendScore: 5,
     source: a.source,
   }));
 
+  // Signals matching the active PESTEL dimension
+  const filteredRssSignals = rssSignals.filter(s => s.pestelCategory === selectedCategory);
+
   const { data: conversationsRaw } = trpc.aiAssistant.getConversations.useQuery({ sessionId });
   const conversations = conversationsRaw ? [...conversationsRaw].reverse() : [];
   const { data: insights } = trpc.aiAssistant.getAnalyses.useQuery({ limit: 10 });
+
+  // Auto-open Chat when the selected PESTEL dimension has no signals
+  useEffect(() => {
+    if (
+      geoLayer === "country" &&
+      !countryNewsLoading &&
+      !signalsLoading &&
+      filteredRssSignals.length === 0 &&
+      !(signals?.trends && signals.trends.length > 0) &&
+      pipelineStage === "idle"
+    ) {
+      setRightTab("chat");
+    }
+  }, [selectedCategory, countryNewsLoading, signalsLoading, filteredRssSignals.length, signals?.trends?.length, geoLayer, pipelineStage]);
 
   const summarizeTrends = trpc.xTrends.summarizeTrends.useMutation({
     onSuccess: (data) => {
@@ -1151,7 +1179,7 @@ export default function IntelligencePage() {
                 </div>
               )}
 
-              {/* Tier 1 — RSS cards */}
+              {/* Tier 1 — RSS cards filtered by active PESTEL dimension */}
               {!countryNewsLoading && rssSignals.length > 0 && (
                 <div className="mx-3 mt-2 space-y-1.5">
                   <div className="flex items-center justify-between px-1 mb-0.5">
@@ -1161,24 +1189,49 @@ export default function IntelligencePage() {
                     </div>
                     <span className="text-[9px] text-slate-600">Tier 1 · RSS</span>
                   </div>
-                  {rssSignals.map((sig) => (
-                    <button
-                      key={sig.id}
-                      className="w-full text-left rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/8 p-3 transition-all group"
-                      onClick={() => handleStartPipeline({ id: sig.id, topic: sig.topic, summary: sig.summary, geoScope: scopeKey, pestelCategory: "political" })}
-                    >
-                      <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded border bg-emerald-500/15 border-emerald-500/30 text-emerald-400 tracking-wide">RSS</span>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border bg-red-500/15 border-red-500/30 text-red-400">POL</span>
-                        {sig.source && <span className="text-[9px] text-slate-500 truncate max-w-[120px]">{sig.source}</span>}
+
+                  {filteredRssSignals.length === 0 ? (
+                    /* No articles classified under this dimension — show AI prompt CTA */
+                    <div className="rounded-xl border border-slate-700/60 bg-slate-800/40 p-3 space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+                        <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">
+                          No {selectedCategory.toUpperCase()} signals in media feeds
+                        </span>
                       </div>
-                      <p className="text-xs font-semibold leading-snug line-clamp-2 text-white group-hover:text-emerald-100">{sig.topic}</p>
-                      {sig.summary && (
-                        <p className="text-[10px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">{sig.summary}</p>
-                      )}
-                      <p className="text-[9px] text-emerald-400/40 mt-1.5">Click to run through intelligence pipeline</p>
-                    </button>
-                  ))}
+                      <p className="text-[10px] text-slate-400 leading-relaxed">
+                        Current feeds haven't published {selectedCategory} content for {activeCountryLabel}. The AI assistant is ready — ask a question or generate signals below.
+                      </p>
+                      <button
+                        onClick={() => setRightTab("chat")}
+                        className="w-full flex items-center justify-center gap-2 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 text-[10px] font-bold hover:bg-cyan-500/20 transition-colors"
+                      >
+                        <Sparkles className="w-3 h-3" /> Open AI Assistant
+                      </button>
+                    </div>
+                  ) : (
+                    filteredRssSignals.map((sig) => {
+                      const p = PESTEL.find(x => x.id === sig.pestelCategory) ?? PESTEL[0];
+                      return (
+                        <button
+                          key={sig.id}
+                          className="w-full text-left rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/8 p-3 transition-all group"
+                          onClick={() => handleStartPipeline({ id: sig.id, topic: sig.topic, summary: sig.summary, geoScope: scopeKey, pestelCategory: sig.pestelCategory as PestelCategory })}
+                        >
+                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded border bg-emerald-500/15 border-emerald-500/30 text-emerald-400 tracking-wide">RSS</span>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${p.bg} ${p.color}`}>{(sig.pestelCategory ?? "POL").toUpperCase().slice(0,3)}</span>
+                            {sig.source && <span className="text-[9px] text-slate-500 truncate max-w-[120px]">{sig.source}</span>}
+                          </div>
+                          <p className="text-xs font-semibold leading-snug line-clamp-2 text-white group-hover:text-emerald-100">{sig.topic}</p>
+                          {sig.summary && (
+                            <p className="text-[10px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">{sig.summary}</p>
+                          )}
+                          <p className="text-[9px] text-emerald-400/40 mt-1.5">Click to run through intelligence pipeline</p>
+                        </button>
+                      );
+                    })
+                  )}
 
                   {/* Divider before Tier 3 */}
                   <div className="flex items-center gap-2 pt-1">
@@ -1199,8 +1252,8 @@ export default function IntelligencePage() {
                 </div>
               )}
 
-              {/* Tier 2 — regional xTrends fallback header (only when RSS is empty) */}
-              {!countryNewsLoading && rssSignals.length === 0 && !signalsLoading && signals?.trends && signals.trends.length > 0 && (
+              {/* Tier 2 — regional xTrends fallback header (only when filtered RSS is empty) */}
+              {!countryNewsLoading && filteredRssSignals.length === 0 && rssSignals.length === 0 && !signalsLoading && signals?.trends && signals.trends.length > 0 && (
                 <div className="mx-3 mt-2 space-y-1.5">
                   <div className="flex items-center justify-between px-1 mb-0.5">
                     <div className="flex items-center gap-1.5">
@@ -1217,8 +1270,8 @@ export default function IntelligencePage() {
                 </div>
               )}
 
-              {/* Tier 3 — AI CTA (only when both RSS and regional data are empty) */}
-              {!countryNewsLoading && !signalsLoading && rssSignals.length === 0 && !(signals?.trends && signals.trends.length > 0) && (
+              {/* Tier 3 — AI CTA (only when both filtered RSS and regional data are empty) */}
+              {!countryNewsLoading && !signalsLoading && filteredRssSignals.length === 0 && rssSignals.length === 0 && !(signals?.trends && signals.trends.length > 0) && (
                 <div className="mx-3 mt-2 rounded-lg bg-slate-800/60 border border-slate-700/50 overflow-hidden">
                   <div className="px-3 py-2 flex items-start gap-2">
                     <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
@@ -1306,7 +1359,7 @@ export default function IntelligencePage() {
               Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="h-24 rounded-xl bg-slate-700/40 animate-pulse" />
               ))
-            ) : signals?.trends && signals.trends.length > 0 && (geoLayer !== "country" || rssSignals.length === 0) ? (
+            ) : signals?.trends && signals.trends.length > 0 && (geoLayer !== "country" || filteredRssSignals.length === 0) ? (
               signals.trends.map((signal: any, idx: number) => {
                 const pestelDim = signal.pestelCategory as PestelCategory | undefined;
                 const p = PESTEL.find(x => x.id === pestelDim) ?? PESTEL[0];
