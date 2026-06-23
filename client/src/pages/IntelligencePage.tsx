@@ -137,30 +137,6 @@ export default function IntelligencePage() {
   const [addSignalTopic, setAddSignalTopic] = useState("");
   const [addSignalCategory, setAddSignalCategory] = useState<PestelCategory>("political");
 
-  const handleAddCustomSignal = () => {
-    const rawText = addSignalMode === "url" ? addSignalUrl.trim() : addSignalText.trim();
-    if (!rawText) return;
-    const isUrl = addSignalMode === "url";
-    const topic = addSignalTopic.trim() || (isUrl
-      ? (() => { try { return new URL(rawText).hostname.replace(/^www\./, ""); } catch { return rawText.slice(0, 60); } })()
-      : rawText.split("\n")[0].slice(0, 80));
-    const summary = isUrl ? undefined : rawText.split("\n").slice(1).join(" ").trim().slice(0, 300) || undefined;
-    const sig: Signal & { userAdded: true; sourceUrl?: string } = {
-      id: `custom-${Date.now()}`,
-      topic,
-      summary,
-      geoScope: scopeKey,
-      pestelCategory: addSignalCategory,
-      userAdded: true,
-      sourceUrl: isUrl ? rawText : undefined,
-    };
-    setCustomSignals(prev => [sig, ...prev]);
-    setAddSignalUrl("");
-    setAddSignalText("");
-    setAddSignalTopic("");
-    setAddSignalOpen(false);
-  };
-
   // ── derived scope ──
   const scopeKey =
     geoLayer === "continental" ? "au" :
@@ -388,6 +364,32 @@ export default function IntelligencePage() {
       ``,
       `— ViralBeat Africa Political Intelligence | viralbeat.io`,
     ].filter(Boolean).join("\n");
+  };
+
+  // ── custom signal injection (defined after scopeKey so closure is correct) ──
+  const handleAddCustomSignal = () => {
+    const rawText = addSignalMode === "url" ? addSignalUrl.trim() : addSignalText.trim();
+    if (!rawText) return;
+    const isUrl = addSignalMode === "url";
+    const autoTopic = isUrl
+      ? (() => { try { return new URL(rawText).hostname.replace(/^www\./, ""); } catch { return rawText.slice(0, 60); } })()
+      : rawText.split("\n")[0].slice(0, 80);
+    const topic = addSignalTopic.trim() || autoTopic;
+    const summary = isUrl ? undefined : rawText.split("\n").slice(1).join(" ").trim().slice(0, 300) || undefined;
+    const sig: Signal & { userAdded: true; sourceUrl?: string } = {
+      id: `custom-${Date.now()}`,
+      topic,
+      summary,
+      geoScope: scopeKey,
+      pestelCategory: addSignalCategory,
+      userAdded: true,
+      sourceUrl: isUrl ? rawText : undefined,
+    };
+    setCustomSignals(prev => [sig, ...prev]);
+    setAddSignalUrl("");
+    setAddSignalText("");
+    setAddSignalTopic("");
+    setAddSignalOpen(false);
   };
 
   // ── pipeline handlers ────────────────────────────────────────────────────
@@ -686,83 +688,79 @@ export default function IntelligencePage() {
           </div>
 
           {/* ── Inline add-signal panel ── */}
-          <AnimatePresence>
-            {addSignalOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.18 }}
-                className="overflow-hidden border-b border-slate-700"
-              >
-                <div className="p-3 space-y-2.5 bg-slate-800/60">
-                  {/* mode toggle */}
-                  <div className="flex gap-1.5">
-                    {([["url", LinkIcon, "Paste URL"], ["paste", ClipboardPaste, "Paste Content"]] as const).map(([mode, Icon, lbl]) => (
-                      <button
-                        key={mode}
-                        onClick={() => setAddSignalMode(mode)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all ${addSignalMode === mode ? "bg-cyan-500/15 border-cyan-500/40 text-cyan-400" : "border-white/8 text-slate-400 hover:text-slate-200"}`}
-                      >
-                        <Icon className="w-3 h-3" />
-                        {lbl}
-                      </button>
-                    ))}
-                  </div>
+          {addSignalOpen && (
+            <div className="border-b border-slate-700 bg-slate-800/60">
+              <div className="p-3 space-y-2.5">
+                {/* mode toggle */}
+                <div className="flex gap-1.5">
+                  {([["url", LinkIcon, "Paste URL"], ["paste", ClipboardPaste, "Paste Content"]] as const).map(([mode, Icon, lbl]) => (
+                    <button
+                      type="button"
+                      key={mode}
+                      onClick={() => setAddSignalMode(mode)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all ${addSignalMode === mode ? "bg-cyan-500/15 border-cyan-500/40 text-cyan-400" : "border-white/8 text-slate-400 hover:text-slate-200"}`}
+                    >
+                      <Icon className="w-3 h-3" />
+                      {lbl}
+                    </button>
+                  ))}
+                </div>
 
-                  {/* input */}
-                  {addSignalMode === "url" ? (
-                    <input
-                      type="url"
-                      placeholder="https://article-or-source-url..."
-                      value={addSignalUrl}
-                      onChange={e => setAddSignalUrl(e.target.value)}
-                      onKeyDown={e => e.key === "Enter" && handleAddCustomSignal()}
-                      className="w-full bg-slate-900/70 border border-white/8 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500/40"
-                    />
-                  ) : (
-                    <textarea
-                      rows={3}
-                      placeholder={"Paste article content or field notes...\nFirst line becomes the signal topic."}
-                      value={addSignalText}
-                      onChange={e => setAddSignalText(e.target.value)}
-                      className="w-full bg-slate-900/70 border border-white/8 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500/40 resize-none"
-                    />
-                  )}
-
-                  {/* optional topic override */}
+                {/* main input */}
+                {addSignalMode === "url" ? (
                   <input
-                    type="text"
-                    placeholder="Signal topic (optional — auto-detected)"
-                    value={addSignalTopic}
-                    onChange={e => setAddSignalTopic(e.target.value)}
+                    type="url"
+                    placeholder="https://article-or-source-url..."
+                    value={addSignalUrl}
+                    onChange={e => setAddSignalUrl(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleAddCustomSignal(); } }}
                     className="w-full bg-slate-900/70 border border-white/8 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500/40"
                   />
+                ) : (
+                  <textarea
+                    rows={3}
+                    placeholder={"Paste article content or field notes...\nFirst line becomes the signal topic."}
+                    value={addSignalText}
+                    onChange={e => setAddSignalText(e.target.value)}
+                    className="w-full bg-slate-900/70 border border-white/8 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500/40 resize-none"
+                  />
+                )}
 
-                  {/* PESTEL */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-slate-500 mr-0.5">PESTEL:</span>
-                    {PESTEL.map(p => (
-                      <button
-                        key={p.id}
-                        onClick={() => setAddSignalCategory(p.id)}
-                        className={`w-6 h-6 rounded text-[10px] font-black border transition-all ${addSignalCategory === p.id ? `${p.bg} ${p.color}` : "border-white/8 text-slate-500 hover:text-slate-300"}`}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
+                {/* optional topic override */}
+                <input
+                  type="text"
+                  placeholder="Signal topic (optional — auto-detected)"
+                  value={addSignalTopic}
+                  onChange={e => setAddSignalTopic(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleAddCustomSignal(); } }}
+                  className="w-full bg-slate-900/70 border border-white/8 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500/40"
+                />
+
+                {/* PESTEL + submit row */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] text-slate-500 mr-0.5">PESTEL:</span>
+                  {PESTEL.map(p => (
                     <button
-                      onClick={handleAddCustomSignal}
-                      disabled={addSignalMode === "url" ? !addSignalUrl.trim() : !addSignalText.trim()}
-                      className="ml-auto px-3 py-1 rounded-lg text-xs font-bold bg-cyan-500 text-slate-900 hover:bg-cyan-400 disabled:opacity-40 transition-colors"
+                      type="button"
+                      key={p.id}
+                      onClick={() => setAddSignalCategory(p.id)}
+                      className={`w-6 h-6 rounded text-[10px] font-black border transition-all ${addSignalCategory === p.id ? `${p.bg} ${p.color}` : "border-white/8 text-slate-500 hover:text-slate-300"}`}
                     >
-                      Add Signal
+                      {p.label}
                     </button>
-                  </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleAddCustomSignal}
+                    disabled={addSignalMode === "url" ? !addSignalUrl.trim() : !addSignalText.trim()}
+                    className="ml-auto px-3 py-1 rounded-lg text-xs font-bold bg-cyan-500 text-slate-900 hover:bg-cyan-400 disabled:opacity-40 transition-colors"
+                  >
+                    Add Signal
+                  </button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            </div>
+          )}
 
           {/* Geo mismatch warning — shown when country selected but signals are regional */}
           {geoLayer === "country" && !signalsLoading && signals?.trends && signals.trends.length > 0 && (
