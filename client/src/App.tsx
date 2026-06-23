@@ -49,6 +49,7 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const PublicBrief = lazy(() => import("./pages/PublicBrief"));
 const ContributorProfile = lazy(() => import("./pages/ContributorProfile"));
+const DoingBusinessPage = lazy(() => import("./pages/DoingBusinessPage"));
 
 // Country Intelligence — generic templates
 const CountryDashboard = lazy(() => import("./pages/country/CountryDashboard"));
@@ -175,6 +176,7 @@ function Router() {
     { path: "/kenya/governor/:county", component: KenyaGovernorDetail },
     { path: "/kenya/movements", component: KenyaMovements },
     { path: "/kenya/movements/:id", component: KenyaMovementDetail },
+    { path: "/doing-business", component: DoingBusinessPage },
   ];
 
   return (

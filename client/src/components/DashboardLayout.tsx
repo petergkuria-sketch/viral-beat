@@ -84,6 +84,7 @@ const SECTIONS: Section[] = [
       { icon: Sparkles,   label: "Signal Monitor",        path: "/intelligence" },
       { icon: Layers,     label: "Political Aggregator",  path: "/aggregator" },
       { icon: BarChart2,  label: "PESTEL Trending",       path: "/trending" },
+      { icon: Building2,  label: "Investment Readiness",   path: "/doing-business" },
       { icon: Users,      label: "Field Signals",         path: "/haa" },
       { icon: Heart,      label: "Favorites",             path: "/favorites" },
       { icon: Mail,       label: "Newsletter",            path: "/newsletter" },

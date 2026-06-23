@@ -330,6 +330,35 @@ export const africaRouter = router({
       return { success: true, countryCode: code };
     }),
 
+  getInvestmentBrief: publicProcedure
+    .input(z.object({ countryCode: z.string(), countryName: z.string() }))
+    .query(async ({ input }) => {
+      const cacheKey = `africa:investment-brief:${input.countryCode.toLowerCase()}`;
+      const cached = await getCached<Record<string, unknown>>(cacheKey);
+      if (cached) return cached;
+
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are an Africa investment analyst at a DFI. Return JSON only." },
+          { role: "user", content: `Generate an investment brief for ${input.countryName} (${input.countryCode.toUpperCase()}). Return JSON: { headline: string (one bold investment thesis), strengths: string[] (3 items), risks: string[] (3 items), sectors: string[] (top 3 opportunity sectors with 1-line rationale each), entryAdvice: string (2 sentences on market entry approach), outlook: "positive"|"cautious"|"negative" }` },
+        ],
+        response_format: { type: "json_object" },
+      });
+      const raw = response.choices[0]?.message?.content;
+      const content = typeof raw === "string" ? raw : null;
+      if (!content) throw new Error("No response from LLM");
+      const result = JSON.parse(content);
+      await setCached(cacheKey, result, BRIEF_TTL);
+      return result as {
+        headline: string;
+        strengths: string[];
+        risks: string[];
+        sectors: string[];
+        entryAdvice: string;
+        outlook: "positive" | "cautious" | "negative";
+      };
+    }),
+
   autoDetectCountry: protectedProcedure.mutation(async ({ ctx }) => {
     const db = await getDb();
     if (!db) return null;
