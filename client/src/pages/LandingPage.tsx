@@ -833,10 +833,10 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button size="lg" className="text-base px-8 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-2xl shadow-cyan-500/20" onClick={handleExplore}>
-                  Open Intelligence Dashboard <ChevronRight className="ml-2 w-4 h-4" />
+                  Explore the Intelligence <ChevronRight className="ml-2 w-4 h-4" />
                 </Button>
-                <Button size="lg" variant="outline" className="text-base px-8 py-5 border-white/10 text-gray-300 hover:text-white" onClick={handleCreator}>
-                  Join as Creator
+                <Button size="lg" variant="outline" className="text-base px-8 py-5 border-white/10 text-gray-300 hover:text-white" onClick={() => setLocation("/contributor")}>
+                  Become a Contributor
                 </Button>
               </div>
             </div>
