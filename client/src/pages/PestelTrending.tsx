@@ -127,8 +127,8 @@ export default function PestelTrending() {
         <div className="flex items-center gap-3">
           <TrendingUp className="w-5 h-5 text-cyan-400" />
           <div>
-            <h1 className="text-base font-bold text-white">PESTEL Trending</h1>
-            <p className="text-[11px] text-slate-500">Top countries by signal intensity — 24h rolling window</p>
+            <h1 className="text-base font-bold text-white">PESTEL+IR Trending</h1>
+            <p className="text-[11px] text-slate-500">Top African nations by signal intensity across all 7 dimensions — 24h rolling window</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -142,7 +142,7 @@ export default function PestelTrending() {
             onClick={() => navigate("/intelligence")}
             className="text-[10px] font-semibold text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
           >
-            Open Intelligence <ChevronRight className="w-3 h-3" />
+            Open Workspace <ChevronRight className="w-3 h-3" />
           </button>
         </div>
       </div>

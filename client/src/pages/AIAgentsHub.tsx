@@ -909,8 +909,8 @@ export default function AIAgentsHub() {
         {/* Navigation to related tools */}
         <div className="grid sm:grid-cols-3 gap-3">
           {[
-            { label: "Signal Monitor", desc: "Live PESTEL signals across all 55 nations", href: "/x-trends", color: "#a78bfa" },
-            { label: "ViralMind", desc: "Game Theory content strategy from Africa signals", href: "/viralmind", color: "#22d3ee" },
+            { label: "Intelligence Workspace", desc: "PESTEL+IR signal analysis with live AI briefings for 55 nations", href: "/intelligence", color: "#a78bfa" },
+            { label: "Political Aggregator", desc: "PESTEL+IR signals from social, RSS, chambers & field contributors", href: "/aggregator", color: "#f472b6" },
             { label: "Africa Hub", desc: "Browse all 55 African nations", href: "/africa", color: "#34d399" },
           ].map((item, i) => (
             <button key={i} onClick={() => setLocation(item.href)}

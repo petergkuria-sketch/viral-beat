@@ -2238,7 +2238,7 @@ export default function IntelligencePage() {
                     <TrendingUp className="w-5 h-5" />
                     Game Theory Analyser
                   </CardTitle>
-                  <CardDescription className="text-xs">Drop a title — ViralMind scores strategic value, maps the Nash position, and identifies the dominant move.</CardDescription>
+                  <CardDescription className="text-xs">Drop a title — the AI scores strategic value, maps the Nash position, and identifies the dominant move.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>

@@ -25,11 +25,17 @@ export function Breadcrumb() {
     "/api-keys-settings": "API Keys",
     "/favorites": "Favorites",
     "/admin-dashboard": "Admin Dashboard",
-    "/x-trends": "X Trends",
+    "/x-trends": "Intelligence Workspace",
     "/intelligence": "Intelligence Workspace",
-    "/viralmind": "ViralMind",
+    "/aggregator": "Political Aggregator",
+    "/trending": "PESTEL+IR Trending",
+    "/doing-business": "Investment Readiness",
+    "/haa": "Field Contributors",
+    "/viralmind": "Political Aggregator",
     "/kenya/actors": "Political Actors",
     "/premium-analytics": "Premium Analytics",
+    "/contributor": "Contributor Profile",
+    "/newsletter": "Newsletter",
   };
 
   // Generate breadcrumb items from current path

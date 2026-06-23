@@ -998,7 +998,7 @@ export default function DoingBusinessPage() {
             <h1 className="text-2xl font-bold text-slate-100">Investment Readiness Intelligence</h1>
           </div>
           <p className="text-slate-400 text-sm">
-            Ease of Doing Business · B-READY indicators · AI-enriched PESTEL overlay
+            World Bank B-READY indicators · Country Comparator · FDI Sector Map · AI-enriched PESTEL+IR overlay
           </p>
         </div>
         <Button
@@ -1007,7 +1007,7 @@ export default function DoingBusinessPage() {
           className="border-sky-500/30 text-sky-300 hover:bg-sky-500/10 shrink-0"
           onClick={() => navigate("/intelligence")}
         >
-          Open Intelligence <ArrowRight className="w-3 h-3 ml-1.5" />
+          Open Intelligence Workspace <ArrowRight className="w-3 h-3 ml-1.5" />
         </Button>
       </div>
 

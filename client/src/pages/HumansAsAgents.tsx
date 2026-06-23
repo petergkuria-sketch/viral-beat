@@ -209,9 +209,9 @@ export default function HumansAsAgents() {
       {/* Header */}
       <div className="shrink-0 border-b border-border/50 px-4 sm:px-6 py-4 bg-card/40 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black text-slate-100">Field Intelligence Network</h1>
+          <h1 className="text-xl font-black text-slate-100">Field Contributors</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Validate signals. Triangulate ground-truth. Earn VBT.
+            Submit, validate & triangulate ground-truth signals from across Africa. Earn VBT tokens.
           </p>
         </div>
         <div className="flex items-center gap-3">

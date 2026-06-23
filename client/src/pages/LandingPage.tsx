@@ -623,7 +623,7 @@ export default function LandingPage() {
               <ul className="space-y-4 mb-8">
                 {[
                   ["Verified Contributor Tiers", "Observer → Analyst → Correspondent → Partner. Tier names signal what you do with the platform, not just what you pay."],
-                  ["Intelligence Brief Generator", "ViralMind converts raw scores into citation-ready language — English, Swahili, or county-specific framing — for WhatsApp groups, X threads, and NGO newsletters."],
+                  ["Intelligence Brief Generator", "The AI converts raw scores into citation-ready language — English, Swahili, or county-specific framing — for WhatsApp groups, X threads, and NGO newsletters."],
                   ["Signal Credits", "Earn credits by submitting verified field signals. Spend on premium brief generation, bulk exports, and API access — a contribution incentive, not gamification."],
                   ["Creator Verification", "Verified creators get credibility badges and premium placement in the intelligence feed."],
                 ].map(([title, desc]) => (
@@ -998,7 +998,7 @@ export default function LandingPage() {
                 { label: "Electoral Calendar",        href: "/africa" },
               ]},
               { title: "Translate & Distribute", links: [
-                { label: "Brief Generator (ViralMind)", href: "/viralmind" },
+                { label: "Intelligence Brief Generator", href: "/intelligence" },
                 { label: "Share Intelligence Brief",    href: "/africa" },
                 { label: "PDF Export",                  href: "/africa" },
                 { label: "Alert Subscriptions",         href: "/pricing" },

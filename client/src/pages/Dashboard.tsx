@@ -466,10 +466,10 @@ export default function Dashboard() {
             {/* Mission control quick-action cards */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Africa Hub", desc: "Explore all 55 nations — signals, stability scores, civic movements", icon: "🌍", href: "/africa", color: "#22d3ee", badge: "55 Nations" },
-                { label: "Intelligence", desc: "PESTEL-filtered intelligence workspace with live AI analysis", icon: "📡", href: "/intelligence", color: "#a78bfa", badge: "Live" },
-                { label: "Aggregator", desc: "Game Theory content strategy powered by Africa intelligence", icon: "⚡", href: "/aggregator", color: "#f472b6", badge: "AI" },
-                { label: "Contributors", desc: "Contribute or browse ground-truth signals from Africa", icon: "🧑‍💻", href: "/contributor", color: "#34d399", badge: "People-Powered" },
+                { label: "Africa Hub", desc: "Explore all 55 AU member states — stability scores, civic movements, elections", icon: "🌍", href: "/africa", color: "#22d3ee", badge: "55 Nations" },
+                { label: "Intelligence Workspace", desc: "PESTEL+IR signal analysis with live AI briefings, reports & chat for any African country", icon: "📡", href: "/intelligence", color: "#a78bfa", badge: "Live AI" },
+                { label: "Political Aggregator", desc: "PESTEL+IR signals from RSS, social media, chambers, APEX bodies & field contributors", icon: "⚡", href: "/aggregator", color: "#f472b6", badge: "Multi-Source" },
+                { label: "Field Contributors", desc: "Ground-truth signals from Africa — submit, browse and verify intelligence from the network", icon: "🧑‍💻", href: "/haa", color: "#34d399", badge: "People-Powered" },
               ].map((item, i) => (
                 <motion.button
                   key={i}
@@ -514,12 +514,12 @@ export default function Dashboard() {
             {dashView === "widget" && (
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 pb-2">
                 {[
-                  { icon: "🌍", label: "Africa Map", href: "/africa", color: "#22d3ee" },
+                  { icon: "🌍", label: "Africa Hub", href: "/africa", color: "#22d3ee" },
                   { icon: "📡", label: "Intelligence", href: "/intelligence", color: "#a78bfa" },
-                  { icon: "🤖", label: "AI Agents", href: "/ai-agents", color: "#f472b6" },
-                  { icon: "🪙", label: "VBT Tokens", href: "/tokens", color: "#fbbf24" },
+                  { icon: "⚡", label: "Aggregator", href: "/aggregator", color: "#f472b6" },
                   { icon: "📊", label: "Trending", href: "/trending", color: "#34d399" },
-                  { icon: "🛠️", label: "Dev Hub", href: "/developer-hub", color: "#60a5fa" },
+                  { icon: "🏗️", label: "Inv. Readiness", href: "/doing-business", color: "#fb923c" },
+                  { icon: "🧑‍💻", label: "Contributors", href: "/haa", color: "#34d399" },
                 ].map((item) => (
                   <button
                     key={item.href}
@@ -571,7 +571,7 @@ export default function Dashboard() {
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { label: "Kenya Deep-Dive", desc: "The richest country intelligence module on the platform", icon: TrendingUp, href: "/kenya", color: "#22d3ee" },
-                { label: "Contributors", desc: "Ground-truth field signals from Africa contributors", icon: BarChart3, href: "/contributor", color: "#a78bfa" },
+                { label: "Investment Readiness", desc: "B-READY rankings, country comparator & FDI sector map for 20 AU economies", icon: BarChart3, href: "/doing-business", color: "#fb923c" },
                 { label: "Developer API", desc: "Embed Africa intelligence in your product", icon: Zap, href: "/developer-hub", color: "#34d399" },
               ].map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.1 }}>

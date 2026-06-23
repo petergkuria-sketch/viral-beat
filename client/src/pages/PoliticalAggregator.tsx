@@ -642,7 +642,7 @@ export default function PoliticalAggregator() {
           <Layers className="w-5 h-5 text-purple-400" />
           <div>
             <h1 className="text-base font-bold text-white">Political Aggregator</h1>
-            <p className="text-[11px] text-slate-500">PESTEL-classified political content across all 55 African nations</p>
+            <p className="text-[11px] text-slate-500">PESTEL+IR signal intelligence from RSS, social media, chambers, APEX bodies & field contributors across 55 nations</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
