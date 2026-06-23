@@ -14,6 +14,7 @@ const PESTEL = [
   { id: "technological", label: "T",    color: "#a78bfa", bg: "bg-violet-500/10 border-violet-500/25",      active: "bg-violet-500/20 border-violet-400" },
   { id: "environmental", label: "En",   color: "#6ee7b7", bg: "bg-teal-500/10 border-teal-500/25",          active: "bg-teal-500/20 border-teal-400" },
   { id: "legal",         label: "L",    color: "#fbbf24", bg: "bg-amber-500/10 border-amber-500/25",        active: "bg-amber-500/20 border-amber-400" },
+  { id: "investor",      label: "IR",   color: "#fb7185", bg: "bg-rose-500/10 border-rose-500/25",          active: "bg-rose-500/20 border-rose-400" },
 ] as const;
 type PestelId = typeof PESTEL[number]["id"];
 

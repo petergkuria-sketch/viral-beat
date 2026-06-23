@@ -10,7 +10,8 @@ const PESTEL = [
   { id: "social",        label: "S", full: "Social",       color: "#fb923c", bg: "bg-orange-500/15 border-orange-500/30",  active: "bg-orange-500/25 border-orange-400" },
   { id: "technological", label: "T", full: "Technological", color: "#a78bfa", bg: "bg-violet-500/15 border-violet-500/30", active: "bg-violet-500/25 border-violet-400" },
   { id: "environmental", label: "En", full: "Environmental", color: "#6ee7b7", bg: "bg-teal-500/15 border-teal-500/30",  active: "bg-teal-500/25 border-teal-400" },
-  { id: "legal",         label: "L", full: "Legal",        color: "#fbbf24", bg: "bg-amber-500/15 border-amber-500/30",  active: "bg-amber-500/25 border-amber-400" },
+  { id: "legal",         label: "L",  full: "Legal",             color: "#fbbf24", bg: "bg-amber-500/15 border-amber-500/30",  active: "bg-amber-500/25 border-amber-400" },
+  { id: "investor",      label: "IR", full: "Investor Readiness", color: "#fb7185", bg: "bg-rose-500/15 border-rose-500/30",    active: "bg-rose-500/25 border-rose-400" },
 ] as const;
 type PestelId = typeof PESTEL[number]["id"];
 
@@ -67,6 +68,16 @@ const TRENDING_DATA: Record<PestelId, { id: string; flag: string; name: string; 
     { id: "ng", flag: "🇳🇬", name: "Nigeria",      score: 6.3, delta: "down", summary: "Lake Chad basin shrinkage driving farmer-herder conflict signals in northeast" },
     { id: "za", flag: "🇿🇦", name: "South Africa", score: 5.7, delta: "up",   summary: "Water crisis: Cape Town dam levels at 35%; second Day Zero protocols drafted" },
     { id: "ma", flag: "🇲🇦", name: "Morocco",      score: 5.2, delta: "flat", summary: "Drought extends to fourth year; grain import dependency rising sharply" },
+  ],
+  investor: [
+    { id: "rw", flag: "🇷🇼", name: "Rwanda",        score: 9.1, delta: "up",   summary: "Kigali International Finance Centre launches; three new DFI mandates signed" },
+    { id: "ma", flag: "🇲🇦", name: "Morocco",        score: 8.6, delta: "up",   summary: "Casablanca Finance City ranked #1 Africa IFC; €4.2Bn renewable pipeline announced" },
+    { id: "ke", flag: "🇰🇪", name: "Kenya",          score: 7.9, delta: "up",   summary: "NSE launches green bond framework; IFC $300M private sector facility confirmed" },
+    { id: "eg", flag: "🇪🇬", name: "Egypt",          score: 7.4, delta: "flat", summary: "EGX delisting risk reduced after IMF tranche; Emirati sovereign wealth entry confirmed" },
+    { id: "gh", flag: "🇬🇭", name: "Ghana",          score: 6.8, delta: "up",   summary: "Eurobond market access restored post-debt restructuring; GSE volume up 34%" },
+    { id: "za", flag: "🇿🇦", name: "South Africa",   score: 6.3, delta: "down", summary: "Expropriation Act investor uncertainty; JSE foreign outflow $1.1Bn in Q2" },
+    { id: "sn", flag: "🇸🇳", name: "Senegal",        score: 6.0, delta: "up",   summary: "First LNG export triggers sovereign credit upgrade; FDI projection revised to $2.1Bn" },
+    { id: "ng", flag: "🇳🇬", name: "Nigeria",        score: 5.2, delta: "down", summary: "Capital controls easing stalled; foreign portfolio investor exit pressure continues" },
   ],
   legal: [
     { id: "ug", flag: "🇺🇬", name: "Uganda",       score: 8.8, delta: "up",   summary: "Anti-homosexuality law enforcement; international aid suspensions accelerating" },

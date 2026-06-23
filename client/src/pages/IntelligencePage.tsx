@@ -22,7 +22,7 @@ import { AnimatePresence, motion } from "framer-motion";
 // ── types ───────────────────────────────────────────────────────────────────
 
 type GeoLayer = "continental" | "regional" | "country";
-type PestelCategory = "political" | "economic" | "social" | "technological" | "environmental" | "legal";
+type PestelCategory = "political" | "economic" | "social" | "technological" | "environmental" | "legal" | "investor";
 
 interface Signal {
   id: string;
@@ -40,7 +40,8 @@ const PESTEL: { id: PestelCategory; label: string; color: string; bg: string }[]
   { id: "social",        label: "S", color: "text-green-400",  bg: "bg-green-500/15 border-green-500/30" },
   { id: "technological", label: "T", color: "text-blue-400",   bg: "bg-blue-500/15 border-blue-500/30" },
   { id: "environmental", label: "En", color: "text-emerald-400", bg: "bg-emerald-500/15 border-emerald-500/30" },
-  { id: "legal",         label: "L", color: "text-purple-400", bg: "bg-purple-500/15 border-purple-500/30" },
+  { id: "legal",         label: "L",  color: "text-purple-400", bg: "bg-purple-500/15 border-purple-500/30" },
+  { id: "investor",      label: "IR", color: "text-rose-400",   bg: "bg-rose-500/15 border-rose-500/30" },
 ];
 
 const AFRICA_REGIONS = [
@@ -163,7 +164,7 @@ export default function IntelligencePage() {
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [generatingSignals, setGeneratingSignals] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<PestelCategory>(
-    (_urlDimension && ["political","economic","social","technological","environmental","legal"].includes(_urlDimension))
+    (_urlDimension && ["political","economic","social","technological","environmental","legal","investor"].includes(_urlDimension))
       ? _urlDimension
       : "political"
   );
@@ -268,7 +269,8 @@ export default function IntelligencePage() {
     if (/\b(health|education|protest|youth|migr|communit|welfare|employ|unemploy|poverty|food|water access|school|hospital|social|gender|women|refugee|displace)\b/.test(t)) return "social";
     if (/\b(ai|artificial intelligence|digital|technolog|cyber|internet|mobile|data|satellite|innovation|startup|software|platform|drone|5g|broadband)\b/.test(t)) return "technological";
     if (/\b(flood|drought|climate|water|land|forest|disaster|pollution|energy|solar|wind|renewable|carbon|emissions|rainfall|crop|harvest|famine|wildfire)\b/.test(t)) return "environmental";
-    if (/\b(court|law|constitution|parliament|bill|amendment|judicial|prosecution|sanction|treaty|legislation|verdict|arrest|human rights|icc|tribunal)\b/.test(t)) return "legal";
+    if (/\b(court|law|constitution|bill|amendment|judicial|prosecution|legislation|verdict|arrest|human rights|tribunal)\b/.test(t)) return "legal";
+    if (/\b(invest|fdi|foreign direct|ease of doing business|investor|ipo|private equity|venture capital|capital market|stock exchange|bond|yield|rating|moody|fitch|s&p|credit rating|diaspora bond|infrastructure fund|development finance|dfi|ifc|adb|afdb|sovereign wealth|public private partnership|ppp|concession|privatis|privatiz|doing business|business environment|regulatory reform|investment climate|free zone|sez|special economic)\b/.test(t)) return "investor";
     return "political";
   };
 
@@ -979,7 +981,7 @@ export default function IntelligencePage() {
               >
                 <span className="font-black">{p.label}</span>
                 <span className={`text-[9px] hidden sm:inline font-normal ${selectedCategory === p.id ? "opacity-80" : "opacity-50"}`}>
-                  {p.id === "political" ? "Political" : p.id === "economic" ? "Economic" : p.id === "social" ? "Social" : p.id === "technological" ? "Tech" : p.id === "environmental" ? "Environ." : "Legal"}
+                  {p.id === "political" ? "Political" : p.id === "economic" ? "Economic" : p.id === "social" ? "Social" : p.id === "technological" ? "Tech" : p.id === "environmental" ? "Environ." : p.id === "legal" ? "Legal" : "Inv. Readiness"}
                 </span>
               </button>
             ))}

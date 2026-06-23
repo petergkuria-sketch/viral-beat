@@ -202,6 +202,7 @@ function classifyPestel(text: string): string {
   if (/tech|digital|ai|internet|mobile|fintech|cyber/.test(t)) return "technological";
   if (/environment|climate|drought|flood|energy|renewable/.test(t)) return "environmental";
   if (/law|court|legal|regulation|sanction|constitution/.test(t)) return "legal";
+  if (/invest|fdi|stock exchange|bond|credit rating|private equity|venture capital|doing business|investment climate|free zone|sez|dfi|ifc|afdb/.test(t)) return "investor";
   return "political";
 }
 
@@ -331,7 +332,7 @@ function DetailPanel({ country, irs, dbAvg }: DetailPanelProps) {
     return counts;
   }, [newsQuery.data]);
 
-  const pestelDims = ["political", "economic", "social", "technological", "environmental", "legal"];
+  const pestelDims = ["political", "economic", "social", "technological", "environmental", "legal", "investor"];
   const pestelColors: Record<string, string> = {
     political: "bg-sky-500/20 text-sky-300 border-sky-500/30",
     economic: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
