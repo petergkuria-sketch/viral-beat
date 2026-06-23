@@ -354,7 +354,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-lg">
-                Political briefings, live civic movement tracking, and stability scores for all <strong className="text-white">55 African nations</strong> — powered by people on the ground, delivered in real time.
+                Political briefings, civic movement tracking, stability scores, and Investment Readiness intelligence for all <strong className="text-white">55 African nations</strong> — powered by people on the ground, delivered in real time.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3">
@@ -367,7 +367,7 @@ export default function LandingPage() {
               </div>
 
               <div className="flex flex-wrap gap-8 pt-2">
-                {[["55", "Nations Covered"], ["6", "African Regions"], ["Live", "News Feeds"], ["People", "Verified Signal"]].map(([val, label]) => (
+                {[["55", "Nations Covered"], ["6", "African Regions"], ["PESTEL+IR", "7 Dimensions"], ["People", "Verified Signal"]].map(([val, label]) => (
                   <div key={label} className="flex flex-col">
                     <span className="text-2xl font-black text-cyan-400">{val}</span>
                     <span className="text-xs text-gray-500">{label}</span>
@@ -430,7 +430,7 @@ export default function LandingPage() {
       {/* ── SOCIAL PROOF BAR ────────────────────────────────────────────────── */}
       <div className="border-y border-white/5 bg-white/[0.02] py-4 px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-8 text-xs text-gray-500 font-medium uppercase tracking-wider">
-          {[["55", "Nations"], ["6", "Regions"], ["Real-Time", "News Feeds"], ["People", "Verified Signal"], ["Open", "Developer API"]].map(([val, label]) => (
+          {[["55", "Nations"], ["6", "Regions"], ["PESTEL+IR", "7 Dimensions"], ["People", "Verified Signal"], ["Open", "Developer API"]].map(([val, label]) => (
             <div key={label} className="flex items-center gap-2">
               <span className="text-cyan-400 font-black">{val}</span>
               <span>{label}</span>
