@@ -214,19 +214,32 @@ export default function PoliticalAggregator() {
   );
 
   // Convert live trends into AggItem shape
-  const liveItems: AggItem[] = (liveData?.trends ?? []).slice(0, 4).map((t: any, i: number) => ({
-    id: `live-${i}`,
-    headline: t.topic ?? t.text?.slice(0, 90) ?? "Live signal",
-    summary: t.summary ?? t.text ?? "",
-    source: t.source ?? "Live signal",
-    sourceType: "social" as SourceType,
-    pestel: pestelFilter === "all" ? "political" : pestelFilter,
-    country: "Africa",
-    countryFlag: "🌍",
-    region: "all",
-    publishedAt: "live",
-    confidence: "single-source" as const,
-  }));
+  // t.source is an object {username, name, followers…} — extract the name string
+  const liveItems: AggItem[] = (liveData?.trends ?? []).slice(0, 4).map((t: any, i: number) => {
+    const sourceStr = typeof t.source === "object" && t.source !== null
+      ? (t.source.name ?? t.source.username ?? "Live signal")
+      : (typeof t.source === "string" ? t.source : "Live signal");
+    // Use the best available text: topic headline first, else first tweet text
+    const headline = (typeof t.topic === "string" && t.topic.trim())
+      ? t.topic.trim()
+      : (t.tweets?.[0]?.text?.slice(0, 100) ?? "Live political signal");
+    const summary = t.tweets?.[0]?.text
+      ? t.tweets[0].text.slice(0, 220)
+      : "";
+    return {
+      id: `live-${i}`,
+      headline,
+      summary,
+      source: sourceStr,
+      sourceType: "social" as SourceType,
+      pestel: pestelFilter === "all" ? "political" : pestelFilter,
+      country: sourceStr,
+      countryFlag: "🌍",
+      region: "all",
+      publishedAt: "live",
+      confidence: "single-source" as const,
+    };
+  });
 
   // Merge and filter
   const allItems = [...liveItems, ...SEED_ITEMS];
