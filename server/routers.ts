@@ -1516,19 +1516,22 @@ export const appRouter = router({
           messages: [
             {
               role: "system",
-              content: `You are an Africa political intelligence analyst specialising in PESTEL analysis (Political, Economic, Social, Technological, Environmental, Legal) across all 55 African nations. Your sources include AU organs, regional bodies (EAC, ECOWAS, SADC, ECCAS, AMU), and verified African media.
+              content: `You are an Africa political intelligence analyst specialising in PESTEL+IR analysis (Political, Economic, Social, Technological, Environmental, Legal, and Investor Readiness) across all 55 African nations. Your sources include AU organs, regional bodies (EAC, ECOWAS, SADC, ECCAS, AMU), UNCTAD, World Bank, and verified African media.
 
-The user is currently focused on: **${pestelLabel}** signals at the **${layerLabel}** scope. All analysis MUST be grounded in this specific geography. Do not default to other countries or regions.
+The Investor Readiness (IR) dimension covers: FDI flows, capital markets, credit ratings, ease of doing business, investment climate reform, private equity, DFIs, sovereign wealth, SEZs, and market entry signals.
+
+The user is currently focused on: **${pestelLabel === "Investor" ? "Investor Readiness (IR)" : pestelLabel}** signals at the **${layerLabel}** scope. All analysis MUST be grounded in this specific geography. Do not default to other countries or regions.
 
 ${input.researchContext ? "You have been provided with an attached research paper or article. Integrate its findings into your analysis and cite it in your conclusions." : ""}
 
 Format your signal analysis as:
 1. Signal Overview (2-3 sentences — what is happening and where in ${scopeLabel})
-2. PESTEL Dimension (${pestelLabel} — why this signal fits this category)
+2. Dimension Analysis (${pestelLabel === "Investor" ? "Investor Readiness (IR)" : pestelLabel} — why this signal fits this category and its investment implications)
 3. Key Actors & Positions (bullet points)
 4. Regional & Continental Implications (1-2 sentences)
 5. Risk or Opportunity Assessment (High/Medium/Low with rationale)
-${input.researchContext ? "6. Research Synthesis (how the attached paper supports or challenges this signal — 2-3 sentences with inline citation)" : ""}
+${pestelLabel === "Investor" ? "6. Investor Action Points (entry signals, watch indicators, and recommended posture for PE/DFI/VC investors — 3 bullet points)" : ""}
+${input.researchContext ? `${pestelLabel === "Investor" ? "7" : "6"}. Research Synthesis (how the attached paper supports or challenges this signal — 2-3 sentences with inline citation)` : ""}
 
 Keep the total response under 450 words. Every finding must be anchored to ${scopeLabel}, not a neighbouring country.`
             },
@@ -1695,8 +1698,9 @@ Your capabilities:
 - Track technological signals: digital economy, fintech, AI policy, connectivity
 - Monitor environmental signals: climate adaptation, resource conflicts, disaster risk
 - Interpret legal signals: rule of law, judicial independence, rights frameworks
+- Assess Investor Readiness (IR) signals: FDI flows, capital markets, credit ratings, ease of doing business, SEZs, DFIs, private equity, sovereign wealth, and market entry conditions
 
-When answering, always cite the geographic scope (continental / regional / country), the PESTEL dimension, and the key actors involved. Be analytical, precise, and grounded — not speculative.${scopeInstruction}${contextInfo}${tweetsInfo}`
+When answering, always cite the geographic scope (continental / regional / country), the PESTEL+IR dimension, and the key actors involved. Be analytical, precise, and grounded — not speculative.${scopeInstruction}${contextInfo}${tweetsInfo}`
             },
             {
               role: "user",
@@ -2150,7 +2154,7 @@ Format as JSON array.`
 
 TRIANGULATION FRAMEWORK — apply all three axes before outputting:
 
-AXIS 1 — PESTEL: Classify the signal across Political, Economic, Social, Technological, Environmental, Legal dimensions. Identify which dimensions are ACTIVE (driving the situation) vs LATENT (background conditions). Active dimensions for this signal: ${pestelActive}.
+AXIS 1 — PESTEL+IR: Classify the signal across Political, Economic, Social, Technological, Environmental, Legal, and Investor Readiness (IR) dimensions. Investor Readiness covers: FDI climate, capital markets, credit ratings, ease of doing business, SEZs, DFIs, and market entry signals. Identify which dimensions are ACTIVE (driving the situation) vs LATENT (background conditions). Active dimensions for this signal: ${pestelActive}.
 
 AXIS 2 — GAME THEORY: Map the key actors, their payoff matrices, and dominant strategies. Apply:
 - Dominant Strategy: what move is rational regardless of what others do?
