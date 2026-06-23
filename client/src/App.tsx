@@ -31,11 +31,12 @@ const DeveloperHub = lazy(() => import("./pages/DeveloperHub"));
 const DeveloperAgent = lazy(() => import("./pages/DeveloperAgent"));
 const ThreadDetail = lazy(() => import("./pages/ThreadDetail"));
 const TokenDashboard = lazy(() => import("./pages/TokenDashboard"));
-const Marketplace = lazy(() => import("./pages/Marketplace"));
+const PestelTrending = lazy(() => import("./pages/PestelTrending"));
+const PoliticalAggregator = lazy(() => import("./pages/PoliticalAggregator"));
 const PremiumAnalytics = lazy(() => import("./pages/PremiumAnalytics"));
 const CreatorVerification = lazy(() => import("./pages/CreatorVerification"));
 const HumansAsAgents = lazy(() => import("./pages/HumansAsAgents"));
-const HaaLeaderboard = lazy(() => import("./pages/HaaLeaderboard"));
+// HaaLeaderboard replaced by PestelTrending (imported above)
 const AdvancedFeatures = lazy(() => import("./pages/AdvancedFeatures").then(m => ({ default: m.AdvancedFeatures })));
 const MigratePage = lazy(() => import("./pages/MigratePage"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
@@ -126,14 +127,17 @@ function Router() {
     { path: "/developer-hub/agent", component: () => <RedirectTo path="/developer-hub" /> },
     { path: "/developer-hub/thread/:threadId", component: ThreadDetail },
     { path: "/tokens", component: TokenDashboard },
-    { path: "/marketplace", component: Marketplace },
+    { path: "/credits", component: TokenDashboard },
+    { path: "/marketplace", component: () => <RedirectTo path="/intelligence" /> },
     { path: "/premium-analytics", component: () => <RedirectTo path="/intelligence" /> },
     { path: "/creator-verification", component: CreatorVerification },
     { path: "/haa", component: HumansAsAgents },
     { path: "/advanced-features", component: AdvancedFeatures },
     { path: "/migrate", component: MigratePage },
-    { path: "/haa/leaderboard", component: HaaLeaderboard },
-    { path: "/viralmind", component: () => <RedirectTo path="/intelligence" /> },
+    { path: "/haa/leaderboard", component: () => <RedirectTo path="/trending" /> },
+    { path: "/trending", component: PestelTrending },
+    { path: "/aggregator", component: PoliticalAggregator },
+    { path: "/viralmind", component: PoliticalAggregator },
     { path: "/newsletter", component: NewsletterSettings },
     // Generic country intelligence routes
     { path: "/country/:code", component: CountryDashboard },

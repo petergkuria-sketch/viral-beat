@@ -18,7 +18,7 @@ import {
   BarChart3, BadgeCheck, Users, Sparkles, ArrowRightLeft, Crown,
   MessageSquare, Mail, MapPin, Newspaper, AlertTriangle, Globe,
   Scale, Building2, Landmark, Vote, Radio, FileText, ChevronDown,
-  ChevronRight, Home, UserCircle, Menu, X, PanelLeft,
+  ChevronRight, Home, UserCircle, Menu, X, PanelLeft, Layers, BarChart2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -76,29 +76,28 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    id: "creator",
-    label: "Creator Tools",
+    id: "intelligence",
+    label: "Intelligence Tools",
     icon: TrendingUp,
-    accent: "#f472b6",
+    accent: "#38bdf8",
     items: [
-      { icon: Sparkles,      label: "Intelligence",      path: "/intelligence" },
-      { icon: Heart,         label: "Favorites",         path: "/favorites" },
-      { icon: Users,         label: "Humans As Agents",  path: "/haa" },
-      { icon: Crown,         label: "HAA Leaderboard",   path: "/haa/leaderboard" },
-      { icon: Mail,          label: "Newsletter",        path: "/newsletter" },
-      { icon: Bot,           label: "AI Agents",         path: "/ai-agents" },
-      { icon: Code2,         label: "Widget Builder",    path: "/widget-builder" },
+      { icon: Sparkles,   label: "Signal Monitor",        path: "/intelligence" },
+      { icon: Layers,     label: "Political Aggregator",  path: "/aggregator" },
+      { icon: BarChart2,  label: "PESTEL Trending",       path: "/trending" },
+      { icon: Users,      label: "Field Signals",         path: "/haa" },
+      { icon: Heart,      label: "Favorites",             path: "/favorites" },
+      { icon: Mail,       label: "Newsletter",            path: "/newsletter" },
+      { icon: Bot,        label: "AI Agents",             path: "/ai-agents" },
+      { icon: Code2,      label: "Widget Builder",        path: "/widget-builder" },
     ],
   },
   {
-    id: "economy",
-    label: "Token Economy",
+    id: "credits",
+    label: "Contributions",
     icon: Coins,
-    accent: "#fbbf24",
+    accent: "#34d399",
     items: [
-      { icon: Coins,          label: "Tokens",           path: "/tokens" },
-      { icon: ShoppingCart,   label: "Marketplace",      path: "/marketplace" },
-      { icon: ArrowRightLeft, label: "Migrate",          path: "/migrate" },
+      { icon: Coins, label: "My Credits", path: "/credits" },
     ],
   },
   {
@@ -309,8 +308,8 @@ function UserMenu({ user, logout, setLocation, compact }: {
         <DropdownMenuItem onClick={() => setLocation("/settings")} className="cursor-pointer text-slate-300 focus:text-white focus:bg-white/10">
           <UserCircle className="mr-2 h-4 w-4" /> Profile & Settings
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setLocation("/tokens")} className="cursor-pointer text-slate-300 focus:text-white focus:bg-white/10">
-          <Coins className="mr-2 h-4 w-4" /> My Tokens
+        <DropdownMenuItem onClick={() => setLocation("/credits")} className="cursor-pointer text-slate-300 focus:text-white focus:bg-white/10">
+          <Coins className="mr-2 h-4 w-4" /> My Credits
         </DropdownMenuItem>
         {user?.role === "admin" && (
           <>
