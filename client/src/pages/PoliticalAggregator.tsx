@@ -1,7 +1,7 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Sparkles, ChevronRight, Globe, ExternalLink, Layers, Filter, AlertCircle, RefreshCw, ArrowUpRight } from "lucide-react";
+import { Loader2, Globe, ExternalLink, Layers, AlertCircle, RefreshCw, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -29,13 +29,17 @@ const REGIONS = [
 ];
 
 // ── Source types ──────────────────────────────────────────────────────────────
-type SourceType = "rss" | "field" | "social" | "parliament" | "research";
+type SourceType = "rss" | "field" | "social" | "parliament" | "research" | "x" | "linkedin" | "chamber" | "apex";
 const SOURCE_META: Record<SourceType, { label: string; color: string; icon: string }> = {
-  rss:        { label: "News",       color: "#38bdf8", icon: "📰" },
-  field:      { label: "Field",      color: "#34d399", icon: "🏴" },
-  social:     { label: "Social",     color: "#a78bfa", icon: "📡" },
-  parliament: { label: "Parliament", color: "#fbbf24", icon: "🏛️" },
-  research:   { label: "Research",   color: "#fb923c", icon: "📄" },
+  rss:        { label: "News",              color: "#38bdf8", icon: "📰" },
+  field:      { label: "Field Signal",      color: "#34d399", icon: "🏴" },
+  social:     { label: "Social",            color: "#a78bfa", icon: "📡" },
+  parliament: { label: "Parliament",        color: "#fbbf24", icon: "🏛️" },
+  research:   { label: "Research",          color: "#fb923c", icon: "📄" },
+  x:          { label: "𝕏 / Twitter",      color: "#e2e8f0", icon: "𝕏" },
+  linkedin:   { label: "LinkedIn",          color: "#0ea5e9", icon: "🔗" },
+  chamber:    { label: "Business Chamber",  color: "#a78bfa", icon: "🏢" },
+  apex:       { label: "APEX Body",         color: "#f472b6", icon: "⚖️" },
 };
 
 // ── Content item shape ────────────────────────────────────────────────────────
@@ -312,6 +316,201 @@ const SEED_ITEMS: AggItem[] = [
     clusterSize: 4,
   },
 
+  // ── 𝕏 / Twitter threads ─────────────────────────────────────────────────────
+  {
+    id: "agg-x1",
+    headline: "@CBNigeria governor confirms emergency MPC sitting — Naira defense or managed float?",
+    summary: "Thread by @EzeUgochukwu_Eco: 'Breaking: CBN Gov confirms emergency MPC. Market reading this as last-ditch Naira defense. But my read — they're preparing a managed float corridor. Watch the band announcement.' 4.2K likes, 1.8K RTs, ratio suggests market alignment.",
+    source: "𝕏 @EzeUgochukwu_Eco",
+    sourceType: "x",
+    pestel: "economic",
+    country: "Nigeria",
+    countryFlag: "🇳🇬",
+    region: "west",
+    publishedAt: "45m ago",
+    confidence: "single-source",
+    clusterSize: 3,
+  },
+  {
+    id: "agg-x2",
+    headline: "Kenya Gen-Z civic network thread: 'We are registering 47 county chapters this week'",
+    summary: "@BobbyAllan_KE thread gaining traction: 'The movement is not dead. We filed papers in Mombasa, Kisumu, Nakuru and Eldoret today. This is not a political party. We are a pressure group. #OccupyParliament2 is a myth — we're building institutions.' 6.8K likes.",
+    source: "𝕏 @BobbyAllan_KE",
+    sourceType: "x",
+    pestel: "political",
+    country: "Kenya",
+    countryFlag: "🇰🇪",
+    region: "east",
+    publishedAt: "2h ago",
+    confidence: "single-source",
+    crossBorder: ["🇺🇬", "🇹🇿"],
+    clusterSize: 4,
+  },
+  {
+    id: "agg-x3",
+    headline: "South Africa Expropriation Act: JSE REITs sector selling off — live market thread",
+    summary: "@SAPropertyAnalyst: 'REITs down 4.2% intraday. Growthpoint, Redefine, Hyprop all in red. Markets pricing in constitutional uncertainty before courts rule. DM me for the legal timeline breakdown.' 2.1K RTs, Bloomberg SA desk is watching this thread.",
+    source: "𝕏 @SAPropertyAnalyst",
+    sourceType: "x",
+    pestel: "investor",
+    country: "South Africa",
+    countryFlag: "🇿🇦",
+    region: "south",
+    publishedAt: "1h ago",
+    confidence: "single-source",
+    clusterSize: 6,
+  },
+
+  // ── LinkedIn — executives & policy makers ────────────────────────────────────
+  {
+    id: "agg-li1",
+    headline: "Rwanda Finance Minister: 'Kigali IFC mandates signal Africa's capital market maturity'",
+    summary: "Hon. Uzziel Ndagijimana (LinkedIn post, 3.4K reactions): 'Three new DFI mandates signed at KIFC this week. This is not charity capital — it is commercial-grade investment seeking African returns. Rwanda's regulatory clarity is the product, not the pitch.'",
+    source: "LinkedIn — Min. Ndagijimana",
+    sourceType: "linkedin",
+    pestel: "investor",
+    country: "Rwanda",
+    countryFlag: "🇷🇼",
+    region: "east",
+    publishedAt: "3h ago",
+    confidence: "corroborated",
+    clusterSize: 4,
+  },
+  {
+    id: "agg-li2",
+    headline: "Morocco CFC CEO: 'Casablanca is Africa's gateway — 47 multinationals relocated HQ in 2024'",
+    summary: "Lamia Merzouki (CFC CEO, LinkedIn, 5.1K reactions): 'Forty-seven multinational African HQ relocations to Casablanca in 2024 alone. The infrastructure, the talent, and the regulatory framework are in place. The story is no longer a promise — it is a performance record.' Engagement dominated by PE and DFI professionals.",
+    source: "LinkedIn — L. Merzouki, CFC",
+    sourceType: "linkedin",
+    pestel: "investor",
+    country: "Morocco",
+    countryFlag: "🇲🇦",
+    region: "north",
+    publishedAt: "5h ago",
+    confidence: "corroborated",
+    clusterSize: 5,
+  },
+  {
+    id: "agg-li3",
+    headline: "Ethiopian investment board director: 'Manufacturing FDI up 22% — open for business'",
+    summary: "Abebe Abebe (EIC LinkedIn post): 'Q1 2025 data confirms 22% YoY growth in manufacturing FDI commitments. The industrial parks are running at 78% capacity. We are actively seeking investors in textiles, agro-processing and pharma. Inbox open.' 2.8K reactions, several PE fund comments.",
+    source: "LinkedIn — Ethiopian Investment Commission",
+    sourceType: "linkedin",
+    pestel: "investor",
+    country: "Ethiopia",
+    countryFlag: "🇪🇹",
+    region: "east",
+    publishedAt: "8h ago",
+    confidence: "corroborated",
+    clusterSize: 3,
+  },
+
+  // ── Business Chambers ─────────────────────────────────────────────────────────
+  {
+    id: "agg-ch1",
+    headline: "KENFAP: Fertiliser shortage threatening Kenya's next harvest — emergency brief to Cabinet",
+    summary: "Kenya National Federation of Agricultural Producers submitted an emergency Cabinet memo warning that fertiliser stock levels cover only 40% of planting season needs. KENFAP cites import duty structures and port delays as root causes. Farmers in Rift Valley beginning dry planting with no inputs.",
+    source: "KENFAP (Kenya)",
+    sourceType: "chamber",
+    pestel: "economic",
+    country: "Kenya",
+    countryFlag: "🇰🇪",
+    region: "east",
+    publishedAt: "6h ago",
+    confidence: "corroborated",
+    crossBorder: ["🇺🇬", "🇹🇿"],
+    clusterSize: 4,
+  },
+  {
+    id: "agg-ch2",
+    headline: "NACCIMA urges CBN: 'FX restrictions destroying manufacturer confidence'",
+    summary: "Nigeria Association of Chambers of Commerce, Industry, Mines and Agriculture issued a position paper citing a survey showing 68% of manufacturers considering relocating production outside Nigeria due to FX allocation unpredictability. Paper formally submitted to CBN governor's office.",
+    source: "NACCIMA (Nigeria)",
+    sourceType: "chamber",
+    pestel: "investor",
+    country: "Nigeria",
+    countryFlag: "🇳🇬",
+    region: "west",
+    publishedAt: "4h ago",
+    confidence: "corroborated",
+    clusterSize: 5,
+  },
+  {
+    id: "agg-ch3",
+    headline: "BCCI Botswana: Mining diversification strategy needs policy signal from government",
+    summary: "Botswana Confederation of Commerce, Industry and Manpower published its annual policy request paper calling for a formal government timeline on Special Economic Zone legislation, revised mining royalty structures, and a green hydrogen investment framework before Q3 budget.",
+    source: "BCCI Botswana",
+    sourceType: "chamber",
+    pestel: "investor",
+    country: "Botswana",
+    countryFlag: "🇧🇼",
+    region: "south",
+    publishedAt: "12h ago",
+    confidence: "corroborated",
+    clusterSize: 3,
+  },
+
+  // ── APEX Bodies ───────────────────────────────────────────────────────────────
+  {
+    id: "agg-ap1",
+    headline: "AU Commission: AfCFTA digital trade protocol enters final ratification round",
+    summary: "The African Union Commission announced that the AfCFTA Digital Trade Protocol has secured 38 of the required 44 ratifications. The Commission Secretary-General confirmed a target of full entry into force by Q4 2025. Protocol covers e-commerce, data flows and digital payment systems.",
+    source: "AU Commission — AfCFTA Secretariat",
+    sourceType: "apex",
+    pestel: "economic",
+    country: "Pan-Africa",
+    countryFlag: "🌍",
+    region: "all",
+    publishedAt: "10h ago",
+    confidence: "corroborated",
+    clusterSize: 8,
+  },
+  {
+    id: "agg-ap2",
+    headline: "ECOWAS condemns coup in Guinea-Bissau; activates standby force protocols",
+    summary: "The Economic Community of West African States Emergency Summit issued a 72-hour ultimatum to the military council in Guinea-Bissau. ECOWAS standby force protocols have been activated. Nigeria and Senegal confirmed troop readiness. AU PSC to convene parallel session within 24 hours.",
+    source: "ECOWAS Commission",
+    sourceType: "apex",
+    pestel: "political",
+    country: "Guinea-Bissau",
+    countryFlag: "🇬🇼",
+    region: "west",
+    publishedAt: "2h ago",
+    confidence: "corroborated",
+    crossBorder: ["🇸🇳", "🇬🇳", "🇬🇲"],
+    clusterSize: 7,
+  },
+  {
+    id: "agg-ap3",
+    headline: "EAC Secretariat: East African common market passport enters pilot phase in 3 countries",
+    summary: "The East African Community Secretariat announced the pilot launch of the common market biometric passport in Kenya, Rwanda and Uganda. Tanzania and Burundi will join in Phase 2. The passport enables visa-free movement and common market employment rights across all EAC member states.",
+    source: "EAC Secretariat",
+    sourceType: "apex",
+    pestel: "social",
+    country: "East Africa",
+    countryFlag: "🌍",
+    region: "east",
+    publishedAt: "15h ago",
+    confidence: "corroborated",
+    crossBorder: ["🇰🇪", "🇷🇼", "🇺🇬"],
+    clusterSize: 6,
+  },
+  {
+    id: "agg-ap4",
+    headline: "SADC Tribunal: Zimbabwe land reform compensation ruling sets continental precedent",
+    summary: "The reconstituted SADC Tribunal issued a landmark ruling requiring Zimbabwe to pay compensation to former commercial farmers, setting a precedent for state-investor disputes across the region. Legal scholars note the ruling reactivates the Tribunal's advisory jurisdiction after 13 years of dormancy.",
+    source: "SADC Tribunal",
+    sourceType: "apex",
+    pestel: "legal",
+    country: "Zimbabwe",
+    countryFlag: "🇿🇼",
+    region: "south",
+    publishedAt: "20h ago",
+    confidence: "corroborated",
+    crossBorder: ["🇿🇦", "🇧🇼", "🇲🇿"],
+    clusterSize: 5,
+  },
+
   // ── Central Africa ────────────────────────────────────────────────────────────
   {
     id: "agg-c1",
@@ -363,7 +562,7 @@ function PestelPill({ id }: { id: string }) {
       className="text-[9px] font-bold px-1.5 py-0.5 rounded border"
       style={{ color: p.color, borderColor: p.color + "50", background: p.color + "15" }}
     >
-      {p.id.toUpperCase().slice(0, 3)}
+      {p.id === "investor" ? "IR" : p.id.toUpperCase().slice(0, 3)}
     </span>
   );
 }
@@ -373,6 +572,7 @@ export default function PoliticalAggregator() {
   const [, navigate] = useLocation();
   const [pestelFilter, setPestelFilter] = useState<PestelId>("all");
   const [regionFilter, setRegionFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState<Set<SourceType>>(new Set());
   const [viewMode, setViewMode] = useState<"feed" | "cluster">("feed");
   const [pushingId, setPushingId] = useState<string | null>(null);
 
@@ -415,7 +615,8 @@ export default function PoliticalAggregator() {
   const filtered = allItems.filter(item => {
     const pestelOk = pestelFilter === "all" || item.pestel === pestelFilter;
     const regionOk = regionFilter === "all" || item.region === regionFilter;
-    return pestelOk && regionOk;
+    const sourceOk = sourceFilter.size === 0 || sourceFilter.has(item.sourceType);
+    return pestelOk && regionOk && sourceOk;
   });
 
   // Cluster view: group by clusterSize > 1
@@ -511,16 +712,33 @@ export default function PoliticalAggregator() {
             </div>
           </div>
 
-          {/* Source legend */}
+          {/* Source filter */}
           <div>
-            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-2">Sources</p>
-            <div className="space-y-1.5">
-              {Object.entries(SOURCE_META).map(([key, meta]) => (
-                <div key={key} className="flex items-center gap-1.5">
-                  <span className="text-sm">{meta.icon}</span>
-                  <span className="text-[10px] text-slate-500">{meta.label}</span>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Sources</p>
+              {sourceFilter.size > 0 && (
+                <button type="button" onClick={() => setSourceFilter(new Set())} className="text-[9px] text-purple-400 hover:text-purple-300">all</button>
+              )}
+            </div>
+            <div className="space-y-1">
+              {(Object.entries(SOURCE_META) as [SourceType, typeof SOURCE_META[SourceType]][]).map(([key, meta]) => {
+                const active = sourceFilter.has(key);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => {
+                      const next = new Set(sourceFilter);
+                      if (active) next.delete(key); else next.add(key);
+                      setSourceFilter(next);
+                    }}
+                    className={`w-full text-left px-2 py-1.5 rounded-lg border text-[10px] flex items-center gap-1.5 transition-all ${active ? "border-purple-500/40 bg-purple-500/10 text-slate-200" : "border-slate-700/40 text-slate-500 hover:text-slate-300"}`}
+                  >
+                    <span className="text-sm leading-none">{meta.icon}</span>
+                    <span className="font-medium">{meta.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </aside>
@@ -539,7 +757,7 @@ export default function PoliticalAggregator() {
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <AlertCircle className="w-8 h-8 text-slate-600 mb-3" />
               <p className="text-sm text-slate-400">No signals match this filter</p>
-              <button className="mt-3 text-xs text-purple-400 underline" onClick={() => { setPestelFilter("all"); setRegionFilter("all"); }}>Clear filters</button>
+              <button className="mt-3 text-xs text-purple-400 underline" onClick={() => { setPestelFilter("all"); setRegionFilter("all"); setSourceFilter(new Set()); }}>Clear filters</button>
             </div>
           )}
 
