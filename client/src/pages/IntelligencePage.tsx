@@ -59,6 +59,22 @@ const AFRICA_COUNTRIES = [
   { id: "et", label: "Ethiopia" },
   { id: "eg", label: "Egypt" },
   { id: "sn", label: "Senegal" },
+  { id: "ug", label: "Uganda" },
+  { id: "rw", label: "Rwanda" },
+  { id: "ci", label: "Côte d'Ivoire" },
+  { id: "cm", label: "Cameroon" },
+  { id: "ao", label: "Angola" },
+  { id: "mz", label: "Mozambique" },
+  { id: "zm", label: "Zambia" },
+  { id: "zw", label: "Zimbabwe" },
+  { id: "tz", label: "Tanzania" },
+  { id: "sd", label: "Sudan" },
+  { id: "ss", label: "South Sudan" },
+  { id: "so", label: "Somalia" },
+  { id: "dz", label: "Algeria" },
+  { id: "ma", label: "Morocco" },
+  { id: "tn", label: "Tunisia" },
+  { id: "ly", label: "Libya" },
 ];
 
 // ── component ───────────────────────────────────────────────────────────────
@@ -82,6 +98,10 @@ export default function IntelligencePage() {
   const [geoLayer, setGeoLayer] = useState<GeoLayer>("continental");
   const [selectedRegion, setSelectedRegion] = useState("east-africa");
   const [selectedCountry, setSelectedCountry] = useState("ke");
+  // custom / forced country (free-text, not constrained to AFRICA_COUNTRIES)
+  const [countrySearch, setCountrySearch] = useState("");
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
+  const [generatingSignals, setGeneratingSignals] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<PestelCategory>("political");
 
   // ── signal selection ──
@@ -144,6 +164,11 @@ export default function IntelligencePage() {
     geoLayer === "continental" ? "au" :
     geoLayer === "regional"    ? selectedRegion :
                                  selectedCountry;
+
+  // Human-readable label for the active country (handles custom free-text entries)
+  const activeCountryLabel =
+    AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label ??
+    selectedCountry.toUpperCase();
 
   const queryCategory = `${geoLayer}:${scopeKey}:${selectedCategory}`;
 
@@ -408,6 +433,61 @@ export default function IntelligencePage() {
     setAddSignalOpen(false);
   };
 
+  // ── AI signal generation for forced countries ────────────────────────────
+  const generateSignalsMutation = trpc.xTrends.summarizeTrends.useMutation();
+
+  const handleGenerateSignals = async () => {
+    setGeneratingSignals(true);
+    const countryLabel = activeCountryLabel;
+    const pestelLabel = selectedCategory;
+    generateSignalsMutation.mutate(
+      {
+        topic: `${countryLabel} ${pestelLabel} intelligence signals`,
+        geoScope: scopeKey,
+        geoLayer: "country",
+        pestelCategory: selectedCategory,
+        researchContext:
+          `You are ViralBeat's Africa political intelligence AI. Generate exactly 5 distinct, current, high-signal intelligence signals for ${countryLabel} under the PESTEL dimension: ${pestelLabel.toUpperCase()}.\n\nFormat your response as a JSON array of objects. Each object must have:\n- "topic": a concise signal headline (max 12 words)\n- "summary": 2-sentence intelligence brief with actor names and implications\n- "category": the PESTEL category (use "${pestelLabel}")\n\nRespond ONLY with valid JSON array. Example:\n[{"topic": "Signal headline here", "summary": "Brief here.", "category": "${pestelLabel}"}]`,
+      },
+      {
+        onSuccess: (data) => {
+          setGeneratingSignals(false);
+          const raw = typeof data?.summary === "string" ? data.summary : "";
+          // Extract JSON array from the LLM response
+          try {
+            const match = raw.match(/\[[\s\S]*\]/);
+            if (!match) throw new Error("No JSON array found");
+            const parsed: { topic: string; summary?: string; category?: string }[] = JSON.parse(match[0]);
+            const newSignals = parsed
+              .filter(s => s.topic?.trim())
+              .map((s, i): Signal & { userAdded: true; aiGenerated?: boolean } => ({
+                id: `ai-${Date.now()}-${i}`,
+                topic: s.topic.trim(),
+                summary: s.summary?.trim(),
+                geoScope: scopeKey,
+                pestelCategory: (s.category ?? selectedCategory) as PestelCategory,
+                userAdded: true,
+                aiGenerated: true,
+              }));
+            if (newSignals.length === 0) {
+              toast.error("AI couldn't parse signals — try again");
+              return;
+            }
+            // Replace old AI-generated signals (for same country) but keep manually added ones
+            setCustomSignals(prev => [...newSignals, ...prev.filter(s => !(s as any).aiGenerated)]);
+            toast.success(`${newSignals.length} AI-generated signals added for ${countryLabel}`);
+          } catch {
+            toast.error("Could not parse AI signals. Try again.");
+          }
+        },
+        onError: () => {
+          setGeneratingSignals(false);
+          toast.error("Signal generation failed");
+        },
+      }
+    );
+  };
+
   // ── pipeline handlers ────────────────────────────────────────────────────
 
   const handleStartPipeline = (signal: Signal) => {
@@ -452,7 +532,7 @@ export default function IntelligencePage() {
     const geoLabel =
       geoLayer === "continental" ? "Africa (Continental)" :
       geoLayer === "regional" ? (AFRICA_REGIONS.find(r => r.id === selectedRegion)?.label ?? selectedRegion) :
-      (AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label ?? selectedCountry);
+      (activeCountryLabel);
     const gtTitleStr = `[${geoLabel} · ${selectedCategory.toUpperCase()}] ${pipelineSignal.topic}`;
     pipelineGTMode.current = true;
     analyzeContent.mutate({ title: gtTitleStr, contentType: "research", platform: "journal" });
@@ -464,7 +544,7 @@ export default function IntelligencePage() {
     const geoLabel =
       geoLayer === "continental" ? "Africa" :
       geoLayer === "regional" ? (AFRICA_REGIONS.find(r => r.id === selectedRegion)?.label ?? selectedRegion) :
-      (AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label ?? selectedCountry);
+      (activeCountryLabel);
     pipelineReports.mutate(
       {
         signal: pipelineSignal.topic,
@@ -638,14 +718,68 @@ export default function IntelligencePage() {
             )}
 
             {geoLayer === "country" && (
-              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                <SelectTrigger className="h-8 w-36 text-xs bg-slate-900 border-slate-600 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AFRICA_COUNTRIES.map(c => <SelectItem key={c.id} value={c.id} className="text-xs">{c.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <div className="flex items-center h-8 w-44 bg-slate-900 border border-slate-600 rounded-md px-2 gap-1.5">
+                  <Globe className="w-3 h-3 text-slate-500 shrink-0" />
+                  <input
+                    type="text"
+                    value={countrySearch || activeCountryLabel}
+                    onChange={e => { setCountrySearch(e.target.value); setCountryDropdownOpen(true); }}
+                    onFocus={() => { setCountrySearch(""); setCountryDropdownOpen(true); }}
+                    onBlur={() => setTimeout(() => setCountryDropdownOpen(false), 150)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" && countrySearch.trim()) {
+                        // Force-insert any country name as a custom ID
+                        const slug = countrySearch.trim().toLowerCase().replace(/\s+/g, "-");
+                        setSelectedCountry(slug);
+                        setCountrySearch("");
+                        setCountryDropdownOpen(false);
+                      }
+                      if (e.key === "Escape") { setCountrySearch(""); setCountryDropdownOpen(false); }
+                    }}
+                    placeholder="Search or type country…"
+                    className="flex-1 bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none min-w-0"
+                  />
+                </div>
+                {countryDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto">
+                    {(() => {
+                      const q = countrySearch.toLowerCase();
+                      const filtered = AFRICA_COUNTRIES.filter(c =>
+                        !q || c.label.toLowerCase().includes(q) || c.id.includes(q)
+                      );
+                      return (
+                        <>
+                          {filtered.map(c => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onMouseDown={() => { setSelectedCountry(c.id); setCountrySearch(""); setCountryDropdownOpen(false); }}
+                              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-700 transition-colors ${selectedCountry === c.id ? "text-cyan-400 bg-cyan-500/10" : "text-slate-200"}`}
+                            >
+                              {c.label}
+                            </button>
+                          ))}
+                          {countrySearch.trim() && !AFRICA_COUNTRIES.find(c => c.label.toLowerCase() === countrySearch.toLowerCase()) && (
+                            <button
+                              type="button"
+                              onMouseDown={() => {
+                                const slug = countrySearch.trim().toLowerCase().replace(/\s+/g, "-");
+                                setSelectedCountry(slug);
+                                setCountrySearch("");
+                                setCountryDropdownOpen(false);
+                              }}
+                              className="w-full text-left px-3 py-1.5 text-xs text-cyan-400 hover:bg-cyan-500/10 border-t border-slate-700 flex items-center gap-1.5"
+                            >
+                              <Plus className="w-3 h-3" /> Force: "{countrySearch.trim()}"
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -773,13 +907,32 @@ export default function IntelligencePage() {
             </div>
           )}
 
-          {/* Geo mismatch warning — shown when country selected but signals are regional */}
-          {geoLayer === "country" && !signalsLoading && signals?.trends && signals.trends.length > 0 && (
-            <div className="mx-3 mt-2 px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/25 flex items-start gap-2">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-[10px] text-amber-300 leading-relaxed">
-                No {AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label}-specific signals — showing nearest regional data. Verify signal relevance before running pipeline.
-              </p>
+          {/* Geo mismatch / no signals banner with AI generation CTA */}
+          {geoLayer === "country" && !signalsLoading && (
+            <div className="mx-3 mt-2 rounded-lg bg-amber-500/8 border border-amber-500/25 overflow-hidden">
+              <div className="px-3 py-2 flex items-start gap-2">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-amber-300 leading-relaxed flex-1">
+                  {signals?.trends && signals.trends.length > 0
+                    ? `No ${activeCountryLabel}-specific signals — showing nearest regional data.`
+                    : `No live signals found for ${activeCountryLabel}.`}
+                  {" "}Activate AI to generate contextual intelligence signals.
+                </p>
+              </div>
+              <div className="px-3 pb-2.5">
+                <button
+                  type="button"
+                  onClick={handleGenerateSignals}
+                  disabled={generatingSignals}
+                  className="w-full flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-600 to-purple-700 text-white hover:from-cyan-500 hover:to-purple-600 disabled:opacity-60 transition-all"
+                >
+                  {generatingSignals ? (
+                    <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating {activeCountryLabel} signals…</>
+                  ) : (
+                    <><Sparkles className="w-3.5 h-3.5" /> Generate {activeCountryLabel} · {selectedCategory.toUpperCase()} Signals</>
+                  )}
+                </button>
+              </div>
             </div>
           )}
 
@@ -799,30 +952,43 @@ export default function IntelligencePage() {
                     >
                       <XIcon className="w-2.5 h-2.5" />
                     </button>
-                    <button
-                      className={`w-full text-left rounded-xl border p-3 pr-6 transition-all group ${isActive ? "border-amber-500/50 bg-amber-500/8" : "border-amber-500/25 hover:border-amber-500/50 hover:bg-amber-500/5"}`}
-                      onClick={() => handleStartPipeline({ id: signal.id, topic: signal.topic, summary: signal.summary, geoScope: scopeKey, pestelCategory: pestelDim })}
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded border bg-amber-500/15 border-amber-500/30 text-amber-400 tracking-wide">SINGLE SOURCE</span>
-                            {pestelDim && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${p.bg} ${p.color}`}>{pestelDim.toUpperCase().slice(0, 3)}</span>}
+                    {(() => {
+                      const isAI = !!(signal as any).aiGenerated;
+                      const borderClass = isAI
+                        ? (isActive ? "border-cyan-500/50 bg-cyan-500/8" : "border-cyan-500/20 hover:border-cyan-500/40 hover:bg-cyan-500/5")
+                        : (isActive ? "border-amber-500/50 bg-amber-500/8" : "border-amber-500/25 hover:border-amber-500/50 hover:bg-amber-500/5");
+                      return (
+                        <button
+                          className={`w-full text-left rounded-xl border p-3 pr-6 transition-all group ${borderClass}`}
+                          onClick={() => handleStartPipeline({ id: signal.id, topic: signal.topic, summary: signal.summary, geoScope: scopeKey, pestelCategory: pestelDim })}
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                {isAI
+                                  ? <span className="text-[9px] font-black px-1.5 py-0.5 rounded border bg-cyan-500/15 border-cyan-500/30 text-cyan-400 tracking-wide flex items-center gap-1"><Sparkles className="w-2.5 h-2.5" />AI SIGNAL</span>
+                                  : <span className="text-[9px] font-black px-1.5 py-0.5 rounded border bg-amber-500/15 border-amber-500/30 text-amber-400 tracking-wide">SINGLE SOURCE</span>
+                                }
+                                {pestelDim && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${p.bg} ${p.color}`}>{pestelDim.toUpperCase().slice(0, 3)}</span>}
+                              </div>
+                              <p className="text-sm font-semibold leading-snug line-clamp-2 text-white">{signal.topic}</p>
+                              {signal.summary && (
+                                <p className="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed">{signal.summary}</p>
+                              )}
+                              {(signal as any).sourceUrl && (
+                                <p className="text-[10px] text-slate-500 mt-1 truncate">{(signal as any).sourceUrl}</p>
+                              )}
+                              <p className={`text-[10px] mt-1.5 ${isAI ? "text-cyan-400/60" : "text-amber-400/70"}`}>
+                                {isAI ? "AI-generated · validate before publishing" : "Awaiting wider validation"}
+                              </p>
+                            </div>
                           </div>
-                          <p className="text-sm font-semibold leading-snug line-clamp-2 text-white">{signal.topic}</p>
-                          {signal.summary && (
-                            <p className="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed">{signal.summary}</p>
-                          )}
-                          {(signal as any).sourceUrl && (
-                            <p className="text-[10px] text-slate-500 mt-1 truncate">{(signal as any).sourceUrl}</p>
-                          )}
-                          <p className="text-[10px] text-amber-400/70 mt-1.5">Awaiting wider validation</p>
-                        </div>
-                      </div>
-                      <span className="mt-2 ml-1 text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 flex items-center gap-0.5">
-                        Analyse <ChevronRight className="w-2.5 h-2.5" />
-                      </span>
-                    </button>
+                          <span className="mt-2 ml-1 text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 flex items-center gap-0.5">
+                            Analyse <ChevronRight className="w-2.5 h-2.5" />
+                          </span>
+                        </button>
+                      );
+                    })()}
                   </div>
                 </motion.div>
               );
@@ -987,7 +1153,7 @@ export default function IntelligencePage() {
                       <span className="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">
                         {geoLayer === "continental" ? "🌍 Africa" :
                          geoLayer === "regional" ? `📍 ${AFRICA_REGIONS.find(r => r.id === selectedRegion)?.label}` :
-                         `📍 ${AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label}`}
+                         `📍 ${activeCountryLabel}`}
                       </span>
                       {PESTEL.filter(p => p.id === selectedCategory).map(p => (
                         <span key={p.id} className={`text-[10px] px-2 py-0.5 rounded border font-bold ${p.bg} ${p.color}`}>
@@ -1061,7 +1227,7 @@ export default function IntelligencePage() {
 
                   {/* Geo mismatch warning in pipeline */}
                   {geoLayer === "country" && pipelineSignal && (() => {
-                    const countryLabel = AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label ?? "";
+                    const countryLabel = activeCountryLabel;
                     const signalMentionsCountry = pipelineSignal.topic.toLowerCase().includes(countryLabel.toLowerCase());
                     return !signalMentionsCountry ? (
                       <div className="bg-amber-500/8 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2.5">
