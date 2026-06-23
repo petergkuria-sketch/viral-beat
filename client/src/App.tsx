@@ -130,7 +130,7 @@ function Router() {
     { path: "/credits", component: TokenDashboard },
     { path: "/marketplace", component: () => <RedirectTo path="/intelligence" /> },
     { path: "/premium-analytics", component: () => <RedirectTo path="/intelligence" /> },
-    { path: "/creator-verification", component: CreatorVerification },
+    { path: "/creator-verification", component: () => <RedirectTo path="/contributor" /> },
     { path: "/haa", component: HumansAsAgents },
     { path: "/advanced-features", component: AdvancedFeatures },
     { path: "/migrate", component: MigratePage },
