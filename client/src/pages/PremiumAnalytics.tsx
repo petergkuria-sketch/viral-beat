@@ -118,21 +118,22 @@ export default function PremiumAnalytics() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-400">Premium Analytics</p>
-                      <p className="text-2xl font-bold">100 VBT</p>
+                      <p className="text-lg font-bold text-purple-300">Analyst Plan &amp; above</p>
+                      <p className="text-xs text-gray-500 mt-0.5">VBT tokens are contributor rewards — upgrade your subscription to unlock</p>
                     </div>
                     <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                      30 Days Access
+                      Premium Tier
                     </Badge>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex gap-3">
                 <Button
-                  onClick={() => setLocation("/marketplace")}
+                  onClick={() => setLocation("/pricing")}
                   className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500"
                 >
                   <Crown className="w-4 h-4 mr-2" />
-                  Purchase in Marketplace
+                  Upgrade Plan →
                 </Button>
                 <Button
                   variant="outline"
