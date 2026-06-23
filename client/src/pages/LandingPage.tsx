@@ -497,21 +497,21 @@ export default function LandingPage() {
       <section id="intelligence" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Country Intelligence</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mb-4">Political Intelligence at Scale</h2>
+            <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">PESTEL+IR Intelligence</Badge>
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">Africa Intelligence at Scale</h2>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              What used to require expensive consultancies is now available on demand, for every African country, every day.
+              What used to require expensive consultancies and months of research is now available on demand — for every African country, every day, across political, economic, civic, and investor dimensions.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {[
               {
                 icon: MapPin,
                 color: "#22d3ee",
                 title: "Country Briefings",
-                desc: "On-demand intelligence briefs for all 55 nations covering government structure, stability scores, key political figures, recent events, and economic outlook. Updated as news breaks.",
-                bullets: ["Stability score 0–100", "Head of State + key figures", "Risk classification", "Economic outlook"],
+                desc: "On-demand PESTEL intelligence briefs for all 55 nations — government structure, stability scores, key political figures, and economic outlook. Updated as news breaks.",
+                bullets: ["Stability score 0–100", "Head of State + key figures", "Risk classification", "PESTEL+IR overlay"],
               },
               {
                 icon: Activity,
@@ -527,9 +527,24 @@ export default function LandingPage() {
                 desc: "The platform detects your country on signup and makes it your default intelligence profile. An analyst in Lagos opens to Nigeria. A researcher in Nairobi opens to Kenya.",
                 bullets: ["IP & language detection", "Per-user country profile", "55 country coverage", "Instant onboarding"],
               },
+              {
+                icon: TrendingUp,
+                color: "#fb923c",
+                title: "Investment Readiness",
+                desc: "World Bank B-READY indicators, Investment Readiness Scores, side-by-side country comparator, and FDI sector maps — purpose-built for investors, DFIs, and business intelligence teams.",
+                bullets: ["B-READY scores for 20 AU economies", "IRS composite score + radar chart", "FDI sector breakdown by country", "AI-enriched PESTEL+IR overlay"],
+                href: "/doing-business",
+                badge: "New",
+              },
             ].map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }} viewport={{ once: true }}
-                className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl p-7 hover:border-cyan-500/30 transition-all">
+                className={`bg-[#0f2240] border rounded-2xl p-7 hover:border-opacity-60 transition-all relative overflow-hidden ${i === 3 ? "border-orange-500/30 hover:border-orange-400/50" : "border-[#1e3a5f] hover:border-cyan-500/30"}`}
+                onClick={i === 3 ? () => user ? setLocation("/doing-business") : (window.location.href = getLoginUrl()) : undefined}
+                style={i === 3 ? { cursor: "pointer" } : {}}
+              >
+                {"badge" in item && item.badge && (
+                  <span className="absolute top-4 right-4 text-[9px] font-bold px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400">{item.badge}</span>
+                )}
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: `${item.color}15` }}>
                   <item.icon className="w-6 h-6" style={{ color: item.color }} />
                 </div>
@@ -542,6 +557,11 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
+                {i === 3 && (
+                  <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-orange-400">
+                    Explore Investment Readiness <ArrowRight className="w-3 h-3" />
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
