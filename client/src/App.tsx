@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch, useLocation } from "wouter";
 import { lazy, Suspense, useEffect } from "react";
-import ErrorBoundary from "./components/ErrorBoundary";
+import ErrorBoundary, { ChunkErrorGuard } from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
 
@@ -222,6 +222,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
+      <ChunkErrorGuard />
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />

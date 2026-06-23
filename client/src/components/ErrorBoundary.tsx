@@ -1,18 +1,43 @@
 import { cn } from "@/lib/utils";
 import { AlertTriangle, RotateCcw } from "lucide-react";
-import { Component, ReactNode } from "react";
+import { Component, ReactNode, useEffect } from "react";
 
 const CHUNK_RELOAD_KEY = "vb_chunk_reload_attempted";
 
-function isChunkError(error: Error): boolean {
-  const msg = error.message || "";
+function isChunkError(error: unknown): boolean {
+  const msg = (error instanceof Error ? error.message : String(error)) || "";
   return (
     msg.includes("Failed to fetch dynamically imported module") ||
     msg.includes("Importing a module script failed") ||
     msg.includes("Unable to preload CSS") ||
-    (error.name === "TypeError" && msg.includes("import"))
+    msg.includes("error loading dynamically imported module") ||
+    (error instanceof TypeError && msg.includes("import"))
   );
 }
+
+// Catches chunk-load failures that happen outside React's render tree
+// (e.g. lazy() promises rejected before the component mounts)
+function ChunkErrorGuard() {
+  useEffect(() => {
+    const handler = (e: PromiseRejectionEvent) => {
+      if (isChunkError(e.reason)) {
+        e.preventDefault();
+        const alreadyTried = sessionStorage.getItem(CHUNK_RELOAD_KEY);
+        if (!alreadyTried) {
+          sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+          window.location.reload();
+        } else {
+          sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+        }
+      }
+    };
+    window.addEventListener("unhandledrejection", handler);
+    return () => window.removeEventListener("unhandledrejection", handler);
+  }, []);
+  return null;
+}
+
+export { ChunkErrorGuard };
 
 interface Props {
   children: ReactNode;
