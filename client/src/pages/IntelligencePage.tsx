@@ -716,11 +716,12 @@ export default function IntelligencePage() {
   };
 
   const handleDownloadMd = (content: string, basename: string) => {
-    const blob = new Blob([content], { type: "text/markdown" });
+    // text/plain ensures browser honours the .md extension without overriding it
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `${basename}.md`; a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const handleDownloadPdf = async (content: string, basename: string) => {
@@ -728,51 +729,71 @@ export default function IntelligencePage() {
       const { jsPDF } = await import("jspdf");
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
       const margin = 20;
       const maxW = pageW - margin * 2;
 
-      // Header
+      // Dark header bar
       doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, pageW, 20, "F");
+      doc.rect(0, 0, pageW, 22, "F");
       doc.setTextColor(56, 189, 248);
-      doc.setFontSize(11);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("VIRALBEAT AFRICA POLITICAL INTELLIGENCE", margin, 13);
+      doc.text("VIRALBEAT  ·  AFRICA POLITICAL INTELLIGENCE", margin, 14);
       doc.setTextColor(100, 116, 139);
       doc.setFontSize(8);
-      doc.text(new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }), pageW - margin, 13, { align: "right" });
+      doc.text(
+        new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
+        pageW - margin, 14, { align: "right" }
+      );
 
-      // Body — strip markdown markers, wrap lines
+      // Body — strip markdown, wrap lines, paginate
       doc.setTextColor(30, 30, 30);
-      let y = 30;
-      const lines = content.split("\n");
-      for (const raw of lines) {
-        const line = raw.replace(/^#{1,4}\s*/, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").trim();
-        if (!line) { y += 4; continue; }
-        const isH = raw.startsWith("#");
-        doc.setFontSize(isH ? 12 : 10);
+      let y = 32;
+      for (const raw of content.split("\n")) {
+        const line = raw
+          .replace(/^#{1,4}\s*/, "")
+          .replace(/\*\*(.*?)\*\*/g, "$1")
+          .replace(/\*(.*?)\*/g, "$1")
+          .replace(/`(.*?)`/g, "$1")
+          .trim();
+        if (!line) { y += 3; continue; }
+        const isH = /^#{1,4}\s/.test(raw);
+        const fontSize = isH ? 12 : 9;
+        doc.setFontSize(fontSize);
         doc.setFont("helvetica", isH ? "bold" : "normal");
         const wrapped = doc.splitTextToSize(line, maxW);
-        if (y + wrapped.length * 5 > doc.internal.pageSize.getHeight() - 20) {
+        const lineH = isH ? 6 : 4.5;
+        if (y + wrapped.length * lineH > pageH - 16) {
           doc.addPage();
           y = 20;
         }
         doc.text(wrapped, margin, y);
-        y += wrapped.length * (isH ? 7 : 5);
+        y += wrapped.length * lineH + (isH ? 2 : 0);
       }
 
-      // Footer
-      const totalPages = (doc.internal as any).getNumberOfPages();
+      // Footer on every page
+      const totalPages = doc.internal.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
-        doc.setTextColor(150, 150, 150);
-        doc.setFontSize(8);
-        doc.text(`viralbeat.io  ·  Page ${i} of ${totalPages}`, pageW / 2, doc.internal.pageSize.getHeight() - 8, { align: "center" });
+        doc.setTextColor(180, 180, 180);
+        doc.setFontSize(7);
+        doc.text(
+          `viralbeat.io  ·  Page ${i} of ${totalPages}  ·  Confidential`,
+          pageW / 2, pageH - 6, { align: "center" }
+        );
       }
-      doc.save(`${basename}.pdf`);
+
+      // Use blob + anchor instead of doc.save() to avoid CSP issues
+      const pdfBlob = doc.output("blob");
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `${basename}.pdf`; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
-      toast.error("PDF generation failed — downloading as TXT instead.");
-      handleDownloadReport(content, `${basename}.txt`);
+      console.error("PDF generation error:", e);
+      toast.error("PDF generation failed — downloading as Markdown instead.");
+      handleDownloadMd(content, basename);
     }
   };
 
