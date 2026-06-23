@@ -445,7 +445,7 @@ export default function LandingPage() {
             <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Field Contributors</Badge>
             <h2 className="text-4xl sm:text-5xl font-black mb-4">Ground Truth, Not Just Headlines</h2>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Journalists, activists, NGO officers, and researchers submit verified field signals — county-level events, protest reports, voting record discrepancies. That human intelligence is structured and weighted by contributor tier, giving you credible data you can cite publicly.
+              Journalists, activists, NGO officers, and researchers submit verified field signals — protests, policy shifts, voting discrepancies, county-level events. Signals are weighted by contributor tier, structured into PESTEL+IR categories, and surfaced as credible intelligence you can cite. Contributors earn VBT tokens for every verified submission.
             </p>
           </div>
 
@@ -461,9 +461,9 @@ export default function LandingPage() {
               {
                 icon: TrendingUp,
                 color: "#22d3ee",
-                title: "Trend Engine",
-                desc: "Cross-platform tracking across YouTube, TikTok, and X surfaces emerging narratives before they reach mainstream media — with virality scores and sentiment classification.",
-                bullets: ["Multi-platform monitoring", "Virality scoring 0–100", "Sentiment classification", "48–72h early signal window"],
+                title: "PESTEL+IR Signal Pipeline",
+                desc: "RSS feeds, social sources, chamber bulletins, APEX body statements, and parliamentary records are ingested and classified across all 7 PESTEL+IR dimensions — 24h rolling signal intelligence.",
+                bullets: ["RSS + social + parliament sources", "7-dimension PESTEL+IR tagging", "Signal intensity scoring", "24h rolling update window"],
               },
               {
                 icon: Shield,
