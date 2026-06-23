@@ -230,6 +230,26 @@ export default function IntelligencePage() {
     { refetchInterval: 120_000, staleTime: 0 }
   );
 
+  // RSS news for country view — ISO-2 code from selected country
+  const selectedCountryCode = geoLayer === "country"
+    ? (AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.id.toUpperCase() ?? "")
+    : "";
+  const { data: countryNews, isLoading: countryNewsLoading } = trpc.africa.getCountryNews.useQuery(
+    { countryCode: selectedCountryCode },
+    { enabled: geoLayer === "country" && selectedCountryCode.length === 2, staleTime: 30 * 60 * 1000 }
+  );
+
+  // Map RSS articles → Signal shape for unified display
+  const rssSignals: Signal[] = (countryNews?.articles ?? []).map((a, i) => ({
+    id: `rss-${selectedCountryCode}-${i}`,
+    topic: a.title ?? "Untitled",
+    summary: a.summary ?? "",
+    geoScope: selectedCountryCode,
+    pestelCategory: "political",
+    trendScore: 5,
+    source: a.source,
+  }));
+
   const { data: conversationsRaw } = trpc.aiAssistant.getConversations.useQuery({ sessionId });
   const conversations = conversationsRaw ? [...conversationsRaw].reverse() : [];
   const { data: insights } = trpc.aiAssistant.getAnalyses.useQuery({ limit: 10 });
@@ -1044,15 +1064,49 @@ export default function IntelligencePage() {
             </div>
           )}
 
-          {/* Geo mismatch / no signals banner with AI generation CTA */}
-          {geoLayer === "country" && !signalsLoading && (
+          {/* RSS / parliament signals — primary data source for country view */}
+          {geoLayer === "country" && countryNewsLoading && (
+            <div className="mx-3 mt-2 flex items-center gap-2 text-[10px] text-slate-500 px-2 py-2">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Loading {activeCountryLabel} news feeds…
+            </div>
+          )}
+          {geoLayer === "country" && !countryNewsLoading && rssSignals.length > 0 && (
+            <div className="mx-3 mt-2 space-y-1.5">
+              <div className="flex items-center gap-1.5 px-1 mb-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest">Live Feeds · {activeCountryLabel}</span>
+              </div>
+              {rssSignals.map((sig) => (
+                <button
+                  key={sig.id}
+                  className="w-full text-left rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/8 p-3 transition-all group"
+                  onClick={() => handleStartPipeline({ id: sig.id, topic: sig.topic, summary: sig.summary, geoScope: scopeKey, pestelCategory: "political" })}
+                >
+                  <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded border bg-emerald-500/15 border-emerald-500/30 text-emerald-400 tracking-wide">RSS</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border bg-red-500/15 border-red-500/30 text-red-400">POL</span>
+                    {sig.source && <span className="text-[9px] text-slate-500 truncate max-w-[120px]">{sig.source}</span>}
+                  </div>
+                  <p className="text-xs font-semibold leading-snug line-clamp-2 text-white group-hover:text-emerald-100">{sig.topic}</p>
+                  {sig.summary && (
+                    <p className="text-[10px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">{sig.summary}</p>
+                  )}
+                  <p className="text-[9px] text-emerald-400/50 mt-1.5">Click to run through intelligence pipeline</p>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* AI generation CTA — only shown when RSS also has no data */}
+          {geoLayer === "country" && !signalsLoading && !countryNewsLoading && rssSignals.length === 0 && (
             <div className="mx-3 mt-2 rounded-lg bg-amber-500/8 border border-amber-500/25 overflow-hidden">
               <div className="px-3 py-2 flex items-start gap-2">
                 <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
                 <p className="text-[10px] text-amber-300 leading-relaxed flex-1">
                   {signals?.trends && signals.trends.length > 0
                     ? `No ${activeCountryLabel}-specific signals — showing nearest regional data.`
-                    : `No live signals found for ${activeCountryLabel}.`}
+                    : `No live feeds found for ${activeCountryLabel}.`}
                   {" "}Activate AI to generate contextual intelligence signals.
                 </p>
               </div>
@@ -1070,6 +1124,24 @@ export default function IntelligencePage() {
                   )}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Supplementary AI generation — shown below RSS when feeds exist */}
+          {geoLayer === "country" && !signalsLoading && !countryNewsLoading && rssSignals.length > 0 && (
+            <div className="mx-3 mt-1">
+              <button
+                type="button"
+                onClick={handleGenerateSignals}
+                disabled={generatingSignals}
+                className="w-full flex items-center justify-center gap-2 py-1.5 rounded-lg text-[10px] font-bold border border-cyan-500/20 text-cyan-400/70 hover:bg-cyan-500/8 hover:border-cyan-500/40 hover:text-cyan-400 disabled:opacity-60 transition-all"
+              >
+                {generatingSignals ? (
+                  <><Loader2 className="w-3 h-3 animate-spin" /> Generating AI signals…</>
+                ) : (
+                  <><Sparkles className="w-3 h-3" /> + Generate AI signals for {activeCountryLabel}</>
+                )}
+              </button>
             </div>
           )}
 

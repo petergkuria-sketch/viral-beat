@@ -20,12 +20,20 @@ export interface AfricanCountry {
 
 export const AFRICAN_COUNTRIES: AfricanCountry[] = [
   // ── North Africa ─────────────────────────────────────────────────────────
-  { code: "DZ", name: "Algeria",       capital: "Algiers",      region: "North Africa",    flag: "🇩🇿", languages: ["Arabic","Tamazight","French"] },
-  { code: "EG", name: "Egypt",         capital: "Cairo",        region: "North Africa",    flag: "🇪🇬", languages: ["Arabic"] },
-  { code: "LY", name: "Libya",         capital: "Tripoli",      region: "North Africa",    flag: "🇱🇾", languages: ["Arabic"] },
-  { code: "MA", name: "Morocco",       capital: "Rabat",        region: "North Africa",    flag: "🇲🇦", languages: ["Arabic","Tamazight","French"] },
+  { code: "DZ", name: "Algeria",       capital: "Algiers",      region: "North Africa",    flag: "🇩🇿", languages: ["Arabic","Tamazight","French"],
+    rssFeeds: [{ name: "Algeria Watch", url: "https://www.algeria-watch.org/feed/" }] },
+  { code: "EG", name: "Egypt",         capital: "Cairo",        region: "North Africa",    flag: "🇪🇬", languages: ["Arabic"],
+    rssFeeds: [{ name: "Egypt Independent", url: "https://egyptindependent.com/feed/" }] },
+  { code: "LY", name: "Libya",         capital: "Tripoli",      region: "North Africa",    flag: "🇱🇾", languages: ["Arabic"],
+    rssFeeds: [{ name: "Libya Observer", url: "https://www.libyaobserver.ly/feed" }] },
+  { code: "MA", name: "Morocco",       capital: "Rabat",        region: "North Africa",    flag: "🇲🇦", languages: ["Arabic","Tamazight","French"],
+    rssFeeds: [{ name: "Morocco World News", url: "https://www.moroccoworldnews.com/feed/" }] },
   { code: "MR", name: "Mauritania",    capital: "Nouakchott",   region: "North Africa",    flag: "🇲🇷", languages: ["Arabic","French"] },
-  { code: "SD", name: "Sudan",         capital: "Khartoum",     region: "North Africa",    flag: "🇸🇩", languages: ["Arabic","English"] },
+  { code: "SD", name: "Sudan",         capital: "Khartoum",     region: "North Africa",    flag: "🇸🇩", languages: ["Arabic","English"],
+    rssFeeds: [
+      { name: "Sudan Tribune",    url: "https://sudantribune.com/feed/" },
+      { name: "Radio Dabanga",    url: "https://www.dabangasudan.org/en/feed" },
+    ] },
   { code: "TN", name: "Tunisia",       capital: "Tunis",        region: "North Africa",    flag: "🇹🇳", languages: ["Arabic","French"] },
 
   // ── East Africa ───────────────────────────────────────────────────────────
@@ -48,8 +56,10 @@ export const AFRICAN_COUNTRIES: AfricanCountry[] = [
   { code: "RW", name: "Rwanda",        capital: "Kigali",       region: "East Africa",     flag: "🇷🇼", languages: ["Kinyarwanda","French","English"],
     rssFeeds: [{ name: "The New Times", url: "https://www.newtimes.co.rw/rss.xml" }] },
   { code: "SC", name: "Seychelles",    capital: "Victoria",     region: "East Africa",     flag: "🇸🇨", languages: ["Seychellois Creole","English","French"] },
-  { code: "SO", name: "Somalia",       capital: "Mogadishu",    region: "East Africa",     flag: "🇸🇴", languages: ["Somali","Arabic"] },
-  { code: "SS", name: "South Sudan",   capital: "Juba",         region: "East Africa",     flag: "🇸🇸", languages: ["English","Dinka"] },
+  { code: "SO", name: "Somalia",       capital: "Mogadishu",    region: "East Africa",     flag: "🇸🇴", languages: ["Somali","Arabic"],
+    rssFeeds: [{ name: "Garowe Online", url: "https://www.garoweonline.com/en/rss.xml" }] },
+  { code: "SS", name: "South Sudan",   capital: "Juba",         region: "East Africa",     flag: "🇸🇸", languages: ["English","Dinka"],
+    rssFeeds: [{ name: "Eye Radio South Sudan", url: "https://www.eyeradio.org/feed/" }] },
   { code: "TZ", name: "Tanzania",      capital: "Dodoma",       region: "East Africa",     flag: "🇹🇿", languages: ["Swahili","English"],
     rssFeeds: [{ name: "The Citizen TZ", url: "https://www.thecitizen.co.tz/rss.xml" }] },
   { code: "UG", name: "Uganda",        capital: "Kampala",      region: "East Africa",     flag: "🇺🇬", languages: ["English","Swahili"],
@@ -78,7 +88,8 @@ export const AFRICAN_COUNTRIES: AfricanCountry[] = [
       { name: "Punch Nigeria",    url: "https://punchng.com/feed/" },
     ] },
   { code: "ST", name: "São Tomé and Príncipe",capital: "São Tomé",   region: "West Africa", flag: "🇸🇹", languages: ["Portuguese"] },
-  { code: "SN", name: "Senegal",             capital: "Dakar",       region: "West Africa", flag: "🇸🇳", languages: ["French","Wolof"] },
+  { code: "SN", name: "Senegal",             capital: "Dakar",       region: "West Africa", flag: "🇸🇳", languages: ["French","Wolof"],
+    rssFeeds: [{ name: "Senenews", url: "https://www.senenews.com/feed/" }] },
   { code: "SL", name: "Sierra Leone",        capital: "Freetown",    region: "West Africa", flag: "🇸🇱", languages: ["English"] },
   { code: "TG", name: "Togo",                capital: "Lomé",        region: "West Africa", flag: "🇹🇬", languages: ["French"] },
 
