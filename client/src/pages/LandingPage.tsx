@@ -4,7 +4,7 @@ import {
   Globe, Shield, TrendingUp, ArrowRight, ChevronRight, X, Menu,
   Zap, Users, Newspaper, AlertTriangle, BarChart3, Coins,
   CheckCircle2, Star, Activity, MapPin, Code2, Calendar,
-  Rss, Brain, Database, Clock, FileText, LayoutGrid, Rows,
+  Rss, Brain, Database, Clock, FileText, LayoutGrid, Rows, Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -158,6 +158,9 @@ export default function LandingPage() {
                 {label}
               </button>
             ))}
+            <button onClick={() => scrollTo("download-app")} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-emerald-400 hover:text-emerald-300 rounded-lg hover:bg-white/5 transition-all">
+              <Smartphone className="w-3.5 h-3.5" /> Download App
+            </button>
             <button onClick={() => setLocation("/contributor")} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
               Contributors
             </button>
@@ -208,6 +211,7 @@ export default function LandingPage() {
             {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => { setMobileMenuOpen(false); scrollTo(id); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
+            <button onClick={() => { setMobileMenuOpen(false); scrollTo("download-app"); }} className="text-left px-3 py-2.5 text-sm font-medium text-emerald-400 hover:text-emerald-300 rounded-lg hover:bg-white/5 flex items-center gap-2"><Smartphone className="w-3.5 h-3.5" /> Download App</button>
             <button onClick={() => { setMobileMenuOpen(false); setLocation("/contributor"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Contributors</button>
             <button onClick={() => { setMobileMenuOpen(false); setLocation("/about#methodology"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Methodology</button>
             <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
@@ -746,6 +750,73 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── DOWNLOAD APP ─────────────────────────────────────────────────────── */}
+      <section id="download-app" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Mobile App</Badge>
+            <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
+              Africa Intelligence<br />
+              <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">In Your Pocket</span>
+            </h2>
+            <p className="text-gray-400 max-w-xl mx-auto text-lg">
+              Live signals, PESTEL alerts, and field reports from all 55 nations — on iOS and Android. Get notified the moment a signal matches your country watchlist.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {/* App Store */}
+            <a
+              href="https://apps.apple.com/app/viralbeat"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-4 bg-white/5 border border-white/10 hover:border-emerald-500/40 hover:bg-white/8 rounded-2xl px-6 py-5 transition-all"
+            >
+              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/15 transition-colors">
+                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11"/>
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">Download on the</p>
+                <p className="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">App Store</p>
+                <p className="text-xs text-gray-500">iOS 16+ · iPhone & iPad</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-emerald-400 transition-colors" />
+            </a>
+
+            {/* Google Play */}
+            <a
+              href="https://play.google.com/store/apps/details?id=io.viralbeat"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-4 bg-white/5 border border-white/10 hover:border-emerald-500/40 hover:bg-white/8 rounded-2xl px-6 py-5 transition-all"
+            >
+              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/15 transition-colors">
+                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+                  <path d="M3.18 23.76a2 2 0 0 1-1.18-1.8V2.04A2 2 0 0 1 3.18.28L14.1 12 3.18 23.72z" fill="#EA4335"/>
+                  <path d="M17.84 15.66l-3.74-3.66 3.74-3.66 4.34 2.48a2 2 0 0 1 0 2.36l-4.34 2.48z" fill="#FBBC04"/>
+                  <path d="M3.18 23.72L14.1 12l3.74 3.66-12.84 7.32a2 2 0 0 1-1.82-.26z" fill="#34A853"/>
+                  <path d="M3.18.28a2 2 0 0 1 1.82-.26L17.84 7.34 14.1 11z" fill="#4285F4"/>
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-0.5">Get it on</p>
+                <p className="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">Google Play</p>
+                <p className="text-xs text-gray-500">Android 9+ · Phone & Tablet</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-emerald-400 transition-colors" />
+            </a>
+          </div>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-gray-500">
+            {["Push alerts for country watchlist", "Offline signal cache", "Biometric login", "Dark mode"].map(f => (
+              <span key={f} className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> {f}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA ─────────────────────────────────────────────────────────────── */}
       <section className="py-24 px-4">
         <div className="max-w-4xl mx-auto text-center">
@@ -932,6 +1003,7 @@ export default function LandingPage() {
                 { label: "PDF Export",                  href: "/africa" },
                 { label: "Alert Subscriptions",         href: "/pricing" },
                 { label: "Developer API",               href: "#api" },
+                { label: "Download App",                href: "#download-app" },
               ]},
               { title: "Contribute & Cite", links: [
                 { label: "Contributor Profile",   href: "/contributor" },
