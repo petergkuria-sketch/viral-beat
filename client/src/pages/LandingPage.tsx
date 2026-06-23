@@ -719,7 +719,7 @@ export default function LandingPage() {
               <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/20">Developer API</Badge>
               <h2 className="text-4xl font-black mb-5 text-white">Embed Africa Intelligence in Your Product</h2>
               <p className="text-gray-300 text-lg leading-relaxed mb-8">
-                A clean REST API gives your app real-time stability scores, country briefings, civic movement data, and trend forecasts — ready to integrate in minutes.
+                A clean REST API gives your app real-time stability scores, country briefings, civic movement data, PESTEL+IR signals, and Investment Readiness Scores — ready to integrate in minutes.
               </p>
               <div className="space-y-3 mb-8">
                 {[
@@ -728,6 +728,7 @@ export default function LandingPage() {
                   ["GET /v1/pestel/:code/signals",    "PESTEL+IR signals by country"],
                   ["POST /v1/africa/:code/sentiment", "Sentiment analysis on any text"],
                   ["GET /v1/elections/calendar",      "Upcoming elections for all 55 nations"],
+                  ["GET /v1/irs/:code",               "Investment Readiness Score + B-READY indicators"],
                 ].map(([endpoint, desc]) => (
                   <div key={endpoint} className="flex items-center gap-3 bg-[#0f2240] border border-[#1e3a5f] rounded-lg px-4 py-2.5">
                     <code className="text-xs text-cyan-400 font-mono flex-1 truncate">{endpoint}</code>
