@@ -35,8 +35,8 @@ const ELECTIONS = [
   { flag: "🇰🇪", country: "Kenya",         date: "Aug 2027", type: "General Election",     code: "KE", urgent: false },
   { flag: "🇿🇦", country: "South Africa",  date: "May 2026", type: "Municipal Elections",  code: "ZA", urgent: true  },
   { flag: "🇸🇳", country: "Senegal",       date: "Nov 2026", type: "Legislative",          code: "SN", urgent: false },
-  { flag: "🇹🇿", country: "Tanzania",      date: "Oct 2025", type: "General Election",     code: "TZ", urgent: true  },
-  { flag: "🇨🇮", country: "Côte d'Ivoire", date: "Oct 2025", type: "Presidential",         code: "CI", urgent: true  },
+  { flag: "🇹🇿", country: "Tanzania",      date: "Oct 2026", type: "General Election",     code: "TZ", urgent: false },
+  { flag: "🇨🇮", country: "Côte d'Ivoire", date: "Oct 2026", type: "Presidential",         code: "CI", urgent: false },
 ];
 
 function StabilityBar({ score }: { score: number }) {
@@ -252,8 +252,9 @@ export default function LandingPage() {
 
               {/* Brand */}
               <div className="text-center py-3">
-                <p className="text-[11px] font-bold tracking-[3px] text-cyan-400 uppercase">ViralBeat</p>
+                <p className="text-[11px] font-bold tracking-[3px] text-cyan-400 uppercase">Viral Beat</p>
                 <p className="text-[9px] text-slate-500 tracking-wider mt-0.5">Africa's Political Intelligence Layer</p>
+
               </div>
 
               {/* Live signal strip */}
@@ -656,7 +657,7 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Button onClick={handleCreator} variant="outline" className="border-purple-500/30 text-purple-300 hover:text-white hover:border-purple-400/50">
+              <Button onClick={() => user ? setLocation("/haa") : (window.location.href = getLoginUrl())} variant="outline" className="border-purple-500/30 text-purple-300 hover:text-white hover:border-purple-400/50">
                 Join as a Contributor <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </motion.div>
@@ -688,7 +689,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-black mb-3">Who Uses Viral Beat</h2>
-            <p className="text-gray-400">Analysts, newsrooms, NGOs, and creators across Africa</p>
+            <p className="text-gray-400">Analysts, newsrooms, NGOs, and researchers across Africa</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((t, i) => (
@@ -724,7 +725,7 @@ export default function LandingPage() {
                 {[
                   ["GET /v1/africa/:code/brief",      "Full country intelligence brief"],
                   ["GET /v1/africa/:code/news",       "Live news articles by country"],
-                  ["GET /v1/trends/virality?topic=",  "Virality score for any topic"],
+                  ["GET /v1/pestel/:code/signals",    "PESTEL+IR signals by country"],
                   ["POST /v1/africa/:code/sentiment", "Sentiment analysis on any text"],
                   ["GET /v1/elections/calendar",      "Upcoming elections for all 55 nations"],
                 ].map(([endpoint, desc]) => (
@@ -1027,7 +1028,7 @@ export default function LandingPage() {
               ]},
               { title: "Contribute & Cite", links: [
                 { label: "Contributor Profile",   href: "/contributor" },
-                { label: "Signal Credits",        href: "/contributor" },
+                { label: "VBT Token Rewards",     href: "/contributor" },
                 { label: "Our Methodology",       href: "/about#methodology" },
                 { label: "Who We Are",            href: "/about" },
                 { label: "Pricing & Tiers",       href: "/pricing" },
