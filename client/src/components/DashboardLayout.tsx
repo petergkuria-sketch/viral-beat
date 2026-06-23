@@ -549,7 +549,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       {i === 0 ? <Home className="w-3.5 h-3.5" /> : crumb.label}
                     </button>
                   ) : (
-                    <span className={i === breadcrumbs.length - 1 ? "text-white font-medium truncate" : "text-slate-500"}>
+                    <span className={i === breadcrumbs.length - 1 ? "text-white font-medium" : "text-slate-500"}>
                       {i === 0 && breadcrumbs.length === 1 ? <Home className="w-3.5 h-3.5 inline" /> : crumb.label}
                     </span>
                   )}
