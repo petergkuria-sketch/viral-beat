@@ -16,8 +16,9 @@ import {
 } from "recharts";
 import {
   Building2, ChevronRight, Download, ArrowRight, Loader2,
-  TrendingUp, Shield, Globe,
+  TrendingUp, Shield, Globe, TrendingDown, Minus,
 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Cell, Legend } from "recharts";
 import jsPDF from "jspdf";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -723,6 +724,242 @@ function CompareTab() {
   );
 }
 
+// ── FDI Sector Data ───────────────────────────────────────────────────────────
+
+interface FdiSector { name: string; share: number; trend: "up" | "stable" | "down"; usdBn: number; }
+interface FdiCountry { totalUsdBn: number; topSource: string; yoy: number; sectors: FdiSector[]; }
+
+const SECTOR_COLORS: Record<string, string> = {
+  "Oil & Gas":      "#f97316",
+  "Mining":         "#f59e0b",
+  "Fintech/ICT":    "#38bdf8",
+  "Renewables":     "#4ade80",
+  "Manufacturing":  "#2dd4bf",
+  "Finance":        "#818cf8",
+  "Agriculture":    "#a3e635",
+  "Infrastructure": "#c084fc",
+  "Telecoms":       "#f472b6",
+  "Tourism":        "#fb7185",
+  "Gas":            "#fdba74",
+  "Other":          "#475569",
+};
+
+const ALL_SECTORS = Object.keys(SECTOR_COLORS);
+
+const FDI_DATA: Record<string, FdiCountry> = {
+  ng: { totalUsdBn: 3.3,  topSource: "UK / Netherlands", yoy: -8,  sectors: [{ name:"Oil & Gas", share:40, trend:"down", usdBn:1.32 }, { name:"Fintech/ICT", share:24, trend:"up", usdBn:0.79 }, { name:"Telecoms", share:14, trend:"stable", usdBn:0.46 }, { name:"Manufacturing", share:12, trend:"stable", usdBn:0.40 }, { name:"Other", share:10, trend:"stable", usdBn:0.33 }] },
+  za: { totalUsdBn: 5.8,  topSource: "USA / UK",          yoy: +12, sectors: [{ name:"Finance", share:26, trend:"stable", usdBn:1.51 }, { name:"Mining", share:22, trend:"down", usdBn:1.28 }, { name:"Renewables", share:20, trend:"up", usdBn:1.16 }, { name:"Manufacturing", share:18, trend:"stable", usdBn:1.04 }, { name:"Other", share:14, trend:"stable", usdBn:0.81 }] },
+  ke: { totalUsdBn: 0.83, topSource: "USA / China",       yoy: +18, sectors: [{ name:"Fintech/ICT", share:34, trend:"up", usdBn:0.28 }, { name:"Infrastructure", share:22, trend:"up", usdBn:0.18 }, { name:"Agriculture", share:18, trend:"stable", usdBn:0.15 }, { name:"Finance", share:14, trend:"stable", usdBn:0.12 }, { name:"Other", share:12, trend:"stable", usdBn:0.10 }] },
+  ma: { totalUsdBn: 2.1,  topSource: "France / UAE",      yoy: +22, sectors: [{ name:"Manufacturing", share:30, trend:"up", usdBn:0.63 }, { name:"Renewables", share:24, trend:"up", usdBn:0.50 }, { name:"Tourism", share:18, trend:"stable", usdBn:0.38 }, { name:"Finance", share:16, trend:"stable", usdBn:0.34 }, { name:"Other", share:12, trend:"stable", usdBn:0.25 }] },
+  et: { totalUsdBn: 3.7,  topSource: "China / USA",       yoy: +5,  sectors: [{ name:"Manufacturing", share:44, trend:"up", usdBn:1.63 }, { name:"Infrastructure", share:26, trend:"stable", usdBn:0.96 }, { name:"Agriculture", share:18, trend:"stable", usdBn:0.67 }, { name:"Telecoms", share:8, trend:"up", usdBn:0.30 }, { name:"Other", share:4, trend:"stable", usdBn:0.14 }] },
+  gh: { totalUsdBn: 2.0,  topSource: "UK / China",        yoy: -4,  sectors: [{ name:"Oil & Gas", share:38, trend:"down", usdBn:0.76 }, { name:"Fintech/ICT", share:22, trend:"up", usdBn:0.44 }, { name:"Mining", share:20, trend:"stable", usdBn:0.40 }, { name:"Agriculture", share:12, trend:"stable", usdBn:0.24 }, { name:"Other", share:8, trend:"stable", usdBn:0.16 }] },
+  tz: { totalUsdBn: 0.93, topSource: "China / UK",        yoy: +8,  sectors: [{ name:"Mining", share:32, trend:"stable", usdBn:0.30 }, { name:"Tourism", share:24, trend:"up", usdBn:0.22 }, { name:"Agriculture", share:22, trend:"stable", usdBn:0.20 }, { name:"Infrastructure", share:14, trend:"up", usdBn:0.13 }, { name:"Other", share:8, trend:"stable", usdBn:0.08 }] },
+  eg: { totalUsdBn: 9.8,  topSource: "UAE / UK",          yoy: +3,  sectors: [{ name:"Gas", share:36, trend:"stable", usdBn:3.53 }, { name:"Finance", share:20, trend:"up", usdBn:1.96 }, { name:"Manufacturing", share:18, trend:"stable", usdBn:1.76 }, { name:"Tourism", share:14, trend:"up", usdBn:1.37 }, { name:"Other", share:12, trend:"stable", usdBn:1.18 }] },
+  sn: { totalUsdBn: 1.6,  topSource: "France / UAE",      yoy: +30, sectors: [{ name:"Oil & Gas", share:40, trend:"up", usdBn:0.64 }, { name:"Agriculture", share:20, trend:"stable", usdBn:0.32 }, { name:"Infrastructure", share:18, trend:"up", usdBn:0.29 }, { name:"Finance", share:12, trend:"stable", usdBn:0.19 }, { name:"Other", share:10, trend:"stable", usdBn:0.16 }] },
+  ci: { totalUsdBn: 1.4,  topSource: "France / China",    yoy: +14, sectors: [{ name:"Agriculture", share:30, trend:"stable", usdBn:0.42 }, { name:"Oil & Gas", share:24, trend:"stable", usdBn:0.34 }, { name:"Manufacturing", share:22, trend:"up", usdBn:0.31 }, { name:"Infrastructure", share:14, trend:"up", usdBn:0.20 }, { name:"Other", share:10, trend:"stable", usdBn:0.14 }] },
+  rw: { totalUsdBn: 0.44, topSource: "USA / China",       yoy: +26, sectors: [{ name:"Fintech/ICT", share:36, trend:"up", usdBn:0.16 }, { name:"Tourism", share:26, trend:"up", usdBn:0.11 }, { name:"Finance", share:20, trend:"stable", usdBn:0.09 }, { name:"Agriculture", share:12, trend:"stable", usdBn:0.05 }, { name:"Other", share:6, trend:"stable", usdBn:0.03 }] },
+  tn: { totalUsdBn: 0.80, topSource: "France / Italy",    yoy: +6,  sectors: [{ name:"Manufacturing", share:34, trend:"stable", usdBn:0.27 }, { name:"Fintech/ICT", share:22, trend:"up", usdBn:0.18 }, { name:"Renewables", share:18, trend:"up", usdBn:0.14 }, { name:"Tourism", share:14, trend:"stable", usdBn:0.11 }, { name:"Other", share:12, trend:"stable", usdBn:0.10 }] },
+  bw: { totalUsdBn: 0.35, topSource: "South Africa / UK", yoy: +10, sectors: [{ name:"Mining", share:44, trend:"stable", usdBn:0.15 }, { name:"Finance", share:26, trend:"up", usdBn:0.09 }, { name:"Tourism", share:16, trend:"up", usdBn:0.06 }, { name:"Renewables", share:10, trend:"up", usdBn:0.04 }, { name:"Other", share:4, trend:"stable", usdBn:0.01 }] },
+  ug: { totalUsdBn: 1.1,  topSource: "China / UAE",       yoy: +15, sectors: [{ name:"Oil & Gas", share:32, trend:"up", usdBn:0.35 }, { name:"Agriculture", share:26, trend:"stable", usdBn:0.29 }, { name:"Infrastructure", share:22, trend:"up", usdBn:0.24 }, { name:"Finance", share:12, trend:"stable", usdBn:0.13 }, { name:"Other", share:8, trend:"stable", usdBn:0.09 }] },
+  zm: { totalUsdBn: 0.88, topSource: "China / Canada",    yoy: -2,  sectors: [{ name:"Mining", share:52, trend:"down", usdBn:0.46 }, { name:"Agriculture", share:20, trend:"stable", usdBn:0.18 }, { name:"Infrastructure", share:14, trend:"up", usdBn:0.12 }, { name:"Finance", share:8, trend:"stable", usdBn:0.07 }, { name:"Other", share:6, trend:"stable", usdBn:0.05 }] },
+  cm: { totalUsdBn: 0.72, topSource: "France / China",    yoy: -5,  sectors: [{ name:"Oil & Gas", share:42, trend:"down", usdBn:0.30 }, { name:"Agriculture", share:24, trend:"stable", usdBn:0.17 }, { name:"Infrastructure", share:18, trend:"stable", usdBn:0.13 }, { name:"Manufacturing", share:10, trend:"stable", usdBn:0.07 }, { name:"Other", share:6, trend:"stable", usdBn:0.05 }] },
+  mz: { totalUsdBn: 2.5,  topSource: "UAE / France",      yoy: +40, sectors: [{ name:"Gas", share:52, trend:"up", usdBn:1.30 }, { name:"Mining", share:20, trend:"stable", usdBn:0.50 }, { name:"Agriculture", share:14, trend:"stable", usdBn:0.35 }, { name:"Infrastructure", share:10, trend:"up", usdBn:0.25 }, { name:"Other", share:4, trend:"stable", usdBn:0.10 }] },
+  ao: { totalUsdBn: 4.5,  topSource: "China / France",    yoy: -6,  sectors: [{ name:"Oil & Gas", share:70, trend:"down", usdBn:3.15 }, { name:"Mining", share:12, trend:"stable", usdBn:0.54 }, { name:"Agriculture", share:10, trend:"up", usdBn:0.45 }, { name:"Infrastructure", share:6, trend:"up", usdBn:0.27 }, { name:"Other", share:2, trend:"stable", usdBn:0.09 }] },
+  cd: { totalUsdBn: 1.8,  topSource: "China / Belgium",   yoy: +8,  sectors: [{ name:"Mining", share:56, trend:"up", usdBn:1.01 }, { name:"Oil & Gas", share:18, trend:"stable", usdBn:0.32 }, { name:"Agriculture", share:14, trend:"stable", usdBn:0.25 }, { name:"Infrastructure", share:8, trend:"up", usdBn:0.14 }, { name:"Other", share:4, trend:"stable", usdBn:0.08 }] },
+  sd: { totalUsdBn: 0.30, topSource: "UAE / Qatar",       yoy: -20, sectors: [{ name:"Oil & Gas", share:48, trend:"down", usdBn:0.14 }, { name:"Mining", share:26, trend:"stable", usdBn:0.08 }, { name:"Agriculture", share:18, trend:"stable", usdBn:0.05 }, { name:"Infrastructure", share:6, trend:"stable", usdBn:0.02 }, { name:"Other", share:2, trend:"stable", usdBn:0.01 }] },
+};
+
+// ── FDI Sector Map Tab ────────────────────────────────────────────────────────
+
+function FdiSectorMap() {
+  const [activeSector, setActiveSector] = useState<string>("All");
+
+  // Summary stats
+  const totalFdi = Object.values(FDI_DATA).reduce((s, d) => s + d.totalUsdBn, 0);
+  const fastestGrowingCountry = COUNTRIES_DB.map(c => ({ ...c, yoy: FDI_DATA[c.code]?.yoy ?? 0 }))
+    .sort((a, b) => b.yoy - a.yoy)[0];
+
+  // Sector-level aggregation across all countries
+  const sectorTotals: Record<string, number> = {};
+  Object.values(FDI_DATA).forEach(d => {
+    d.sectors.forEach(s => {
+      sectorTotals[s.name] = (sectorTotals[s.name] ?? 0) + s.usdBn;
+    });
+  });
+  const topSector = Object.entries(sectorTotals).sort((a, b) => b[1] - a[1])[0];
+
+  // Countries ranked by relevance to selected sector
+  const ranked = useMemo(() => {
+    return COUNTRIES_DB
+      .map(c => {
+        const d = FDI_DATA[c.code];
+        if (!d) return null;
+        const sectorShare = activeSector === "All"
+          ? 100
+          : (d.sectors.find(s => s.name === activeSector)?.share ?? 0);
+        const sectorUsd = activeSector === "All"
+          ? d.totalUsdBn
+          : (d.sectors.find(s => s.name === activeSector)?.usdBn ?? 0);
+        return { ...c, fdi: d, sectorShare, sectorUsd };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null && x.sectorShare > 0)
+      .sort((a, b) => b.sectorUsd - a.sectorUsd);
+  }, [activeSector]);
+
+  // Stacked bar chart data (top 10 by total FDI)
+  const chartData = useMemo(() => {
+    return COUNTRIES_DB
+      .filter(c => FDI_DATA[c.code])
+      .map(c => {
+        const d = FDI_DATA[c.code];
+        const row: Record<string, string | number> = { country: c.flag + " " + c.name };
+        d.sectors.forEach(s => { row[s.name] = s.usdBn; });
+        return row;
+      })
+      .sort((a, b) => {
+        const aTotal = COUNTRIES_DB.find(c => c.name === (a.country as string).slice(2))?.code ?? "";
+        const bTotal = COUNTRIES_DB.find(c => c.name === (b.country as string).slice(2))?.code ?? "";
+        return (FDI_DATA[bTotal]?.totalUsdBn ?? 0) - (FDI_DATA[aTotal]?.totalUsdBn ?? 0);
+      })
+      .slice(0, 12);
+  }, []);
+
+  // Sector pills present in the data
+  const presentSectors = useMemo(() => {
+    const s = new Set<string>();
+    Object.values(FDI_DATA).forEach(d => d.sectors.forEach(sec => s.add(sec.name)));
+    return Array.from(s).sort();
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      {/* Summary KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Total Africa FDI (est.)", value: `$${totalFdi.toFixed(1)}Bn`, sub: "20 tracked economies", color: "text-sky-400" },
+          { label: "Top Sector", value: topSector[0], sub: `$${topSector[1].toFixed(1)}Bn`, color: "text-amber-400" },
+          { label: "Fastest Growing", value: fastestGrowingCountry.flag + " " + fastestGrowingCountry.name, sub: `+${fastestGrowingCountry.yoy}% YoY`, color: "text-emerald-400" },
+          { label: "Emerging Sector", value: "Fintech/ICT", sub: "↑ 8 countries accelerating", color: "text-violet-400" },
+        ].map(k => (
+          <Card key={k.label} className="bg-slate-800/60 border-slate-700/50">
+            <CardContent className="p-4">
+              <div className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">{k.label}</div>
+              <div className={`font-bold text-sm ${k.color}`}>{k.value}</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">{k.sub}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Sector filter pills */}
+      <div>
+        <div className="text-xs text-slate-500 mb-2 uppercase tracking-wide">Filter by sector</div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveSector("All")}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+              activeSector === "All"
+                ? "bg-sky-500/20 border-sky-400 text-sky-300"
+                : "bg-slate-800 border-slate-600 text-slate-400 hover:border-slate-500"
+            }`}
+          >
+            All Sectors
+          </button>
+          {presentSectors.map(s => (
+            <button
+              key={s}
+              onClick={() => setActiveSector(s === activeSector ? "All" : s)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                activeSector === s
+                  ? "border-current"
+                  : "bg-slate-800 border-slate-600 text-slate-400 hover:border-slate-500"
+              }`}
+              style={activeSector === s ? { color: SECTOR_COLORS[s] ?? "#94a3b8", borderColor: SECTOR_COLORS[s] ?? "#94a3b8", background: (SECTOR_COLORS[s] ?? "#94a3b8") + "22" } : {}}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stacked bar chart — all 12 countries */}
+      <Card className="bg-slate-800/60 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-sm text-slate-300">FDI Composition by Country <span className="text-slate-500 font-normal">(top 12 by inflow, $Bn)</span></CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={chartData} margin={{ top: 0, right: 10, bottom: 60, left: 10 }}>
+              <XAxis dataKey="country" tick={{ fill: "#94a3b8", fontSize: 10 }} angle={-35} textAnchor="end" interval={0} />
+              <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} tickFormatter={v => `$${v}B`} />
+              <Tooltip
+                contentStyle={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 8, fontSize: 11 }}
+                formatter={(v: number, name: string) => [`$${v.toFixed(2)}Bn`, name]}
+              />
+              <Legend wrapperStyle={{ fontSize: 10, color: "#94a3b8", paddingTop: 8 }} />
+              {presentSectors.map(s => (
+                <Bar key={s} dataKey={s} stackId="a" fill={SECTOR_COLORS[s] ?? "#475569"}
+                  opacity={activeSector === "All" || activeSector === s ? 1 : 0.2} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Country ranking for selected sector */}
+      <Card className="bg-slate-800/40 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-sm text-slate-300">
+            {activeSector === "All" ? "All Countries — Ranked by Total FDI" : `Countries Attracting "${activeSector}" FDI`}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1 p-3">
+          {ranked.map((c, i) => {
+            const trend = activeSector === "All" ? (c.fdi.yoy >= 5 ? "up" : c.fdi.yoy <= -5 ? "down" : "stable") : (c.fdi.sectors.find(s => s.name === activeSector)?.trend ?? "stable");
+            const color = SECTOR_COLORS[activeSector] ?? "#38bdf8";
+            return (
+              <div key={c.code} className="flex items-center gap-3 px-3 py-2 hover:bg-slate-700/30 rounded-lg transition-colors">
+                <span className="w-5 text-xs text-slate-600 font-mono text-right shrink-0">{i + 1}</span>
+                <span className="text-lg shrink-0">{c.flag}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-slate-200">{c.name}</span>
+                    <span className="text-[10px] text-slate-500">{c.fdi.topSource}</span>
+                  </div>
+                  {/* Sector share bar */}
+                  <div className="mt-1.5 h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${activeSector === "All" ? Math.min((c.fdi.totalUsdBn / 10) * 100, 100) : c.sectorShare}%`, backgroundColor: color }} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0 text-right">
+                  <div>
+                    <div className="text-[10px] text-slate-500">{activeSector === "All" ? "Total FDI" : "Sector share"}</div>
+                    <div className="text-sm font-mono font-bold text-slate-200">
+                      {activeSector === "All" ? `$${c.fdi.totalUsdBn}Bn` : `${c.sectorShare}%`}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-500">YoY</div>
+                    <div className={`text-sm font-bold flex items-center gap-0.5 ${c.fdi.yoy > 0 ? "text-emerald-400" : c.fdi.yoy < 0 ? "text-red-400" : "text-slate-400"}`}>
+                      {trend === "up" ? <TrendingUp className="w-3 h-3" /> : trend === "down" ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                      {c.fdi.yoy > 0 ? "+" : ""}{c.fdi.yoy}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {/* Investment signals footer */}
+      <div className="text-[10px] text-slate-600 border-t border-slate-700/50 pt-3">
+        Data sources: UNCTAD World Investment Report 2023 · IMF Balance of Payments · World Bank FDI inflows · AI-synthesised estimates where official data unavailable. Values are indicative; verify against live UNCTAD statistics before investment decisions.
+      </div>
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function DoingBusinessPage() {
@@ -780,6 +1017,7 @@ export default function DoingBusinessPage() {
           <TabsTrigger value="detail" disabled={!detailCountry} className="data-[state=active]:bg-sky-500/20 data-[state=active]:text-sky-300">
             {detailCountry ? `Detail: ${detailCountry.flag} ${detailCountry.name}` : "Detail"}
           </TabsTrigger>
+          <TabsTrigger value="fdi" className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-300">FDI Sector Map</TabsTrigger>
         </TabsList>
 
         {/* ─── Rankings ─── */}
@@ -836,6 +1074,11 @@ export default function DoingBusinessPage() {
         {/* ─── Compare ─── */}
         <TabsContent value="compare">
           <CompareTab />
+        </TabsContent>
+
+        {/* ─── FDI Sector Map ─── */}
+        <TabsContent value="fdi">
+          <FdiSectorMap />
         </TabsContent>
 
         {/* ─── Detail ─── */}
