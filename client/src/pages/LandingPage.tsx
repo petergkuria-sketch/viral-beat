@@ -153,11 +153,14 @@ export default function LandingPage() {
           </button>
 
           <div className="hidden md:flex items-center gap-1">
-            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["creator-network", "Contributors"], ["api", "API"]].map(([id, label]) => (
+            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => scrollTo(id)} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
                 {label}
               </button>
             ))}
+            <button onClick={() => setLocation("/contributor")} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
+              Contributors
+            </button>
             <button onClick={() => setLocation("/about#methodology")} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
               Methodology
             </button>
@@ -202,9 +205,10 @@ export default function LandingPage() {
         </div>
         {mobileMenuOpen && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="md:hidden border-t border-white/5 bg-[#050b1a] px-4 py-4 flex flex-col gap-1">
-            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["creator-network", "Contributors"], ["api", "API"]].map(([id, label]) => (
+            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => { setMobileMenuOpen(false); scrollTo(id); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
+            <button onClick={() => { setMobileMenuOpen(false); setLocation("/contributor"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Contributors</button>
             <button onClick={() => { setMobileMenuOpen(false); setLocation("/about#methodology"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Methodology</button>
             <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
               {!user && <Button variant="outline" className="w-full border-white/10 text-white" onClick={() => { setMobileMenuOpen(false); window.location.href = getLoginUrl(); }}>Sign In / Register</Button>}
