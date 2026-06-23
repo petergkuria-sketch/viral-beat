@@ -1456,59 +1456,96 @@ export default function IntelligencePage() {
               {pipelineStage === "gametheory" && (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <Loader2 className="w-10 h-10 text-purple-400 animate-spin mb-4" />
-                  <p className="text-sm font-semibold text-white">Running Game Theory Analysis…</p>
-                  <p className="text-xs text-slate-400 mt-1">Mapping Nash equilibrium and dominant strategies</p>
+                  <p className="text-sm font-semibold text-white">Building Strategic Briefing…</p>
+                  <p className="text-xs text-slate-400 mt-1">Mapping who gains, who loses, and what happens next</p>
                 </div>
               )}
 
-              {/* ── STAGE 3 DONE: GT output + gate ── */}
-              {pipelineStage === "gametheory_done" && gtOutput && (
+              {/* ── STAGE 3 DONE: GT output — scenario narrative ── */}
+              {pipelineStage === "gametheory_done" && gtOutput && (() => {
+                const alignTier = gtOutput.missionAlignment?.startsWith("High") ? "high"
+                  : gtOutput.missionAlignment?.startsWith("Medium") ? "medium" : "low";
+                const score = gtOutput.viralityScore ?? 0;
+                const urgency = score >= 8 ? "critical" : score >= 6 ? "elevated" : "watch";
+                const urgencyLabel = urgency === "critical" ? "Critical Watch" : urgency === "elevated" ? "Elevated Risk" : "Monitor";
+                const urgencyColor = urgency === "critical" ? "text-red-400 bg-red-500/10 border-red-500/30"
+                  : urgency === "elevated" ? "text-amber-400 bg-amber-500/10 border-amber-500/30"
+                  : "text-sky-400 bg-sky-500/10 border-sky-500/30";
+
+                // Strip game theory bracket labels from recommendations for plain-language display
+                const cleanRec = (r: string) => r.replace(/^\[.*?\]\s*/,"");
+
+                // Map each recommendation to a scenario role
+                const scenarioRoles = ["What's really happening", "Who holds the power", "The hidden pressure", "What happens next"];
+
+                return (
                 <div className="space-y-4">
-                  <div className="bg-slate-800 border border-purple-500/30 rounded-xl p-4 space-y-3">
-                    <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      Stage 3 — Game Theory Analysis
-                    </p>
+                  <div className="bg-slate-800 border border-purple-500/30 rounded-xl overflow-hidden">
 
-                    {gtOutput.gameTheoryMove && (
-                      <div className="rounded-xl bg-cyan-500/8 border border-cyan-500/25 px-3 py-2.5">
-                        <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-1">Dominant Strategy Move</p>
-                        <p className="text-sm text-slate-200">{gtOutput.gameTheoryMove}</p>
+                    {/* Header bar */}
+                    <div className="px-4 pt-4 pb-3 border-b border-slate-700/60 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Stage 3 — Strategic Briefing</p>
                       </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-xl bg-slate-700/40 px-3 py-2.5 text-center">
-                        <p className="text-[10px] text-slate-400 uppercase tracking-widest">GT Score</p>
-                        <p className="text-2xl font-black text-cyan-400">{gtOutput.viralityScore}<span className="text-xs text-slate-400 font-normal">/10</span></p>
-                      </div>
-                      <div className="rounded-xl bg-slate-700/40 px-3 py-2.5 text-center">
-                        <p className="text-[10px] text-slate-400 uppercase tracking-widest">Alignment</p>
-                        <p className={`text-lg font-black ${gtOutput.missionAlignment?.startsWith("High") ? "text-emerald-400" : gtOutput.missionAlignment?.startsWith("Medium") ? "text-yellow-400" : "text-red-400"}`}>
-                          {gtOutput.missionAlignment?.split(" — ")[0] ?? "—"}
-                        </p>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${urgencyColor}`}>{urgencyLabel}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${alignTier === "high" ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" : alignTier === "medium" ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/30" : "text-red-400 bg-red-500/10 border-red-500/30"}`}>
+                          {alignTier === "high" ? "High Impact" : alignTier === "medium" ? "Medium Impact" : "Low Impact"}
+                        </span>
                       </div>
                     </div>
 
-                    {gtOutput.optimizedTitle && (
-                      <div className="rounded-xl bg-slate-700/30 px-3 py-2.5">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nash Signal Title</p>
-                        <p className="text-sm font-semibold text-white">{gtOutput.optimizedTitle}</p>
-                      </div>
-                    )}
+                    <div className="p-4 space-y-4">
 
-                    {gtOutput.recommendations?.length > 0 && (
-                      <div>
-                        <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-1.5">Strategic Moves</p>
-                        <ol className="space-y-1">
-                          {gtOutput.recommendations.slice(0, 4).map((r: string, i: number) => (
-                            <li key={i} className="text-xs text-slate-300 flex gap-2">
-                              <span className="text-cyan-400 font-bold shrink-0">{i + 1}.</span>{r}
-                            </li>
-                          ))}
-                        </ol>
+                      {/* Headline framing */}
+                      {gtOutput.optimizedTitle && (
+                        <div>
+                          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">The Story in One Line</p>
+                          <p className="text-base font-bold text-white leading-snug">{gtOutput.optimizedTitle}</p>
+                        </div>
+                      )}
+
+                      {/* The bottom line — what this means for ordinary people */}
+                      {gtOutput.gameTheoryMove && (
+                        <div className="rounded-xl bg-cyan-500/8 border border-cyan-500/20 px-3 py-3">
+                          <p className="text-[9px] font-bold text-cyan-400 uppercase tracking-widest mb-1.5">What This Means for You</p>
+                          <p className="text-sm text-slate-200 leading-relaxed">{gtOutput.gameTheoryMove}</p>
+                        </div>
+                      )}
+
+                      {/* Scenario narrative cards */}
+                      {gtOutput.recommendations?.length > 0 && (
+                        <div>
+                          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">How This Plays Out — 4 Scenarios</p>
+                          <div className="space-y-2">
+                            {gtOutput.recommendations.slice(0, 4).map((r: string, i: number) => (
+                              <div key={i} className="rounded-lg bg-slate-700/30 border border-slate-600/30 px-3 py-2.5">
+                                <p className="text-[9px] font-bold text-purple-400 uppercase tracking-widest mb-1">{scenarioRoles[i] ?? `Scenario ${i + 1}`}</p>
+                                <p className="text-xs text-slate-300 leading-relaxed">{cleanRec(r)}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Signal strength meter */}
+                      <div className="flex items-center gap-3 pt-1">
+                        <p className="text-[9px] text-slate-500 uppercase tracking-widest shrink-0">Signal Strength</p>
+                        <div className="flex-1 h-1.5 rounded-full bg-slate-700/60 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${(score / 10) * 100}%`,
+                              background: score >= 8 ? "#f87171" : score >= 6 ? "#fbbf24" : "#38bdf8"
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs font-bold tabular-nums" style={{ color: score >= 8 ? "#f87171" : score >= 6 ? "#fbbf24" : "#38bdf8" }}>
+                          {score}/10
+                        </p>
                       </div>
-                    )}
+                    </div>
                   </div>
 
                   <div className="bg-orange-500/5 border border-orange-500/40 rounded-xl p-3 flex items-start gap-2.5">
@@ -1535,7 +1572,8 @@ export default function IntelligencePage() {
                     </button>
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {/* ── STAGE 4: Reports loading ── */}
               {pipelineStage === "reports" && (
