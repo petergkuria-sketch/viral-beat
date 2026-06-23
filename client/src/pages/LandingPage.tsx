@@ -612,20 +612,20 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Intelligence Contributors</Badge>
+              <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Field Contributors</Badge>
               <h2 className="text-4xl sm:text-5xl font-black mb-5">
-                Contributors Build<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Credibility, Not Just Reach</span>
+                Ground Truth<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Earns Its Own Weight</span>
               </h2>
               <p className="text-gray-300 text-lg leading-relaxed mb-8">
-                Observers, Analysts, and Correspondents consume verified data, translate it for their communities, and submit field signals that feed the pipeline. The value chain runs through credibility — not virality. Contributors cite the methodology publicly, driving institutional trust back to the platform.
+                Observers, Analysts, and Correspondents submit verified field signals that feed the PESTEL+IR intelligence pipeline. Every submission is cross-referenced, tiered by contributor credibility, and surfaced in the Intelligence Workspace. The value chain runs through verification — not volume. Contributors cite the methodology publicly, giving institutional users data they can defend.
               </p>
               <ul className="space-y-4 mb-8">
                 {[
-                  ["Verified Contributor Tiers", "Observer → Analyst → Correspondent → Partner. Tier names signal what you do with the platform, not just what you pay."],
-                  ["Intelligence Brief Generator", "The AI converts raw scores into citation-ready language — English, Swahili, or county-specific framing — for WhatsApp groups, X threads, and NGO newsletters."],
-                  ["Signal Credits", "Earn credits by submitting verified field signals. Spend on premium brief generation, bulk exports, and API access — a contribution incentive, not gamification."],
-                  ["Creator Verification", "Verified creators get credibility badges and premium placement in the intelligence feed."],
+                  ["Verified Contributor Tiers", "Observer → Analyst → Correspondent → Partner. Each tier reflects the depth and credibility of your intelligence contributions, not just your subscription level."],
+                  ["PESTEL+IR Signal Pipeline", "Every field signal is auto-classified across Political, Economic, Social, Tech, Environmental, Legal, and Investor Readiness dimensions — then surfaced in the Intelligence Workspace."],
+                  ["VBT Token Rewards", "Earn VBT tokens by submitting and validating signals. Tokens reflect your contribution standing in the network — separate from paid subscription tiers that unlock premium features."],
+                  ["Contributor Verification", "Verified contributors receive credibility badges, elevated signal weighting, and priority placement in the intelligence feed."],
                 ].map(([title, desc]) => (
                   <li key={title} className="flex gap-3">
                     <CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
@@ -637,16 +637,16 @@ export default function LandingPage() {
                 ))}
               </ul>
               <Button onClick={handleCreator} variant="outline" className="border-purple-500/30 text-purple-300 hover:text-white hover:border-purple-400/50">
-                Join as a Creator <ArrowRight className="ml-2 w-4 h-4" />
+                Join as a Contributor <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </motion.div>
 
             <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="grid grid-cols-2 gap-4">
               {[
-                { icon: Users,     title: "Field Contributors", reward: "500–2000", color: "#a78bfa", desc: "Verified local submissions" },
-                { icon: TrendingUp,title: "Submit Trends",    reward: "50–200",   color: "#22d3ee", desc: "Early first-mover rewards" },
-                { icon: BarChart3, title: "Rate Virality",    reward: "10–50",    color: "#34d399", desc: "Accurate prediction bonus" },
-                { icon: Coins,     title: "VBT Tokens",      reward: "Tradeable",color: "#fb923c", desc: "Marketplace & crypto bridge" },
+                { icon: Users,     title: "File a Field Signal", reward: "+500 VBT", color: "#a78bfa", desc: "Per verified ground-truth submission" },
+                { icon: TrendingUp,title: "Validate a Signal",  reward: "+50 VBT",  color: "#22d3ee", desc: "Per corroboration confirmed by 3+ analysts" },
+                { icon: BarChart3, title: "Analyst Tier Bonus",  reward: "+200 VBT", color: "#34d399", desc: "Monthly reward for sustained accuracy" },
+                { icon: Coins,     title: "VBT Tokens",          reward: "Earned",   color: "#fb923c", desc: "Contribution rewards — not payment tokens" },
               ].map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }}
                   className="bg-[#0f2240] border border-[#1e3a5f] rounded-xl p-5 hover:border-purple-500/30 transition-all">
