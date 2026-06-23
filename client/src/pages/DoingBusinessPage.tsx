@@ -240,7 +240,7 @@ function IRSGauge({ irs }: { irs: number }) {
         {irs}
       </text>
       <text x={cx} y={cy + 14} textAnchor="middle" fontSize="9" fill="#94a3b8">
-        IRS / 100
+        IRS (B-READY) / 100
       </text>
     </svg>
   );
@@ -377,14 +377,14 @@ function DetailPanel({ country, irs, dbAvg }: DetailPanelProps) {
         <Card className="bg-slate-800/60 border-slate-700/50">
           <CardContent className="pt-6">
             <IRSGauge irs={irs} />
-            <p className="text-center text-xs text-slate-400 mt-2">Investment Readiness Score</p>
+            <p className="text-center text-xs text-slate-400 mt-2">IRS — Investment Readiness Score</p>
           </CardContent>
         </Card>
         <Card className="bg-slate-800/60 border-slate-700/50">
           <CardHeader className="pb-2"><CardTitle className="text-sm text-slate-400 flex items-center gap-2"><TrendingUp className="w-4 h-4" />DB Score</CardTitle></CardHeader>
           <CardContent>
             <div className="text-3xl font-bold font-mono text-sky-400 mb-1">{dbAvg}</div>
-            <p className="text-xs text-slate-500">Avg across 10 B-READY indicators</p>
+            <p className="text-xs text-slate-500">Avg across 10 B-READY indicators (World Bank)</p>
           </CardContent>
         </Card>
         <Card className="bg-slate-800/60 border-slate-700/50">
@@ -398,7 +398,7 @@ function DetailPanel({ country, irs, dbAvg }: DetailPanelProps) {
 
       {/* Indicator bars */}
       <Card className="bg-slate-800/60 border-slate-700/50">
-        <CardHeader><CardTitle className="text-sm text-slate-300">B-READY Indicator Breakdown</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm text-slate-300">B-READY Indicator Breakdown (IRS Components)</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {INDICATOR_KEYS.map(key => (
             <div key={key} className="flex items-center gap-3">

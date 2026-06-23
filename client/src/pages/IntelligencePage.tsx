@@ -507,12 +507,12 @@ export default function IntelligencePage() {
     const strengths: string[] = safeJson(insight.strengths, []);
     const tags: string[] = safeJson(insight.optimizedHashtags, []);
     return [
-      `VIRALBEAT — GAME THEORY ANALYSIS`,
+      `VIRAL BEAT — GAME THEORY ANALYSIS`,
       `Generated: ${new Date(insight.createdAt).toLocaleDateString()}`,
       ``,
       `CONTENT: ${insight.contentTitle}`,
       `PLATFORM: ${insight.platform?.toUpperCase()} | TYPE: ${insight.contentType?.toUpperCase()}`,
-      `GAME THEORY SCORE: ${insight.viralityScore}/10`,
+      `INTELLIGENCE SCORE: ${insight.viralityScore}/10`,
       ``,
       perf.gameTheoryMove ? `DOMINANT STRATEGY MOVE\n${perf.gameTheoryMove}` : "",
       perf.missionAlignment ? `MISSION ALIGNMENT: ${perf.missionAlignment}` : "",
@@ -777,7 +777,7 @@ export default function IntelligencePage() {
       doc.setTextColor(56, 189, 248);
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("VIRALBEAT  ·  AFRICA POLITICAL INTELLIGENCE", margin, 14);
+      doc.text("VIRAL BEAT  ·  AFRICA POLITICAL INTELLIGENCE", margin, 14);
       doc.setTextColor(100, 116, 139);
       doc.setFontSize(8);
       doc.text(
@@ -2315,7 +2315,7 @@ export default function IntelligencePage() {
                       )}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-xl bg-slate-700/40 border border-white/10 px-4 py-3 text-center">
-                          <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">GT Score</p>
+                          <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Intelligence Score</p>
                           <p className="text-3xl font-black text-cyan-400">{analyzeContent.data.viralityScore}<span className="text-xs text-slate-400 font-normal">/10</span></p>
                         </div>
                         <div className="rounded-xl bg-slate-700/40 border border-white/10 px-4 py-3 text-center">
@@ -2465,7 +2465,7 @@ export default function IntelligencePage() {
                     <Crown className="w-7 h-7 text-amber-400" />
                   </div>
                   <h3 className="font-bold text-base mb-1">Predictive Forecasting</h3>
-                  <p className="text-sm text-slate-400 max-w-xs mb-2">AI-powered 7-day and 30-day signal forecasts with virality scoring, growth trajectory, and confidence levels.</p>
+                  <p className="text-sm text-slate-400 max-w-xs mb-2">AI-powered 7-day and 30-day signal forecasts with intelligence scoring, growth trajectory, and confidence levels.</p>
                   <p className="text-xs text-amber-400/80 mb-1">Available on <span className="font-bold text-amber-400">Analyst</span> and <span className="font-bold text-amber-400">Correspondent</span> plans</p>
                   <p className="text-[11px] text-slate-500 mb-6">VBT tokens are for contributor rewards — upgrade your plan to unlock premium intelligence features</p>
                   <a href="/pricing">
@@ -2518,7 +2518,7 @@ export default function IntelligencePage() {
                       <CardContent className="space-y-3">
                         <div className="grid grid-cols-3 gap-2">
                           <div className="rounded-lg bg-slate-700/40 px-3 py-2 text-center">
-                            <p className="text-[10px] text-slate-400 uppercase tracking-widest">Virality</p>
+                            <p className="text-[10px] text-slate-400 uppercase tracking-widest">Signal Impact</p>
                             <p className="text-xl font-black text-amber-400">{forecastData.forecast?.viralityScore ?? "—"}<span className="text-xs text-slate-400">/10</span></p>
                           </div>
                           <div className="rounded-lg bg-slate-700/40 px-3 py-2 text-center">

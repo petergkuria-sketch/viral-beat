@@ -103,11 +103,12 @@ const AUDIENCE_TIERS = [
 ];
 
 const FUNDING_TYPES = [
-  { value: "educational",   label: "Journalism grants" },
-  { value: "entertainment", label: "Research fellowships" },
-  { value: "lifestyle",     label: "NGO partnerships" },
-  { value: "tech",          label: "Media development funds" },
-  { value: "gaming",        label: "Institutional subscriptions" },
+  { value: "journalism_grants",    label: "Journalism & Press Freedom Grants" },
+  { value: "research_fellowships", label: "Research Fellowships" },
+  { value: "ngo_partnerships",     label: "NGO & Civil Society Partnerships" },
+  { value: "media_development",    label: "Media Development Funds" },
+  { value: "institutional",        label: "Institutional & DFI Subscriptions" },
+  { value: "investor_intelligence",label: "Investor Intelligence Contracts" },
 ];
 
 export default function AIAgentsHub() {
@@ -149,7 +150,7 @@ export default function AIAgentsHub() {
   // Funding Radar state
   const [fundingFocus, setFundingFocus] = useState("");
   const [fundingTier, setFundingTier] = useState<any>("mid");
-  const [fundingType, setFundingType] = useState<any>("educational");
+  const [fundingType, setFundingType] = useState<any>("journalism_grants");
   const [fundingOpportunities, setFundingOpportunities] = useState<any[]>([]);
 
   // Brief Writer mutation

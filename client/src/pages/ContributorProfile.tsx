@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   BadgeCheck, FileText, Eye, Coins, Shield, Edit3,
   Globe, Users, Newspaper, Microscope, Megaphone,
-  RefreshCw, AlertCircle, Check, X,
+  RefreshCw, AlertCircle, Check, X, Copy, CheckCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +43,7 @@ function OwnProfile() {
   const { data: profile, refetch, isLoading } = trpc.contributor.getMyProfile.useQuery();
   const { user } = useAuth();
   const [editing, setEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [form, setForm] = useState({
     displayName: "", affiliation: "", affiliationType: "independent" as const, bio: "", profileSlug: "",
   });
@@ -118,16 +119,30 @@ function OwnProfile() {
         )}
 
         {profile?.profileSlug && (
-          <p className="mt-3 text-[11px] text-slate-500 font-mono">
-            viralbeat.io/contributor/{profile.profileSlug}
-          </p>
+          <div className="mt-3 flex items-center gap-2">
+            <p className="text-[11px] text-slate-500 font-mono">
+              viralbeat.io/contributor/{profile.profileSlug}
+            </p>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`https://viralbeat.io/contributor/${profile.profileSlug}`);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300 transition-colors px-1.5 py-0.5 rounded border border-cyan-500/20 hover:border-cyan-500/40"
+              title="Copy profile link"
+            >
+              {copied ? <CheckCheck className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
         )}
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { icon: Coins,    label: "Signal Credits", value: profile?.signalCredits ?? 0,  color: "text-amber-400" },
+          { icon: Coins,    label: "VBT Tokens",     value: profile?.signalCredits ?? 0,  color: "text-amber-400" },
           { icon: FileText, label: "Briefs Shared",  value: profile?.briefsShared ?? 0,   color: "text-cyan-400" },
           { icon: Eye,      label: "Total Views",    value: "—",                            color: "text-indigo-400" },
         ].map((stat, i) => (
@@ -143,10 +158,9 @@ function OwnProfile() {
       <div className="bg-amber-400/5 border border-amber-500/20 rounded-2xl p-4 flex gap-3">
         <Coins className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
         <div>
-          <p className="text-xs font-bold text-amber-400 mb-1">Signal Credits</p>
+          <p className="text-xs font-bold text-amber-400 mb-1">VBT Token Rewards</p>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Earn 5 credits every time you share a brief. Credits unlock premium brief generation,
-            bulk data exports, and priority API access. Submit verified field signals to earn 20 credits each.
+            Earn VBT tokens by submitting verified field signals (+500), validating signals (+50), and achieving sustained accuracy (+200 monthly bonus). VBT tokens reflect your contribution standing — they are not payment tokens for premium features.
           </p>
         </div>
       </div>

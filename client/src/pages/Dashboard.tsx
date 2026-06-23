@@ -393,7 +393,7 @@ export default function Dashboard() {
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
                   <Card className="border-border/50">
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-bold">Key Voices Shaping This Signal</CardTitle>
+                      <CardTitle className="text-base font-bold">Top Field Contributors on This Signal</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid sm:grid-cols-3 gap-4">
@@ -401,7 +401,7 @@ export default function Dashboard() {
                           <div
                             key={i}
                             className="group relative bg-muted/20 border border-border/50 rounded-2xl p-4 hover:border-primary/40 hover:bg-muted/30 transition-all cursor-pointer overflow-hidden"
-                            onClick={() => creator.handle && setLocation(`/creator/${creator.platform.toLowerCase()}/${creator.handle}`)}
+                            onClick={() => setLocation(`/contributor`)}
                           >
                             <div className="absolute top-0 right-0 w-16 h-16 rounded-full blur-2xl opacity-10" style={{ background: trendColors[i] }} />
                             <div className="flex items-center gap-3 mb-3">
@@ -411,14 +411,13 @@ export default function Dashboard() {
                               <div className="flex-1 min-w-0">
                                 <div className="font-bold text-sm truncate group-hover:text-primary transition-colors">{creator.name}</div>
                                 <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                  {creator.platform === "YouTube" ? <Youtube className="w-3 h-3" /> : <Music2 className="w-3 h-3" />}
                                   {creator.platform}
                                 </div>
                               </div>
                             </div>
                             <div className="flex justify-between text-xs">
-                              <div><div className="text-muted-foreground mb-0.5">Views</div><div className="font-black font-mono">{creator.formattedViews}</div></div>
-                              <div className="text-right"><div className="text-muted-foreground mb-0.5">Growth</div><div className="font-black font-mono text-green-400">{creator.growth}</div></div>
+                              <div><div className="text-muted-foreground mb-0.5">Signals</div><div className="font-black font-mono">{creator.formattedViews}</div></div>
+                              <div className="text-right"><div className="text-muted-foreground mb-0.5">Accuracy</div><div className="font-black font-mono text-green-400">{creator.growth}</div></div>
                             </div>
                           </div>
                         ))}

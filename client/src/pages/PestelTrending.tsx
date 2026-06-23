@@ -18,21 +18,21 @@ type PestelId = typeof PESTEL[number]["id"];
 // ── Static signal intensity data (powered by xTrends cached data) ────────────
 // Score = composite of signal volume × source corroboration × 24h velocity
 // In production this would be a live tRPC query aggregating xTrendsCache
-const TRENDING_DATA: Record<PestelId, { id: string; flag: string; name: string; score: number; delta: "up" | "down" | "flat"; summary: string }[]> = {
+const TRENDING_DATA: Record<PestelId, { id: string; flag: string; name: string; score: number; delta: "up" | "down" | "flat"; summary: string; source?: "field" | "rss" }[]> = {
   political: [
-    { id: "ng", flag: "🇳🇬", name: "Nigeria",      score: 9.2, delta: "up",   summary: "Presidential succession signals intensifying across ruling party factions" },
-    { id: "et", flag: "🇪🇹", name: "Ethiopia",     score: 8.5, delta: "up",   summary: "Tigray ceasefire under strain; ENDF deployments reported in Amhara" },
-    { id: "sd", flag: "🇸🇩", name: "Sudan",        score: 8.1, delta: "flat", summary: "SAF–RSF frontlines shifting; AU mediation stalled for third consecutive week" },
-    { id: "ke", flag: "🇰🇪", name: "Kenya",        score: 7.4, delta: "up",   summary: "Finance Bill protests resurface ahead of supplementary budget reading" },
-    { id: "za", flag: "🇿🇦", name: "South Africa", score: 6.8, delta: "down", summary: "GNU coalition tensions as DA–ANC disagreements on land reform escalate" },
-    { id: "dz", flag: "🇩🇿", name: "Algeria",      score: 6.2, delta: "flat", summary: "Presidential term extension debate entering parliamentary committee stage" },
-    { id: "cd", flag: "🇨🇩", name: "DR Congo",     score: 5.9, delta: "up",   summary: "M23 advance paused; EAC regional force mandate renewal pending" },
-    { id: "ug", flag: "🇺🇬", name: "Uganda",       score: 5.4, delta: "flat", summary: "Opposition NUP rallies restricted in four districts ahead of by-elections" },
+    { id: "ng", flag: "🇳🇬", name: "Nigeria",      score: 9.2, delta: "up",   source: "field", summary: "Presidential succession signals intensifying across ruling party factions" },
+    { id: "et", flag: "🇪🇹", name: "Ethiopia",     score: 8.5, delta: "up",   source: "field", summary: "Tigray ceasefire under strain; ENDF deployments reported in Amhara" },
+    { id: "sd", flag: "🇸🇩", name: "Sudan",        score: 8.1, delta: "flat", source: "field", summary: "SAF–RSF frontlines shifting; AU mediation stalled for third consecutive week" },
+    { id: "ke", flag: "🇰🇪", name: "Kenya",        score: 7.4, delta: "up",   source: "field", summary: "Finance Bill protests resurface ahead of supplementary budget reading" },
+    { id: "za", flag: "🇿🇦", name: "South Africa", score: 6.8, delta: "down", source: "rss",   summary: "GNU coalition tensions as DA–ANC disagreements on land reform escalate" },
+    { id: "dz", flag: "🇩🇿", name: "Algeria",      score: 6.2, delta: "flat", source: "rss",   summary: "Presidential term extension debate entering parliamentary committee stage" },
+    { id: "cd", flag: "🇨🇩", name: "DR Congo",     score: 5.9, delta: "up",   source: "field", summary: "M23 advance paused; EAC regional force mandate renewal pending" },
+    { id: "ug", flag: "🇺🇬", name: "Uganda",       score: 5.4, delta: "flat", source: "rss",   summary: "Opposition NUP rallies restricted in four districts ahead of by-elections" },
   ],
   economic: [
-    { id: "eg", flag: "🇪🇬", name: "Egypt",        score: 9.0, delta: "up",   summary: "IMF tranche release conditional on subsidy reform timeline" },
-    { id: "ng", flag: "🇳🇬", name: "Nigeria",      score: 8.7, delta: "up",   summary: "Naira hits new low; CBN emergency rate decision expected this week" },
-    { id: "ke", flag: "🇰🇪", name: "Kenya",        score: 7.9, delta: "up",   summary: "KES current account deficit widens to $6.2B; shilling under pressure" },
+    { id: "eg", flag: "🇪🇬", name: "Egypt",        score: 9.0, delta: "up",   source: "field", summary: "IMF tranche release conditional on subsidy reform timeline" },
+    { id: "ng", flag: "🇳🇬", name: "Nigeria",      score: 8.7, delta: "up",   source: "field", summary: "Naira hits new low; CBN emergency rate decision expected this week" },
+    { id: "ke", flag: "🇰🇪", name: "Kenya",        score: 7.9, delta: "up",   source: "field", summary: "KES current account deficit widens to $6.2B; shilling under pressure" },
     { id: "tz", flag: "🇹🇿", name: "Tanzania",     score: 7.1, delta: "flat", summary: "SGR Dar–Dodoma section opens; AfDB $1.2B disbursement confirmed" },
     { id: "gh", flag: "🇬🇭", name: "Ghana",        score: 6.8, delta: "down", summary: "Debt restructuring deal signed; Eurobond markets responding positively" },
     { id: "ma", flag: "🇲🇦", name: "Morocco",      score: 6.3, delta: "flat", summary: "Green hydrogen export framework signed with three EU partners" },
@@ -40,9 +40,9 @@ const TRENDING_DATA: Record<PestelId, { id: string; flag: string; name: string; 
     { id: "et", flag: "🇪🇹", name: "Ethiopia",     score: 5.5, delta: "down", summary: "Birr depreciation at 12%; World Bank project disbursements on hold" },
   ],
   social: [
-    { id: "sd", flag: "🇸🇩", name: "Sudan",        score: 9.4, delta: "up",   summary: "Civilian displacement now estimated at 10M — largest humanitarian crisis in Africa" },
-    { id: "so", flag: "🇸🇴", name: "Somalia",      score: 8.3, delta: "flat", summary: "Al-Shabaab camp disruptions displace 200K in Lower Shabelle" },
-    { id: "cd", flag: "🇨🇩", name: "DR Congo",     score: 8.0, delta: "up",   summary: "Eastern displacement camps overwhelmed; cholera outbreak declared" },
+    { id: "sd", flag: "🇸🇩", name: "Sudan",        score: 9.4, delta: "up",   source: "field", summary: "Civilian displacement now estimated at 10M — largest humanitarian crisis in Africa" },
+    { id: "so", flag: "🇸🇴", name: "Somalia",      score: 8.3, delta: "flat", source: "field", summary: "Al-Shabaab camp disruptions displace 200K in Lower Shabelle" },
+    { id: "cd", flag: "🇨🇩", name: "DR Congo",     score: 8.0, delta: "up",   source: "field", summary: "Eastern displacement camps overwhelmed; cholera outbreak declared" },
     { id: "ng", flag: "🇳🇬", name: "Nigeria",      score: 7.2, delta: "up",   summary: "Nationwide cost-of-living protests coordinated across 12 states" },
     { id: "et", flag: "🇪🇹", name: "Ethiopia",     score: 6.9, delta: "flat", summary: "Tigray food security deteriorating; WFP access still restricted" },
     { id: "cm", flag: "🇨🇲", name: "Cameroon",     score: 6.1, delta: "down", summary: "Anglophone crisis: schools boycott enters eighth year in NW/SW regions" },
@@ -60,7 +60,7 @@ const TRENDING_DATA: Record<PestelId, { id: string; flag: string; name: string; 
     { id: "et", flag: "🇪🇹", name: "Ethiopia",     score: 4.9, delta: "down", summary: "Ethio Telecom 4G expansion to 150 woreda; international internet cuts reduced" },
   ],
   environmental: [
-    { id: "ke", flag: "🇰🇪", name: "Kenya",        score: 8.6, delta: "up",   summary: "Flash floods kill 200+; Rift Valley dam infrastructure under emergency review" },
+    { id: "ke", flag: "🇰🇪", name: "Kenya",        score: 8.6, delta: "up",   source: "field", summary: "Flash floods kill 200+; Rift Valley dam infrastructure under emergency review" },
     { id: "et", flag: "🇪🇹", name: "Ethiopia",     score: 8.0, delta: "up",   summary: "GERD second turbine operational; Egypt threatens downstream water accord breach" },
     { id: "so", flag: "🇸🇴", name: "Somalia",      score: 7.5, delta: "flat", summary: "Fifth consecutive La Niña season; coastal flooding displacing fishing communities" },
     { id: "sd", flag: "🇸🇩", name: "Sudan",        score: 7.1, delta: "up",   summary: "Nile flood levels at 60-year high; 300K agricultural households affected" },
@@ -70,7 +70,7 @@ const TRENDING_DATA: Record<PestelId, { id: string; flag: string; name: string; 
     { id: "ma", flag: "🇲🇦", name: "Morocco",      score: 5.2, delta: "flat", summary: "Drought extends to fourth year; grain import dependency rising sharply" },
   ],
   investor: [
-    { id: "rw", flag: "🇷🇼", name: "Rwanda",        score: 9.1, delta: "up",   summary: "Kigali International Finance Centre launches; three new DFI mandates signed" },
+    { id: "rw", flag: "🇷🇼", name: "Rwanda",        score: 9.1, delta: "up",   source: "field", summary: "Kigali International Finance Centre launches; three new DFI mandates signed" },
     { id: "ma", flag: "🇲🇦", name: "Morocco",        score: 8.6, delta: "up",   summary: "Casablanca Finance City ranked #1 Africa IFC; €4.2Bn renewable pipeline announced" },
     { id: "ke", flag: "🇰🇪", name: "Kenya",          score: 7.9, delta: "up",   summary: "NSE launches green bond framework; IFC $300M private sector facility confirmed" },
     { id: "eg", flag: "🇪🇬", name: "Egypt",          score: 7.4, delta: "flat", summary: "EGX delisting risk reduced after IMF tranche; Emirati sovereign wealth entry confirmed" },
@@ -80,7 +80,7 @@ const TRENDING_DATA: Record<PestelId, { id: string; flag: string; name: string; 
     { id: "ng", flag: "🇳🇬", name: "Nigeria",        score: 5.2, delta: "down", summary: "Capital controls easing stalled; foreign portfolio investor exit pressure continues" },
   ],
   legal: [
-    { id: "ug", flag: "🇺🇬", name: "Uganda",       score: 8.8, delta: "up",   summary: "Anti-homosexuality law enforcement; international aid suspensions accelerating" },
+    { id: "ug", flag: "🇺🇬", name: "Uganda",       score: 8.8, delta: "up",   source: "field", summary: "Anti-homosexuality law enforcement; international aid suspensions accelerating" },
     { id: "tz", flag: "🇹🇿", name: "Tanzania",     score: 7.9, delta: "up",   summary: "Sedition law amendments criminalise social media criticism of public officials" },
     { id: "et", flag: "🇪🇹", name: "Ethiopia",     score: 7.4, delta: "flat", summary: "State of emergency in Amhara extends; constitutional basis contested in parliament" },
     { id: "ng", flag: "🇳🇬", name: "Nigeria",      score: 6.9, delta: "up",   summary: "Cybercrime Act amendments targeting journalists; SERAP litigation ongoing" },
@@ -199,9 +199,12 @@ export default function PestelTrending() {
                   {/* flag + name */}
                   <span className="text-xl flex-shrink-0">{country.flag}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="text-sm font-semibold text-slate-200">{country.name}</span>
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${urg.color}`}>{urg.label}</span>
+                      {country.source === "field" && (
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-400">Field 2×</span>
+                      )}
                       {country.delta === "up" && <Zap className="w-3 h-3 text-amber-400" />}
                     </div>
                     <p className="text-[11px] text-slate-500 leading-tight truncate">{country.summary}</p>
