@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from "wouter";
 import { useViewPreference } from "@/_core/hooks/useViewPreference";
 import { ViewToggle } from "@/components/ViewToggle";
 import { trpc } from "@/lib/trpc";
@@ -130,8 +131,15 @@ const AFRICA_COUNTRIES: AfricaCountry[] = [
 export default function IntelligencePage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // flag: true while analyzeContent is being used for the pipeline GT step
   const pipelineGTMode = useRef(false);
+
+  // ── incoming signal from Aggregator (?signal=...) ──
+  const [location] = useLocation();
+  const incomingSignal = (() => {
+    try { return new URLSearchParams(window.location.search).get("signal") ?? ""; } catch { return ""; }
+  })();
+  const [pipelineIncoming, setPipelineIncoming] = useState(!!incomingSignal);
+  const [incomingCountdown, setIncomingCountdown] = useState(3);
 
   // ── onboarding banner ──
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -561,6 +569,29 @@ export default function IntelligencePage() {
   };
 
   // ── pipeline handlers ────────────────────────────────────────────────────
+
+  // Auto-start pipeline when arriving from Aggregator with ?signal=
+  useEffect(() => {
+    if (!incomingSignal || pipelineStage !== "idle") return;
+    let count = 3;
+    setIncomingCountdown(count);
+    const tick = setInterval(() => {
+      count -= 1;
+      setIncomingCountdown(count);
+      if (count <= 0) {
+        clearInterval(tick);
+        setPipelineIncoming(false);
+        handleStartPipeline({
+          id: `agg-${Date.now()}`,
+          topic: incomingSignal,
+          geoScope: scopeKey,
+          pestelCategory: "political",
+        });
+      }
+    }, 1000);
+    return () => clearInterval(tick);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incomingSignal]);
 
   const handleStartPipeline = (signal: Signal) => {
     setPipelineSignal(signal);
@@ -2354,6 +2385,61 @@ export default function IntelligencePage() {
           )} {/* end pipeline ternary */}
         </div>
       </div>
+
+      {/* ── Incoming signal banner (from Political Aggregator) ── */}
+      <AnimatePresence>
+        {pipelineIncoming && incomingSignal && (
+          <motion.div
+            initial={{ opacity: 0, y: -24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-xl px-4"
+          >
+            <div className="rounded-2xl border border-cyan-500/40 bg-slate-900/95 backdrop-blur-md shadow-2xl shadow-cyan-500/10 overflow-hidden">
+              {/* progress bar */}
+              <motion.div
+                className="h-0.5 bg-gradient-to-r from-cyan-500 to-purple-600"
+                initial={{ width: "100%" }}
+                animate={{ width: "0%" }}
+                transition={{ duration: 3, ease: "linear" }}
+              />
+              <div className="px-4 py-3.5 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles className="w-4 h-4 text-cyan-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Signal received from Aggregator</span>
+                    <span className="text-[10px] text-slate-500">· launching in {incomingCountdown}s</span>
+                  </div>
+                  <p className="text-sm font-semibold text-white leading-snug line-clamp-2">{incomingSignal}</p>
+                  <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+                    The <span className="text-white font-medium">PESTEL Intelligence Pipeline</span> will run automatically — you'll see Political, Economic, Social, Technological, Environmental and Legal analysis, followed by a Game Theory strategic assessment and downloadable reports.
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setPipelineIncoming(false); }}
+                  className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-700 transition-colors shrink-0"
+                >
+                  <XIcon className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="px-4 pb-3 flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setPipelineIncoming(false);
+                    handleStartPipeline({ id: `agg-${Date.now()}`, topic: incomingSignal, geoScope: scopeKey, pestelCategory: "political" });
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 text-slate-900 text-xs font-black hover:bg-cyan-400 transition-colors"
+                >
+                  <Sparkles className="w-3 h-3" /> Start now
+                </button>
+                <span className="text-[10px] text-slate-600">or wait {incomingCountdown}s for auto-launch</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── First-time onboarding banner ── */}
       <AnimatePresence>
