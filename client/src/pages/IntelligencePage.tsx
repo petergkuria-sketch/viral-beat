@@ -160,6 +160,12 @@ export default function IntelligencePage() {
   const [generatingSignals, setGeneratingSignals] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<PestelCategory>("political");
 
+  // ── PESTEL gate enrichment (doc + link attached before GT) ──
+  const [pestelAttachUrl, setPestelAttachUrl] = useState("");
+  const [pestelAttachUrlSaved, setPestelAttachUrlSaved] = useState("");
+  const [pestelAttachDoc, setPestelAttachDoc] = useState<{ name: string; content: string } | null>(null);
+  const pestelFileRef = useRef<HTMLInputElement>(null);
+
   // ── signal selection ──
   const [activeSignal, setActiveSignal] = useState<Signal | null>(null);
   const [signalAnalysis, setSignalAnalysis] = useState<string>("");
@@ -637,8 +643,19 @@ export default function IntelligencePage() {
       geoLayer === "regional" ? (AFRICA_REGIONS.find(r => r.id === selectedRegion)?.label ?? selectedRegion) :
       (activeCountryLabel);
     const gtTitleStr = `[${geoLabel} · ${selectedCategory.toUpperCase()}] ${pipelineSignal.topic}`;
+    // Build enrichment description from PESTEL-gate attachments
+    const enrichParts: string[] = [];
+    if (pestelAttachUrlSaved) enrichParts.push(`Reference URL: ${pestelAttachUrlSaved}`);
+    if (pestelAttachDoc) enrichParts.push(`Attached document (${pestelAttachDoc.name}):\n${pestelAttachDoc.content.slice(0, 4000)}`);
+    if (pestelOutput) enrichParts.push(`PESTEL Analysis:\n${pestelOutput.slice(0, 2000)}`);
     pipelineGTMode.current = true;
-    analyzeContent.mutate({ title: gtTitleStr, contentType: "research", platform: "journal" });
+    analyzeContent.mutate({
+      title: gtTitleStr,
+      contentType: "research",
+      platform: "journal",
+      ...(pestelAttachUrlSaved ? { contentUrl: pestelAttachUrlSaved } : {}),
+      ...(enrichParts.length ? { description: enrichParts.join("\n\n---\n\n") } : {}),
+    });
   };
 
   const handleRunReports = () => {
@@ -685,6 +702,9 @@ export default function IntelligencePage() {
     setGtOutput(null);
     setReportsOutput([]);
     setReportsMeta(null);
+    setPestelAttachUrl("");
+    setPestelAttachUrlSaved("");
+    setPestelAttachDoc(null);
   };
 
   const handleDownloadReport = (content: string, filename: string) => {
@@ -1555,6 +1575,88 @@ export default function IntelligencePage() {
                         <Streamdown>{pestelOutput}</Streamdown>
                       </div>
                     )}
+                  </div>
+
+                  {/* ── Enrichment attachments ── */}
+                  <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl overflow-hidden">
+                    <div className="px-3 py-2 border-b border-slate-700/60 flex items-center gap-2">
+                      <Paperclip className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enrich Game Theory Analysis</span>
+                      <span className="text-[9px] text-slate-600 ml-auto">optional — improves report veracity</span>
+                    </div>
+                    <div className="p-3 space-y-2.5">
+
+                      {/* URL input */}
+                      <div>
+                        <p className="text-[10px] text-slate-500 mb-1.5">Attach a reference URL (article, report, dataset)</p>
+                        <div className="flex gap-1.5">
+                          <input
+                            type="url"
+                            value={pestelAttachUrl}
+                            onChange={e => setPestelAttachUrl(e.target.value)}
+                            placeholder="https://…"
+                            className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                          />
+                          <button
+                            onClick={() => { if (pestelAttachUrl.trim()) { setPestelAttachUrlSaved(pestelAttachUrl.trim()); setPestelAttachUrl(""); } }}
+                            disabled={!pestelAttachUrl.trim()}
+                            className="px-3 py-1.5 rounded-lg bg-blue-600/80 hover:bg-blue-600 text-white text-xs font-bold disabled:opacity-40 transition-colors"
+                          >
+                            Add
+                          </button>
+                        </div>
+                        {pestelAttachUrlSaved && (
+                          <div className="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/25">
+                            <LinkIcon className="w-3 h-3 text-blue-400 shrink-0" />
+                            <span className="text-[10px] text-blue-300 flex-1 truncate">{pestelAttachUrlSaved}</span>
+                            <button onClick={() => setPestelAttachUrlSaved("")} className="text-slate-500 hover:text-slate-300 transition-colors"><XIcon className="w-3 h-3" /></button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Document upload */}
+                      <div>
+                        <p className="text-[10px] text-slate-500 mb-1.5">Or upload a document (PDF · TXT · MD · CSV)</p>
+                        <input
+                          ref={pestelFileRef}
+                          type="file"
+                          accept=".pdf,.txt,.md,.csv"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = ev => setPestelAttachDoc({ name: file.name, content: ev.target?.result as string ?? "" });
+                            reader.readAsText(file);
+                            if (pestelFileRef.current) pestelFileRef.current.value = "";
+                          }}
+                        />
+                        {pestelAttachDoc ? (
+                          <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25">
+                            <FileText className="w-3 h-3 text-emerald-400 shrink-0" />
+                            <span className="text-[10px] text-emerald-300 flex-1 truncate">{pestelAttachDoc.name}</span>
+                            <span className="text-[9px] text-slate-600">{(pestelAttachDoc.content.length / 1000).toFixed(1)}k chars</span>
+                            <button onClick={() => setPestelAttachDoc(null)} className="text-slate-500 hover:text-slate-300 transition-colors"><XIcon className="w-3 h-3" /></button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => pestelFileRef.current?.click()}
+                            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-slate-600 hover:border-slate-400 text-slate-500 hover:text-slate-300 text-xs transition-colors"
+                          >
+                            <Paperclip className="w-3.5 h-3.5" /> Upload document
+                          </button>
+                        )}
+                      </div>
+
+                      {(pestelAttachUrlSaved || pestelAttachDoc) && (
+                        <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-cyan-500/8 border border-cyan-500/20">
+                          <CheckCircle2 className="w-3 h-3 text-cyan-400 shrink-0" />
+                          <p className="text-[10px] text-cyan-300">
+                            {[pestelAttachUrlSaved && "1 URL", pestelAttachDoc && "1 document"].filter(Boolean).join(" + ")} will be ingested into the Game Theory analysis
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="bg-orange-500/5 border border-orange-500/40 rounded-xl p-3 flex items-start gap-2.5">
