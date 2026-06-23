@@ -151,14 +151,22 @@ export default function IntelligencePage() {
   };
 
   // ── geo / PESTEL filter state ──
-  const [geoLayer, setGeoLayer] = useState<GeoLayer>("continental");
+  // Read ?country= and ?dimension= from URL (e.g. from PESTEL Trending deep-link)
+  const _urlParams = (() => { try { return new URLSearchParams(window.location.search); } catch { return new URLSearchParams(); } })();
+  const _urlCountry = _urlParams.get("country") ?? "";
+  const _urlDimension = (_urlParams.get("dimension") ?? "") as PestelCategory | "";
+  const [geoLayer, setGeoLayer] = useState<GeoLayer>(_urlCountry ? "country" : "continental");
   const [selectedRegion, setSelectedRegion] = useState("east-africa");
-  const [selectedCountry, setSelectedCountry] = useState("ke");
+  const [selectedCountry, setSelectedCountry] = useState(_urlCountry || "ke");
   // custom / forced country (free-text, not constrained to AFRICA_COUNTRIES)
   const [countrySearch, setCountrySearch] = useState("");
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [generatingSignals, setGeneratingSignals] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<PestelCategory>("political");
+  const [selectedCategory, setSelectedCategory] = useState<PestelCategory>(
+    (_urlDimension && ["political","economic","social","technological","environmental","legal"].includes(_urlDimension))
+      ? _urlDimension
+      : "political"
+  );
 
   // ── PESTEL gate enrichment (doc + link attached before GT) ──
   const [pestelAttachUrl, setPestelAttachUrl] = useState("");
@@ -850,124 +858,129 @@ export default function IntelligencePage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden text-slate-100 bg-slate-900">
 
-      {/* ── Top bar ── */}
-      <div className="shrink-0 border-b border-slate-700 bg-slate-800 px-4 py-3">
-        <div className="flex items-center gap-4 flex-wrap">
+      {/* ── Command Bar ── */}
+      <div className="shrink-0 border-b border-slate-700/80 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg shadow-black/20">
+        {/* Row 1 — title + geo scope + country selector */}
+        <div className="flex items-center gap-4 px-6 pt-3.5 pb-2.5 border-b border-slate-700/50">
           {/* Title */}
-          <div className="flex items-center gap-2 shrink-0">
-            <Sparkles className="w-5 h-5 text-cyan-400" />
-            <span className="font-bold text-lg tracking-tight text-white">Intelligence Workspace</span>
-          </div>
-
-          {/* Geo scope */}
-          <div className="flex items-center gap-2 ml-auto">
-            <div className="flex items-center rounded-lg border border-slate-600 overflow-hidden text-xs bg-slate-900">
-              {(["continental","regional","country"] as GeoLayer[]).map(l => (
-                <button
-                  key={l}
-                  onClick={() => setGeoLayer(l)}
-                  className={`px-3 py-1.5 capitalize font-medium transition-colors flex items-center gap-1 ${
-                    geoLayer === l
-                      ? "bg-cyan-500 text-white font-semibold"
-                      : "text-slate-300 hover:text-white hover:bg-slate-700"
-                  }`}
-                >
-                  {l === "continental" ? <Globe className="w-3.5 h-3.5" /> : <MapPin className="w-3.5 h-3.5" />}
-                  {l === "continental" ? "Africa" : l === "regional" ? "Regional" : "Country"}
-                </button>
-              ))}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-cyan-400" />
             </div>
-
-            {geoLayer === "regional" && (
-              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                <SelectTrigger className="h-8 w-36 text-xs bg-slate-900 border-slate-600 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AFRICA_REGIONS.map(r => <SelectItem key={r.id} value={r.id} className="text-xs">{r.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-
-            {geoLayer === "country" && (
-              <div className="relative">
-                <div className="flex items-center h-8 w-44 bg-slate-900 border border-slate-600 rounded-md px-2 gap-1.5">
-                  <Globe className="w-3 h-3 text-slate-500 shrink-0" />
-                  <input
-                    type="text"
-                    value={countrySearch || activeCountryLabel}
-                    onChange={e => { setCountrySearch(e.target.value); setCountryDropdownOpen(true); }}
-                    onFocus={() => { setCountrySearch(""); setCountryDropdownOpen(true); }}
-                    onBlur={() => setTimeout(() => setCountryDropdownOpen(false), 150)}
-                    onKeyDown={e => {
-                      if (e.key === "Enter" && countrySearch.trim()) {
-                        // Force-insert any country name as a custom ID
-                        const slug = countrySearch.trim().toLowerCase().replace(/\s+/g, "-");
-                        setSelectedCountry(slug);
-                        setCountrySearch("");
-                        setCountryDropdownOpen(false);
-                      }
-                      if (e.key === "Escape") { setCountrySearch(""); setCountryDropdownOpen(false); }
-                    }}
-                    placeholder="Search or type country…"
-                    className="flex-1 bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none min-w-0"
-                  />
-                </div>
-                {countryDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto">
-                    {(() => {
-                      const q = countrySearch.toLowerCase();
-                      const filtered = AFRICA_COUNTRIES.filter(c =>
-                        !q || c.label.toLowerCase().includes(q) || c.id.includes(q)
-                      );
-                      return (
-                        <>
-                          {filtered.map(c => (
-                            <button
-                              key={c.id}
-                              type="button"
-                              onMouseDown={() => { setSelectedCountry(c.id); setCountrySearch(""); setCountryDropdownOpen(false); }}
-                              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-700 transition-colors ${selectedCountry === c.id ? "text-cyan-400 bg-cyan-500/10" : "text-slate-200"}`}
-                            >
-                              {c.label}
-                            </button>
-                          ))}
-                          {countrySearch.trim() && !AFRICA_COUNTRIES.find(c => c.label.toLowerCase() === countrySearch.toLowerCase()) && (
-                            <button
-                              type="button"
-                              onMouseDown={() => {
-                                const slug = countrySearch.trim().toLowerCase().replace(/\s+/g, "-");
-                                setSelectedCountry(slug);
-                                setCountrySearch("");
-                                setCountryDropdownOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-1.5 text-xs text-cyan-400 hover:bg-cyan-500/10 border-t border-slate-700 flex items-center gap-1.5"
-                            >
-                              <Plus className="w-3 h-3" /> Force: "{countrySearch.trim()}"
-                            </button>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
-                )}
-              </div>
-            )}
+            <div>
+              <span className="font-black text-base tracking-tight text-white leading-none block">Intelligence Workspace</span>
+              <span className="text-[10px] text-slate-500 leading-none">
+                {geoLayer === "continental" ? "55 AU member states · continental view"
+                  : geoLayer === "regional" ? `${AFRICA_REGIONS.find(r => r.id === selectedRegion)?.label ?? "Region"} · regional view`
+                  : `${activeCountryLabel} · country view · ${selectedCategory.toUpperCase()}`}
+              </span>
+            </div>
           </div>
 
-          {/* PESTEL filter chips */}
-          <div className="flex items-center gap-1.5">
+          <div className="h-6 w-px bg-slate-700 shrink-0 mx-1" />
+
+          {/* Geo scope pill toggle */}
+          <div className="flex items-center rounded-lg border border-slate-600/80 overflow-hidden text-xs bg-slate-900/60">
+            {(["continental","regional","country"] as GeoLayer[]).map(l => (
+              <button
+                key={l}
+                onClick={() => setGeoLayer(l)}
+                className={`px-3.5 py-2 font-semibold transition-all flex items-center gap-1.5 ${
+                  geoLayer === l
+                    ? "bg-cyan-500 text-slate-900"
+                    : "text-slate-400 hover:text-white hover:bg-slate-700/60"
+                }`}
+              >
+                {l === "continental" ? <Globe className="w-3.5 h-3.5" /> : <MapPin className="w-3.5 h-3.5" />}
+                {l === "continental" ? "Africa" : l === "regional" ? "Regional" : "Country"}
+              </button>
+            ))}
+          </div>
+
+          {/* Regional selector */}
+          {geoLayer === "regional" && (
+            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+              <SelectTrigger className="h-9 w-40 text-xs bg-slate-900/60 border-slate-600 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {AFRICA_REGIONS.map(r => <SelectItem key={r.id} value={r.id} className="text-xs">{r.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Country selector */}
+          {geoLayer === "country" && (
+            <div className="relative">
+              <div className="flex items-center h-9 w-48 bg-slate-900/60 border border-slate-600/80 rounded-lg px-3 gap-2">
+                <Globe className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <input
+                  type="text"
+                  value={countrySearch || activeCountryLabel}
+                  onChange={e => { setCountrySearch(e.target.value); setCountryDropdownOpen(true); }}
+                  onFocus={() => { setCountrySearch(""); setCountryDropdownOpen(true); }}
+                  onBlur={() => setTimeout(() => setCountryDropdownOpen(false), 150)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && countrySearch.trim()) {
+                      const slug = countrySearch.trim().toLowerCase().replace(/\s+/g, "-");
+                      setSelectedCountry(slug); setCountrySearch(""); setCountryDropdownOpen(false);
+                    }
+                    if (e.key === "Escape") { setCountrySearch(""); setCountryDropdownOpen(false); }
+                  }}
+                  placeholder="Search country…"
+                  className="flex-1 bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none min-w-0"
+                />
+              </div>
+              {countryDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-52 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 max-h-52 overflow-y-auto">
+                  {(() => {
+                    const q = countrySearch.toLowerCase();
+                    const filtered = AFRICA_COUNTRIES.filter(c => !q || c.label.toLowerCase().includes(q) || c.id.includes(q));
+                    return (
+                      <>
+                        {filtered.map(c => (
+                          <button key={c.id} type="button"
+                            onMouseDown={() => { setSelectedCountry(c.id); setCountrySearch(""); setCountryDropdownOpen(false); }}
+                            className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-700 transition-colors ${selectedCountry === c.id ? "text-cyan-400 bg-cyan-500/10" : "text-slate-200"}`}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                        {countrySearch.trim() && !AFRICA_COUNTRIES.find(c => c.label.toLowerCase() === countrySearch.toLowerCase()) && (
+                          <button type="button"
+                            onMouseDown={() => { const slug = countrySearch.trim().toLowerCase().replace(/\s+/g, "-"); setSelectedCountry(slug); setCountrySearch(""); setCountryDropdownOpen(false); }}
+                            className="w-full text-left px-3 py-1.5 text-xs text-cyan-400 hover:bg-cyan-500/10 border-t border-slate-700 flex items-center gap-1.5"
+                          >
+                            <Plus className="w-3 h-3" /> Force: "{countrySearch.trim()}"
+                          </button>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Row 2 — PESTEL dimension selector (full-width, prominent) */}
+        <div className="flex items-center gap-0 px-6 py-2">
+          <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest mr-3 shrink-0">PESTEL</span>
+          <div className="flex items-center gap-1.5 flex-1">
             {PESTEL.map(p => (
               <button
                 key={p.id}
                 onClick={() => setSelectedCategory(p.id)}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all border ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center justify-center gap-1 ${
                   selectedCategory === p.id
-                    ? `${p.bg} ${p.color} border-current`
-                    : "bg-slate-900 border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white"
+                    ? `${p.bg} ${p.color} border-current shadow-sm`
+                    : "bg-slate-900/40 border-slate-700/60 text-slate-500 hover:border-slate-500 hover:text-slate-200 hover:bg-slate-800/60"
                 }`}
               >
-                {p.label}
+                <span className="font-black">{p.label}</span>
+                <span className={`text-[9px] hidden sm:inline font-normal ${selectedCategory === p.id ? "opacity-80" : "opacity-50"}`}>
+                  {p.id === "political" ? "Political" : p.id === "economic" ? "Economic" : p.id === "social" ? "Social" : p.id === "technological" ? "Tech" : p.id === "environmental" ? "Environ." : "Legal"}
+                </span>
               </button>
             ))}
           </div>

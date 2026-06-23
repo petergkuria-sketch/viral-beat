@@ -467,9 +467,9 @@ export default function Dashboard() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: "Africa Hub", desc: "Explore all 55 nations — signals, stability scores, civic movements", icon: "🌍", href: "/africa", color: "#22d3ee", badge: "55 Nations" },
-                { label: "Signal Monitor", desc: "PESTEL-filtered intelligence with live AI analysis", icon: "📡", href: "/x-trends", color: "#a78bfa", badge: "Live" },
-                { label: "ViralMind", desc: "Game Theory content strategy powered by Africa intelligence", icon: "⚡", href: "/viralmind", color: "#f472b6", badge: "AI" },
-                { label: "Field Signals", desc: "Contribute or browse ground-truth signals from Africa", icon: "🧑‍💻", href: "/haa", color: "#34d399", badge: "People-Powered" },
+                { label: "Intelligence", desc: "PESTEL-filtered intelligence workspace with live AI analysis", icon: "📡", href: "/intelligence", color: "#a78bfa", badge: "Live" },
+                { label: "Aggregator", desc: "Game Theory content strategy powered by Africa intelligence", icon: "⚡", href: "/aggregator", color: "#f472b6", badge: "AI" },
+                { label: "Contributors", desc: "Contribute or browse ground-truth signals from Africa", icon: "🧑‍💻", href: "/contributor", color: "#34d399", badge: "People-Powered" },
               ].map((item, i) => (
                 <motion.button
                   key={i}
@@ -518,7 +518,7 @@ export default function Dashboard() {
                   { icon: "📡", label: "Intelligence", href: "/intelligence", color: "#a78bfa" },
                   { icon: "🤖", label: "AI Agents", href: "/ai-agents", color: "#f472b6" },
                   { icon: "🪙", label: "VBT Tokens", href: "/tokens", color: "#fbbf24" },
-                  { icon: "🏪", label: "Marketplace", href: "/marketplace", color: "#34d399" },
+                  { icon: "📊", label: "Trending", href: "/trending", color: "#34d399" },
                   { icon: "🛠️", label: "Dev Hub", href: "/developer-hub", color: "#60a5fa" },
                 ].map((item) => (
                   <button
@@ -571,7 +571,7 @@ export default function Dashboard() {
             <div className="grid sm:grid-cols-3 gap-4">
               {[
                 { label: "Kenya Deep-Dive", desc: "The richest country intelligence module on the platform", icon: TrendingUp, href: "/kenya", color: "#22d3ee" },
-                { label: "Humans As Agents", desc: "Ground-truth field signals from Africa contributors", icon: BarChart3, href: "/haa", color: "#a78bfa" },
+                { label: "Contributors", desc: "Ground-truth field signals from Africa contributors", icon: BarChart3, href: "/contributor", color: "#a78bfa" },
                 { label: "Developer API", desc: "Embed Africa intelligence in your product", icon: Zap, href: "/developer-hub", color: "#34d399" },
               ].map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.1 }}>

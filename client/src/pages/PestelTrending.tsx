@@ -176,7 +176,7 @@ export default function PestelTrending() {
               <button
                 key={country.id}
                 type="button"
-                onClick={() => navigate(`/intelligence?country=${country.id}`)}
+                onClick={() => navigate(`/intelligence?country=${country.id}&dimension=${activeDimension}`)}
                 className="w-full text-left bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 rounded-xl px-4 py-3 transition-all group"
               >
                 <div className="flex items-center gap-3">
