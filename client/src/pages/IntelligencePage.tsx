@@ -66,6 +66,8 @@ const AFRICA_COUNTRIES = [
 export default function IntelligencePage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // flag: true while analyzeContent is being used for the pipeline GT step
+  const pipelineGTMode = useRef(false);
 
   // ── onboarding banner ──
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -177,12 +179,27 @@ export default function IntelligencePage() {
   });
 
   const analyzeContent = trpc.aiAssistant.analyzeContent.useMutation({
-    onSuccess: async () => {
-      toast.success("Game Theory analysis complete!");
-      setGtTitle("");
-      setGtUrl("");
+    onSuccess: async (data) => {
+      if (pipelineGTMode.current) {
+        // Called from pipeline — set GT output and advance stage; skip tab-switching
+        pipelineGTMode.current = false;
+        setGtOutput(data);
+        setPipelineStage("gametheory_done");
+      } else {
+        // Called from standalone Game Theory tab
+        toast.success("Game Theory analysis complete!");
+        setGtTitle("");
+        setGtUrl("");
+        setRightTab("insights");
+      }
       await utils.aiAssistant.getAnalyses.invalidate();
-      setRightTab("insights");
+    },
+    onError: (err) => {
+      if (pipelineGTMode.current) {
+        pipelineGTMode.current = false;
+        toast.error("Game Theory failed: " + err.message);
+        setPipelineStage("pestel_done");
+      }
     },
   });
 
@@ -203,7 +220,6 @@ export default function IntelligencePage() {
 
   // ── pipeline mutations ──
   const pipelinePestel = trpc.xTrends.summarizeTrends.useMutation();
-  const pipelineGT = trpc.aiAssistant.analyzeContent.useMutation();
   const pipelineReports = trpc.aiAgents.repurposeContent.useMutation();
   const saveRun = trpc.intelligence.savePipelineRun.useMutation();
   const { data: historyData } = trpc.intelligence.getRelevantHistory.useQuery(
@@ -431,20 +447,15 @@ export default function IntelligencePage() {
   };
 
   const handleRunGameTheory = () => {
-    if (!pipelineSignal) return;
+    if (!pipelineSignal || pipelineGTMode.current) return;
     setPipelineStage("gametheory");
     const geoLabel =
       geoLayer === "continental" ? "Africa (Continental)" :
       geoLayer === "regional" ? (AFRICA_REGIONS.find(r => r.id === selectedRegion)?.label ?? selectedRegion) :
       (AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.label ?? selectedCountry);
-    const gtTitle = `[${geoLabel} · ${selectedCategory.toUpperCase()}] ${pipelineSignal.topic}`;
-    pipelineGT.mutate(
-      { title: gtTitle, contentType: "research", platform: "journal" },
-      {
-        onSuccess: (data) => { setGtOutput(data); setPipelineStage("gametheory_done"); },
-        onError: (err) => { toast.error("Game Theory failed: " + err.message); setPipelineStage("pestel_done"); },
-      }
-    );
+    const gtTitleStr = `[${geoLabel} · ${selectedCategory.toUpperCase()}] ${pipelineSignal.topic}`;
+    pipelineGTMode.current = true;
+    analyzeContent.mutate({ title: gtTitleStr, contentType: "research", platform: "journal" });
   };
 
   const handleRunReports = () => {
