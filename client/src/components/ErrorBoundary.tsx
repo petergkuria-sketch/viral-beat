@@ -35,15 +35,18 @@ class ErrorBoundary extends Component<Props, State> {
       const alreadyTried = sessionStorage.getItem(CHUNK_RELOAD_KEY);
       if (!alreadyTried) {
         sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
-        // Reload happens in componentDidUpdate once state is set
         return { hasError: true, error, autoReloading: true };
       }
+      // Second chunk error in same session — clear flag so next manual reload works
+      sessionStorage.removeItem(CHUNK_RELOAD_KEY);
     }
     return { hasError: true, error, autoReloading: false };
   }
 
   componentDidUpdate() {
     if (this.state.autoReloading) {
+      // Clear before reload so a second stale-chunk on the new page can also auto-reload
+      sessionStorage.removeItem(CHUNK_RELOAD_KEY);
       window.location.reload();
     }
   }
@@ -61,22 +64,19 @@ class ErrorBoundary extends Component<Props, State> {
         );
       }
 
+      const isChunk = isChunkError(this.state.error!);
       return (
         <div className="flex items-center justify-center min-h-screen p-8 bg-background">
-          <div className="flex flex-col items-center w-full max-w-2xl p-8">
-            <AlertTriangle
-              size={48}
-              className="text-destructive mb-6 flex-shrink-0"
-            />
-
-            <h2 className="text-xl mb-4">An unexpected error occurred.</h2>
-
-            <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
-              <pre className="text-sm text-muted-foreground whitespace-break-spaces">
-                {this.state.error?.stack}
-              </pre>
-            </div>
-
+          <div className="flex flex-col items-center w-full max-w-md text-center">
+            <AlertTriangle size={48} className="text-destructive mb-6 flex-shrink-0" />
+            <h2 className="text-xl font-semibold mb-2">
+              {isChunk ? "New version available" : "An unexpected error occurred."}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              {isChunk
+                ? "A new deploy was released while you were browsing. Reload to get the latest version."
+                : this.state.error?.message ?? "Something went wrong."}
+            </p>
             <button
               onClick={() => {
                 sessionStorage.removeItem(CHUNK_RELOAD_KEY);
@@ -89,7 +89,7 @@ class ErrorBoundary extends Component<Props, State> {
               )}
             >
               <RotateCcw size={16} />
-              Reload Page
+              {isChunk ? "Load latest version" : "Reload Page"}
             </button>
           </div>
         </div>
