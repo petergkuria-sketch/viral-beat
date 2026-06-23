@@ -153,7 +153,7 @@ export default function LandingPage() {
           </button>
 
           <div className="hidden md:flex items-center gap-1">
-            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
+            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Contributors"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => scrollTo(id)} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
                 {label}
               </button>
@@ -208,7 +208,7 @@ export default function LandingPage() {
         </div>
         {mobileMenuOpen && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="md:hidden border-t border-white/5 bg-[#050b1a] px-4 py-4 flex flex-col gap-1">
-            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
+            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Contributors"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => { setMobileMenuOpen(false); scrollTo(id); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
             <button onClick={() => { setMobileMenuOpen(false); scrollTo("download-app"); }} className="text-left px-3 py-2.5 text-sm font-medium text-emerald-400 hover:text-emerald-300 rounded-lg hover:bg-white/5 flex items-center gap-2"><Smartphone className="w-3.5 h-3.5" /> Download App</button>
@@ -265,18 +265,18 @@ export default function LandingPage() {
               {/* App grid */}
               <div className="grid grid-cols-4 gap-y-6 gap-x-4 px-8 pb-4">
                 {[
-                  { emoji: "🌍", label: "Africa Map",    path: "/africa",        badge: 0,  bg: "from-[#1a3a2a] to-[#0d5c3a]" },
-                  { emoji: "📡", label: "Intelligence",  path: "/intelligence",  badge: 3,  bg: "from-[#0d2240] to-[#0a4080]" },
-                  { emoji: "🤖", label: "AI Agents",     path: "/ai-agents",     badge: 0,  bg: "from-[#2a0d40] to-[#5a1a8a]" },
-                  { emoji: "📊", label: "Dashboard",     path: "/dashboard",     badge: 0,  bg: "from-[#3a2000] to-[#7a4a00]" },
-                  { emoji: "🏪", label: "Marketplace",   path: "/marketplace",   badge: 0,  bg: "from-[#3a0d20] to-[#8a1a40]" },
-                  { emoji: "🛠️", label: "Dev Hub",       path: "/developer-hub", badge: 0,  bg: "from-[#0d1a3a] to-[#1a3a6a]" },
-                  { emoji: "🪙", label: "VBT Tokens",    path: "/tokens",        badge: 0,  bg: "from-[#2a1a00] to-[#6a4000]" },
-                  { emoji: "👁️", label: "HAA",           path: "/haa",           badge: 0,  bg: "from-[#001a1a] to-[#003a3a]" },
-                  { emoji: "💎", label: "Pricing",       path: "/pricing",       badge: 0,  bg: "from-[#1a2a00] to-[#3a5a00]" },
-                  { emoji: "📖", label: "About",         path: "/about",         badge: 0,  bg: "from-[#1a1a2a] to-[#3a3a5a]" },
-                  { emoji: "⚙️", label: "Settings",      path: "/settings",      badge: 0,  bg: "from-[#1a1a1a] to-[#3a3a3a]" },
-                  { emoji: "📰", label: "Newsletter",    path: "/marketplace",   badge: 0,  bg: "from-[#0d1f0d] to-[#1a3a1a]" },
+                  { emoji: "🌍", label: "Africa Hub",       path: "/africa",          badge: 0, bg: "from-[#0d2e1a] to-[#0a4a28]" },
+                  { emoji: "📡", label: "Intelligence",     path: "/intelligence",    badge: 3, bg: "from-[#0d1e40] to-[#0a3070]" },
+                  { emoji: "⚡", label: "Aggregator",       path: "/aggregator",      badge: 0, bg: "from-[#2d0d30] to-[#5a1060]" },
+                  { emoji: "📊", label: "Trending",         path: "/trending",        badge: 0, bg: "from-[#002020] to-[#004040]" },
+                  { emoji: "🏗️", label: "Inv. Readiness",  path: "/doing-business",  badge: 0, bg: "from-[#2a1500] to-[#5a3000]" },
+                  { emoji: "🧑‍💻", label: "Contributors",   path: "/haa",             badge: 0, bg: "from-[#0d2a1a] to-[#1a4a30]" },
+                  { emoji: "🇰🇪", label: "Kenya",           path: "/kenya",           badge: 0, bg: "from-[#001a30] to-[#002a50]" },
+                  { emoji: "🗺️", label: "Elections",        path: "/africa",          badge: 0, bg: "from-[#1a0a30] to-[#350060]" },
+                  { emoji: "💎", label: "Pricing",          path: "/pricing",         badge: 0, bg: "from-[#0a200a] to-[#1a3a1a]" },
+                  { emoji: "📖", label: "About",            path: "/about",           badge: 0, bg: "from-[#151522] to-[#252540]" },
+                  { emoji: "✉️", label: "Newsletter",       path: "/newsletter",      badge: 0, bg: "from-[#0d1a1a] to-[#1a2e2e]" },
+                  { emoji: "⚙️", label: "Settings",         path: "/settings",        badge: 0, bg: "from-[#181818] to-[#2e2e2e]" },
                 ].map(app => (
                   <button
                     key={app.path + app.label}
@@ -299,10 +299,10 @@ export default function LandingPage() {
               {/* Dock */}
               <div className="mx-3 mb-4 bg-white/6 backdrop-blur rounded-2xl px-4 py-3 flex justify-around border border-white/8">
                 {[
-                  { emoji: "📡", label: "Intel",   path: "/intelligence" },
-                  { emoji: "🌍", label: "Africa",  path: "/africa" },
-                  { emoji: "🤖", label: "Agents",  path: "/ai-agents" },
-                  { emoji: "👤", label: "Profile", path: "/dashboard" },
+                  { emoji: "📡", label: "Workspace", path: "/intelligence" },
+                  { emoji: "🌍", label: "Africa",    path: "/africa" },
+                  { emoji: "⚡", label: "Aggregator",path: "/aggregator" },
+                  { emoji: "👤", label: "Profile",   path: "/contributor" },
                 ].map(d => (
                   <button key={d.path} onClick={() => user ? setLocation(d.path) : (window.location.href = getLoginUrl())} className="flex flex-col items-center gap-1 group">
                     <div className="w-12 h-12 rounded-[15px] bg-white/8 flex items-center justify-center text-xl transition-transform group-hover:scale-105 group-active:scale-95">{d.emoji}</div>
@@ -442,7 +442,7 @@ export default function LandingPage() {
       <section id="people-signal" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Field Signals</Badge>
+            <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Field Contributors</Badge>
             <h2 className="text-4xl sm:text-5xl font-black mb-4">Ground Truth, Not Just Headlines</h2>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
               Journalists, activists, NGO officers, and researchers submit verified field signals — county-level events, protest reports, voting record discrepancies. That human intelligence is structured and weighted by contributor tier, giving you credible data you can cite publicly.
@@ -643,7 +643,7 @@ export default function LandingPage() {
 
             <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="grid grid-cols-2 gap-4">
               {[
-                { icon: Users,     title: "Humans As Agents", reward: "500–2000", color: "#a78bfa", desc: "Verified local submissions" },
+                { icon: Users,     title: "Field Contributors", reward: "500–2000", color: "#a78bfa", desc: "Verified local submissions" },
                 { icon: TrendingUp,title: "Submit Trends",    reward: "50–200",   color: "#22d3ee", desc: "Early first-mover rewards" },
                 { icon: BarChart3, title: "Rate Virality",    reward: "10–50",    color: "#34d399", desc: "Accurate prediction bonus" },
                 { icon: Coins,     title: "VBT Tokens",      reward: "Tradeable",color: "#fb923c", desc: "Marketplace & crypto bridge" },
