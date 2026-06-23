@@ -52,7 +52,8 @@ const AFRICA_REGIONS = [
 
 // All 55 AU member states with flag emoji, region grouping, and signal coverage tier
 type SignalTier = "live" | "ai" | "none";
-interface AfricaCountry { id: string; label: string; flag: string; region: string; tier: SignalTier }
+// key = backend countryAccounts key (lowercase full name); id = ISO-2 used in UI state
+interface AfricaCountry { id: string; key: string; label: string; flag: string; region: string; tier: SignalTier }
 const AFRICA_REGIONS_MAP: Record<string, string> = {
   "east":    "East Africa",
   "west":    "West Africa",
@@ -62,66 +63,66 @@ const AFRICA_REGIONS_MAP: Record<string, string> = {
 };
 const AFRICA_COUNTRIES: AfricaCountry[] = [
   // East Africa
-  { id:"ke",  label:"Kenya",          flag:"🇰🇪", region:"east",    tier:"live" },
-  { id:"tz",  label:"Tanzania",       flag:"🇹🇿", region:"east",    tier:"live" },
-  { id:"ug",  label:"Uganda",         flag:"🇺🇬", region:"east",    tier:"live" },
-  { id:"rw",  label:"Rwanda",         flag:"🇷🇼", region:"east",    tier:"ai"   },
-  { id:"et",  label:"Ethiopia",       flag:"🇪🇹", region:"east",    tier:"live" },
-  { id:"sd",  label:"Sudan",          flag:"🇸🇩", region:"east",    tier:"live" },
-  { id:"ss",  label:"South Sudan",    flag:"🇸🇸", region:"east",    tier:"ai"   },
-  { id:"so",  label:"Somalia",        flag:"🇸🇴", region:"east",    tier:"ai"   },
-  { id:"bi",  label:"Burundi",        flag:"🇧🇮", region:"east",    tier:"none" },
-  { id:"dj",  label:"Djibouti",       flag:"🇩🇯", region:"east",    tier:"none" },
-  { id:"er",  label:"Eritrea",        flag:"🇪🇷", region:"east",    tier:"none" },
-  { id:"mg",  label:"Madagascar",     flag:"🇲🇬", region:"east",    tier:"none" },
+  { id:"ke",  key:"kenya",        label:"Kenya",          flag:"🇰🇪", region:"east",    tier:"live" },
+  { id:"tz",  key:"tanzania",     label:"Tanzania",       flag:"🇹🇿", region:"east",    tier:"live" },
+  { id:"ug",  key:"uganda",       label:"Uganda",         flag:"🇺🇬", region:"east",    tier:"live" },
+  { id:"rw",  key:"rwanda",       label:"Rwanda",         flag:"🇷🇼", region:"east",    tier:"ai"   },
+  { id:"et",  key:"ethiopia",     label:"Ethiopia",       flag:"🇪🇹", region:"east",    tier:"live" },
+  { id:"sd",  key:"sudan",        label:"Sudan",          flag:"🇸🇩", region:"east",    tier:"live" },
+  { id:"ss",  key:"south-sudan",  label:"South Sudan",    flag:"🇸🇸", region:"east",    tier:"ai"   },
+  { id:"so",  key:"somalia",      label:"Somalia",        flag:"🇸🇴", region:"east",    tier:"ai"   },
+  { id:"bi",  key:"burundi",      label:"Burundi",        flag:"🇧🇮", region:"east",    tier:"none" },
+  { id:"dj",  key:"djibouti",     label:"Djibouti",       flag:"🇩🇯", region:"east",    tier:"none" },
+  { id:"er",  key:"eritrea",      label:"Eritrea",        flag:"🇪🇷", region:"east",    tier:"none" },
+  { id:"mg",  key:"madagascar",   label:"Madagascar",     flag:"🇲🇬", region:"east",    tier:"none" },
   // West Africa
-  { id:"ng",  label:"Nigeria",        flag:"🇳🇬", region:"west",    tier:"live" },
-  { id:"gh",  label:"Ghana",          flag:"🇬🇭", region:"west",    tier:"live" },
-  { id:"sn",  label:"Senegal",        flag:"🇸🇳", region:"west",    tier:"live" },
-  { id:"ci",  label:"Côte d'Ivoire",  flag:"🇨🇮", region:"west",    tier:"live" },
-  { id:"ml",  label:"Mali",           flag:"🇲🇱", region:"west",    tier:"ai"   },
-  { id:"bf",  label:"Burkina Faso",   flag:"🇧🇫", region:"west",    tier:"ai"   },
-  { id:"ne",  label:"Niger",          flag:"🇳🇪", region:"west",    tier:"ai"   },
-  { id:"gn",  label:"Guinea",         flag:"🇬🇳", region:"west",    tier:"none" },
-  { id:"sl",  label:"Sierra Leone",   flag:"🇸🇱", region:"west",    tier:"none" },
-  { id:"lr",  label:"Liberia",        flag:"🇱🇷", region:"west",    tier:"none" },
-  { id:"bj",  label:"Benin",          flag:"🇧🇯", region:"west",    tier:"none" },
-  { id:"tg",  label:"Togo",           flag:"🇹🇬", region:"west",    tier:"none" },
-  { id:"gw",  label:"Guinea-Bissau",  flag:"🇬🇼", region:"west",    tier:"none" },
-  { id:"gm",  label:"Gambia",         flag:"🇬🇲", region:"west",    tier:"none" },
-  { id:"mr",  label:"Mauritania",     flag:"🇲🇷", region:"west",    tier:"none" },
-  { id:"cv",  label:"Cape Verde",     flag:"🇨🇻", region:"west",    tier:"none" },
+  { id:"ng",  key:"nigeria",      label:"Nigeria",        flag:"🇳🇬", region:"west",    tier:"live" },
+  { id:"gh",  key:"ghana",        label:"Ghana",          flag:"🇬🇭", region:"west",    tier:"live" },
+  { id:"sn",  key:"senegal",      label:"Senegal",        flag:"🇸🇳", region:"west",    tier:"live" },
+  { id:"ci",  key:"cote-divoire", label:"Côte d'Ivoire",  flag:"🇨🇮", region:"west",    tier:"live" },
+  { id:"ml",  key:"mali",         label:"Mali",           flag:"🇲🇱", region:"west",    tier:"ai"   },
+  { id:"bf",  key:"burkina-faso", label:"Burkina Faso",   flag:"🇧🇫", region:"west",    tier:"ai"   },
+  { id:"ne",  key:"niger",        label:"Niger",          flag:"🇳🇪", region:"west",    tier:"ai"   },
+  { id:"gn",  key:"guinea",       label:"Guinea",         flag:"🇬🇳", region:"west",    tier:"none" },
+  { id:"sl",  key:"sierra-leone", label:"Sierra Leone",   flag:"🇸🇱", region:"west",    tier:"none" },
+  { id:"lr",  key:"liberia",      label:"Liberia",        flag:"🇱🇷", region:"west",    tier:"none" },
+  { id:"bj",  key:"benin",        label:"Benin",          flag:"🇧🇯", region:"west",    tier:"none" },
+  { id:"tg",  key:"togo",         label:"Togo",           flag:"🇹🇬", region:"west",    tier:"none" },
+  { id:"gw",  key:"guinea-bissau",label:"Guinea-Bissau",  flag:"🇬🇼", region:"west",    tier:"none" },
+  { id:"gm",  key:"gambia",       label:"Gambia",         flag:"🇬🇲", region:"west",    tier:"none" },
+  { id:"mr",  key:"mauritania",   label:"Mauritania",     flag:"🇲🇷", region:"west",    tier:"none" },
+  { id:"cv",  key:"cape-verde",   label:"Cape Verde",     flag:"🇨🇻", region:"west",    tier:"none" },
   // Central Africa
-  { id:"cd",  label:"DR Congo",       flag:"🇨🇩", region:"central", tier:"live" },
-  { id:"cm",  label:"Cameroon",       flag:"🇨🇲", region:"central", tier:"live" },
-  { id:"ga",  label:"Gabon",          flag:"🇬🇦", region:"central", tier:"ai"   },
-  { id:"td",  label:"Chad",           flag:"🇹🇩", region:"central", tier:"ai"   },
-  { id:"cf",  label:"Cen. Afr. Rep.", flag:"🇨🇫", region:"central", tier:"ai"   },
-  { id:"cg",  label:"Congo",          flag:"🇨🇬", region:"central", tier:"none" },
-  { id:"gq",  label:"Eq. Guinea",     flag:"🇬🇶", region:"central", tier:"none" },
-  { id:"st",  label:"São Tomé",       flag:"🇸🇹", region:"central", tier:"none" },
+  { id:"cd",  key:"dr-congo",     label:"DR Congo",       flag:"🇨🇩", region:"central", tier:"live" },
+  { id:"cm",  key:"cameroon",     label:"Cameroon",       flag:"🇨🇲", region:"central", tier:"live" },
+  { id:"ga",  key:"gabon",        label:"Gabon",          flag:"🇬🇦", region:"central", tier:"ai"   },
+  { id:"td",  key:"chad",         label:"Chad",           flag:"🇹🇩", region:"central", tier:"ai"   },
+  { id:"cf",  key:"car",          label:"Cen. Afr. Rep.", flag:"🇨🇫", region:"central", tier:"ai"   },
+  { id:"cg",  key:"congo",        label:"Congo",          flag:"🇨🇬", region:"central", tier:"none" },
+  { id:"gq",  key:"eq-guinea",    label:"Eq. Guinea",     flag:"🇬🇶", region:"central", tier:"none" },
+  { id:"st",  key:"sao-tome",     label:"São Tomé",       flag:"🇸🇹", region:"central", tier:"none" },
   // North Africa
-  { id:"eg",  label:"Egypt",          flag:"🇪🇬", region:"north",   tier:"live" },
-  { id:"ma",  label:"Morocco",        flag:"🇲🇦", region:"north",   tier:"live" },
-  { id:"dz",  label:"Algeria",        flag:"🇩🇿", region:"north",   tier:"live" },
-  { id:"ly",  label:"Libya",          flag:"🇱🇾", region:"north",   tier:"ai"   },
-  { id:"tn",  label:"Tunisia",        flag:"🇹🇳", region:"north",   tier:"ai"   },
+  { id:"eg",  key:"egypt",        label:"Egypt",          flag:"🇪🇬", region:"north",   tier:"live" },
+  { id:"ma",  key:"morocco",      label:"Morocco",        flag:"🇲🇦", region:"north",   tier:"live" },
+  { id:"dz",  key:"algeria",      label:"Algeria",        flag:"🇩🇿", region:"north",   tier:"live" },
+  { id:"ly",  key:"libya",        label:"Libya",          flag:"🇱🇾", region:"north",   tier:"ai"   },
+  { id:"tn",  key:"tunisia",      label:"Tunisia",        flag:"🇹🇳", region:"north",   tier:"ai"   },
   // Southern Africa
-  { id:"za",  label:"South Africa",   flag:"🇿🇦", region:"south",   tier:"live" },
-  { id:"zw",  label:"Zimbabwe",       flag:"🇿🇼", region:"south",   tier:"live" },
-  { id:"zm",  label:"Zambia",         flag:"🇿🇲", region:"south",   tier:"live" },
-  { id:"ao",  label:"Angola",         flag:"🇦🇴", region:"south",   tier:"ai"   },
-  { id:"mz",  label:"Mozambique",     flag:"🇲🇿", region:"south",   tier:"ai"   },
-  { id:"bw",  label:"Botswana",       flag:"🇧🇼", region:"south",   tier:"none" },
-  { id:"na",  label:"Namibia",        flag:"🇳🇦", region:"south",   tier:"none" },
-  { id:"mw",  label:"Malawi",         flag:"🇲🇼", region:"south",   tier:"none" },
-  { id:"sz",  label:"Eswatini",       flag:"🇸🇿", region:"south",   tier:"none" },
-  { id:"ls",  label:"Lesotho",        flag:"🇱🇸", region:"south",   tier:"none" },
-  { id:"mu",  label:"Mauritius",      flag:"🇲🇺", region:"south",   tier:"none" },
-  { id:"km",  label:"Comoros",        flag:"🇰🇲", region:"south",   tier:"none" },
-  { id:"sc",  label:"Seychelles",     flag:"🇸🇨", region:"south",   tier:"none" },
-  { id:"re",  label:"Réunion",        flag:"🇷🇪", region:"south",   tier:"none" },
-  { id:"yt",  label:"Mayotte",        flag:"🇾🇹", region:"south",   tier:"none" },
+  { id:"za",  key:"south-africa", label:"South Africa",   flag:"🇿🇦", region:"south",   tier:"live" },
+  { id:"zw",  key:"zimbabwe",     label:"Zimbabwe",       flag:"🇿🇼", region:"south",   tier:"live" },
+  { id:"zm",  key:"zambia",       label:"Zambia",         flag:"🇿🇲", region:"south",   tier:"live" },
+  { id:"ao",  key:"angola",       label:"Angola",         flag:"🇦🇴", region:"south",   tier:"ai"   },
+  { id:"mz",  key:"mozambique",   label:"Mozambique",     flag:"🇲🇿", region:"south",   tier:"ai"   },
+  { id:"bw",  key:"botswana",    label:"Botswana",  flag:"🇧🇼", region:"south",   tier:"none" },
+  { id:"na",  key:"namibia",     label:"Namibia",   flag:"🇳🇦", region:"south",   tier:"none" },
+  { id:"mw",  key:"malawi",      label:"Malawi",    flag:"🇲🇼", region:"south",   tier:"none" },
+  { id:"sz",  key:"eswatini",    label:"Eswatini",  flag:"🇸🇿", region:"south",   tier:"none" },
+  { id:"ls",  key:"lesotho",     label:"Lesotho",   flag:"🇱🇸", region:"south",   tier:"none" },
+  { id:"mu",  key:"mauritius",   label:"Mauritius", flag:"🇲🇺", region:"south",   tier:"none" },
+  { id:"km",  key:"comoros",     label:"Comoros",   flag:"🇰🇲", region:"south",   tier:"none" },
+  { id:"sc",  key:"seychelles",  label:"Seychelles",flag:"🇸🇨", region:"south",   tier:"none" },
+  { id:"re",  key:"reunion",     label:"Réunion",   flag:"🇷🇪", region:"south",   tier:"none" },
+  { id:"yt",  key:"mayotte",     label:"Mayotte",   flag:"🇾🇹", region:"south",   tier:"none" },
 ];
 
 // ── component ───────────────────────────────────────────────────────────────
@@ -208,10 +209,11 @@ export default function IntelligencePage() {
   const [addSignalCategory, setAddSignalCategory] = useState<PestelCategory>("political");
 
   // ── derived scope ──
+  // For country layer, use the backend's full-name key (e.g. "tanzania") not the ISO id ("tz")
   const scopeKey =
     geoLayer === "continental" ? "au" :
     geoLayer === "regional"    ? selectedRegion :
-                                 selectedCountry;
+                                 (AFRICA_COUNTRIES.find(c => c.id === selectedCountry)?.key ?? selectedCountry);
 
   // Human-readable label for the active country (handles custom free-text entries)
   const activeCountryLabel =
@@ -490,12 +492,12 @@ export default function IntelligencePage() {
     const pestelLabel = selectedCategory;
     generateSignalsMutation.mutate(
       {
-        topic: `${countryLabel} ${pestelLabel} intelligence signals`,
+        // The topic IS the full generation prompt — the backend appends it to the user message.
+        // We override normal analysis by making the request a JSON generation task.
+        topic: `TASK: Generate exactly 5 distinct ${pestelLabel.toUpperCase()} intelligence signals for ${countryLabel}.\n\nIgnore the prose analysis format. Respond ONLY with a valid JSON array, no other text:\n[{"topic":"headline max 12 words","summary":"2-sentence brief with actors and implications","category":"${pestelLabel}"},...]`,
         geoScope: scopeKey,
         geoLayer: "country",
         pestelCategory: selectedCategory,
-        researchContext:
-          `You are ViralBeat's Africa political intelligence AI. Generate exactly 5 distinct, current, high-signal intelligence signals for ${countryLabel} under the PESTEL dimension: ${pestelLabel.toUpperCase()}.\n\nFormat your response as a JSON array of objects. Each object must have:\n- "topic": a concise signal headline (max 12 words)\n- "summary": 2-sentence intelligence brief with actor names and implications\n- "category": the PESTEL category (use "${pestelLabel}")\n\nRespond ONLY with valid JSON array. Example:\n[{"topic": "Signal headline here", "summary": "Brief here.", "category": "${pestelLabel}"}]`,
       },
       {
         onSuccess: (data) => {
@@ -503,7 +505,9 @@ export default function IntelligencePage() {
           const raw = typeof data?.summary === "string" ? data.summary : "";
           // Extract JSON array from the LLM response
           try {
-            const match = raw.match(/\[[\s\S]*\]/);
+            // Strip markdown code fences if present, then extract JSON array
+            const stripped = raw.replace(/```json?\s*/gi, "").replace(/```/g, "");
+            const match = stripped.match(/\[[\s\S]*\]/);
             if (!match) throw new Error("No JSON array found");
             const parsed: { topic: string; summary?: string; category?: string }[] = JSON.parse(match[0]);
             const newSignals = parsed
