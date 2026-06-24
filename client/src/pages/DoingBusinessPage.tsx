@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { trpc } from "@/lib/trpc";
 import {
   Tabs, TabsContent, TabsList, TabsTrigger,
@@ -374,7 +375,7 @@ function DetailPanel({ country, irs, dbAvg }: DetailPanelProps) {
 
       {/* IRS gauge + 3-col breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-slate-800/60 border-slate-700/50">
+        <Card id="irs-gauge" className="bg-slate-800/60 border-slate-700/50">
           <CardContent className="pt-6">
             <IRSGauge irs={irs} />
             <p className="text-center text-xs text-slate-400 mt-2">IRS — Investment Readiness Score</p>
@@ -1001,14 +1002,17 @@ export default function DoingBusinessPage() {
             World Bank B-READY indicators · Country Comparator · FDI Sector Map · AI-enriched PESTEL+IR overlay
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-sky-500/30 text-sky-300 hover:bg-sky-500/10 shrink-0"
-          onClick={() => navigate("/intelligence")}
-        >
-          Open Intelligence Workspace <ArrowRight className="w-3 h-3 ml-1.5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <OnboardingTour tourId="investment-readiness" label="How to use" />
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-sky-500/30 text-sky-300 hover:bg-sky-500/10 shrink-0"
+            onClick={() => navigate("/intelligence")}
+          >
+            Open Intelligence Workspace <ArrowRight className="w-3 h-3 ml-1.5" />
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -1053,7 +1057,7 @@ export default function DoingBusinessPage() {
             <span className="text-xs text-slate-500 ml-auto">{filtered.length} countries</span>
           </div>
 
-          <Card className="bg-slate-800/40 border-slate-700/50">
+          <Card id="irs-country-list" className="bg-slate-800/40 border-slate-700/50">
             <CardContent className="p-2 space-y-0.5">
               {filtered.map((c, i) => (
                 <RankRow

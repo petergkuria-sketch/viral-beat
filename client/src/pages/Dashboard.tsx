@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { useViewPreference } from "@/_core/hooks/useViewPreference";
 import { ViewToggle } from "@/components/ViewToggle";
 import { 
@@ -197,10 +198,10 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-muted-foreground">Africa Political Intelligence Search</span>
-            {user && <div className="ml-auto"><TokenBalanceIndicator /></div>}
+            {user && <div className="ml-auto flex items-center gap-2"><TokenBalanceIndicator /><OnboardingTour tourId="dashboard" label="Site Tour" /></div>}
           </div>
           <form onSubmit={handleSearch} className="flex gap-2">
-            <div className="relative flex-1">
+            <div className="relative flex-1" id="dashboard-search">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
@@ -463,7 +464,7 @@ export default function Dashboard() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
 
             {/* Mission control quick-action cards */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div id="dashboard-mission-cards" className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: "Africa Hub", desc: "Explore all 55 AU member states — stability scores, civic movements, elections", icon: "🌍", href: "/africa", color: "#22d3ee", badge: "55 Nations" },
                 { label: "Intelligence Workspace", desc: "PESTEL+IR signal analysis with live AI briefings, reports & chat for any African country", icon: "📡", href: "/intelligence", color: "#a78bfa", badge: "Live AI" },
@@ -511,7 +512,7 @@ export default function Dashboard() {
 
             {/* Widget view — icon tiles for quick navigation */}
             {dashView === "widget" && (
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 pb-2">
+              <div id="dashboard-quick-access" className="grid grid-cols-3 sm:grid-cols-6 gap-3 pb-2">
                 {[
                   { icon: "🌍", label: "Africa Hub", href: "/africa", color: "#22d3ee" },
                   { icon: "📡", label: "Intelligence", href: "/intelligence", color: "#a78bfa" },

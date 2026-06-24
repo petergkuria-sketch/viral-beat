@@ -355,3 +355,49 @@
     color: oklch(0.95 0.02 260);
   }
 }
+
+/* ── Driver.js onboarding tour theme ────────────────────────────────────────── */
+.vb-driver-popover {
+  background: #0f2240 !important;
+  border: 1px solid rgba(6, 182, 212, 0.3) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 0 40px rgba(6, 182, 212, 0.1) !important;
+  color: #e2e8f0 !important;
+  max-width: 320px !important;
+}
+.vb-driver-popover .driver-popover-title {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  margin-bottom: 6px !important;
+}
+.vb-driver-popover .driver-popover-description {
+  font-size: 13px !important;
+  color: #94a3b8 !important;
+  line-height: 1.6 !important;
+}
+.vb-driver-popover .driver-popover-footer button {
+  background: rgba(6, 182, 212, 0.15) !important;
+  border: 1px solid rgba(6, 182, 212, 0.3) !important;
+  color: #22d3ee !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 5px 12px !important;
+  transition: all 0.15s !important;
+}
+.vb-driver-popover .driver-popover-footer button:hover {
+  background: rgba(6, 182, 212, 0.3) !important;
+}
+.vb-driver-popover .driver-popover-footer .driver-popover-btn-close {
+  background: transparent !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: #64748b !important;
+}
+.vb-driver-popover .driver-popover-progress-text {
+  font-size: 10px !important;
+  color: #475569 !important;
+}
+.driver-overlay {
+  background: rgba(5, 11, 26, 0.85) !important;
+}

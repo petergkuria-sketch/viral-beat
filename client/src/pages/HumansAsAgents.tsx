@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -215,6 +216,7 @@ export default function HumansAsAgents() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <OnboardingTour tourId="field-contributors" label="How to use" />
           <button
             onClick={() => (window.location.href = "/haa/leaderboard")}
             className="text-xs px-3 py-1.5 rounded-lg border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 transition-colors"
@@ -234,7 +236,7 @@ export default function HumansAsAgents() {
 
           {/* Stats row */}
           {user && haaStats && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div id="haa-vbt-balance" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label: "Validations", value: haaStats.totalSubmissions, color: "#00d4ff" },
                 { label: "Confirmed", value: haaStats.acceptedSubmissions, color: "#34d399" },
@@ -306,7 +308,7 @@ export default function HumansAsAgents() {
 
             {/* Submit field report */}
             <div className="lg:col-span-2">
-              <div className="rounded-xl border border-border/50 bg-card/60 p-5 space-y-4 sticky top-4">
+              <div id="haa-submit-signal" className="rounded-xl border border-border/50 bg-card/60 p-5 space-y-4 sticky top-4">
                 <div>
                   <h2 className="text-sm font-bold text-slate-200">Submit Field Report</h2>
                   <p className="text-xs text-slate-500 mt-0.5">

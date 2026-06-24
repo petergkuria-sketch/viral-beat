@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { useViewPreference } from "@/_core/hooks/useViewPreference";
 import { ViewToggle } from "@/components/ViewToggle";
 import { trpc } from "@/lib/trpc";
@@ -863,7 +864,7 @@ export default function IntelligencePage() {
       {/* ── Command Bar ── */}
       <div className="shrink-0 border-b border-slate-700/80 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg shadow-black/20">
         {/* Row 1 — title + geo scope + country selector */}
-        <div className="flex items-center gap-4 px-6 pt-3.5 pb-2.5 border-b border-slate-700/50">
+        <div id="intel-country-selector" className="flex items-center gap-4 px-6 pt-3.5 pb-2.5 border-b border-slate-700/50">
           {/* Title */}
           <div className="flex items-center gap-2.5 shrink-0">
             <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center">
@@ -966,7 +967,7 @@ export default function IntelligencePage() {
         </div>
 
         {/* Row 2 — PESTEL dimension selector (full-width, prominent) */}
-        <div className="flex items-center gap-0 px-6 py-2">
+        <div id="intel-pestel-tabs" className="flex items-center gap-0 px-6 py-2">
           <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest mr-3 shrink-0">PESTEL</span>
           <div className="flex items-center gap-1.5 flex-1">
             {PESTEL.map(p => (
@@ -2022,13 +2023,14 @@ export default function IntelligencePage() {
           <Tabs value={rightTab} onValueChange={setRightTab} className="flex-1 flex flex-col overflow-hidden">
             <div className="shrink-0 px-4 pt-3 border-b border-white/10">
               <TabsList className="grid w-full max-w-lg grid-cols-4 h-8">
-                <TabsTrigger value="chat" className="text-xs">Chat</TabsTrigger>
-                <TabsTrigger value="analyze" className="text-xs">Game Theory</TabsTrigger>
+                <TabsTrigger id="intel-brief-tab" value="chat" className="text-xs">Chat</TabsTrigger>
+                <TabsTrigger id="intel-game-theory-tab" value="analyze" className="text-xs">Game Theory</TabsTrigger>
                 <TabsTrigger value="insights" className="text-xs">Insights</TabsTrigger>
-                <TabsTrigger value="forecast" className="text-xs flex items-center gap-1">
+                <TabsTrigger id="intel-forecast-tab" value="forecast" className="text-xs flex items-center gap-1">
                   Forecast {hasPremium ? null : <span className="text-[9px] text-amber-400">★</span>}
                 </TabsTrigger>
               </TabsList>
+              <div className="ml-auto"><OnboardingTour tourId="intelligence" label="How to use" /></div>
             </div>
 
             {/* ── CHAT TAB ── */}

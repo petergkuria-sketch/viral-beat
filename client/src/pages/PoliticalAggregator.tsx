@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { trpc } from "@/lib/trpc";
 import { Loader2, Globe, ExternalLink, Layers, AlertCircle, RefreshCw, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
@@ -646,6 +647,7 @@ export default function PoliticalAggregator() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <OnboardingTour tourId="aggregator" label="How to use" />
           {liveLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-500" />}
           <button
             type="button"
@@ -674,7 +676,7 @@ export default function PoliticalAggregator() {
       <div className="flex h-[calc(100vh-65px)]">
 
         {/* ── Left sidebar — filters ── */}
-        <aside className="w-48 flex-shrink-0 border-r border-slate-800 bg-slate-900/40 p-3 space-y-5 overflow-y-auto">
+        <aside id="aggregator-source-filter" className="w-48 flex-shrink-0 border-r border-slate-800 bg-slate-900/40 p-3 space-y-5 overflow-y-auto">
 
           {/* PESTEL filter */}
           <div>
