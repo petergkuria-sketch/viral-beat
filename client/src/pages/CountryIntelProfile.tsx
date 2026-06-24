@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScannerAlertPanel } from "@/components/ScannerAlertPanel";
 import {
   ArrowLeft, Bell, Download, GitCompare, Lock,
   TrendingUp, TrendingDown, ArrowUpRight, ChevronRight,
@@ -216,9 +218,16 @@ export default function CountryIntelProfile() {
         <span className="text-[#1a2d4a]">/</span>
         <span className="text-[11px] text-cyan-400 font-semibold">{c.flag} {c.name} — {c.code} — {c.region}</span>
         <div className="ml-auto flex gap-2">
-          <Button size="sm" variant="outline" className="h-7 text-[10px] border-[#1a2d4a] text-slate-400 hover:border-cyan-500/40 hover:text-cyan-400 gap-1.5">
-            <Bell className="w-3 h-3" />+ Watchlist
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button size="sm" variant="outline" className="h-7 text-[10px] border-[#1a2d4a] text-slate-400 hover:border-cyan-500/40 hover:text-cyan-400 gap-1.5">
+                <Bell className="w-3 h-3" />+ Watchlist / Alerts
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[360px] p-0 bg-[#050b1a] border-[#1a2d4a]">
+              <ScannerAlertPanel defaultCode={c.code} />
+            </SheetContent>
+          </Sheet>
           <Button size="sm" variant="outline" className="h-7 text-[10px] border-[#1a2d4a] text-slate-400 hover:border-cyan-500/40 hover:text-cyan-400 gap-1.5"
             onClick={() => setLocation(`/scanner`)}>
             <GitCompare className="w-3 h-3" />Compare
@@ -348,10 +357,17 @@ export default function CountryIntelProfile() {
                 <GitCompare className="w-3.5 h-3.5 mr-2" />
                 Peer Comparison
               </Button>
-              <Button variant="outline" className="w-full h-8 text-xs border-[#1a2d4a] text-slate-400 hover:bg-slate-800 justify-start">
-                <Bell className="w-3.5 h-3.5 mr-2" />
-                Set Score Alert
-              </Button>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="w-full h-8 text-xs border-[#1a2d4a] text-slate-400 hover:bg-slate-800 justify-start">
+                    <Bell className="w-3.5 h-3.5 mr-2" />
+                    Set Score Alert
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[360px] p-0 bg-[#050b1a] border-[#1a2d4a]">
+                  <ScannerAlertPanel defaultCode={c.code} />
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
 

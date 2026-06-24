@@ -3,7 +3,9 @@ import { useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { OnboardingTour } from "@/components/OnboardingTour";
+import { ScannerAlertPanel } from "@/components/ScannerAlertPanel";
 import {
   ChevronDown, ChevronUp, ArrowUpRight, TrendingUp, TrendingDown,
   Minus, Search, Bell, SlidersHorizontal,
@@ -227,9 +229,16 @@ export default function AfricaScanner() {
           <Button variant="outline" size="sm" className="h-7 text-[10px] border-[#1a2d4a] text-slate-400 gap-1.5 hover:border-cyan-500/40 hover:text-cyan-400">
             <SlidersHorizontal className="w-3 h-3" />Filters
           </Button>
-          <Button variant="outline" size="sm" className="h-7 text-[10px] border-[#1a2d4a] text-slate-400 gap-1.5 hover:border-cyan-500/40 hover:text-cyan-400">
-            <Bell className="w-3 h-3" />Alerts
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 text-[10px] border-[#1a2d4a] text-slate-400 gap-1.5 hover:border-cyan-500/40 hover:text-cyan-400">
+                <Bell className="w-3 h-3" />Alerts
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[360px] p-0 bg-[#050b1a] border-[#1a2d4a]">
+              <ScannerAlertPanel />
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 

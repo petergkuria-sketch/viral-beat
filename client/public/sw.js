@@ -157,18 +157,23 @@ self.addEventListener('push', (event) => {
     data = { title: 'Viral Beat', body: event.data.text() };
   }
 
+  // Scanner-specific alert types get tailored actions/urls
+  const isScannerAlert = data.data?.type === 'scanner_alert';
+  const targetUrl = data.url || (isScannerAlert && data.data?.code
+    ? `/scanner/${data.data.code.toLowerCase()}`
+    : '/scanner');
+
   const options = {
-    body: data.body || 'New trend alert!',
+    body: data.body || 'New intelligence alert!',
     icon: data.icon || '/icons/icon-192x192.png',
     badge: '/icons/icon-72x72.png',
-    tag: data.tag || 'viral-beat-notification',
-    data: { url: data.url || '/dashboard' },
-    actions: [
-      { action: 'view', title: 'View Now' },
-      { action: 'dismiss', title: 'Dismiss' },
-    ],
+    tag: data.tag || 'vb-notification',
+    data: { url: targetUrl, type: data.data?.type },
+    actions: isScannerAlert
+      ? [{ action: 'view', title: 'View Country' }, { action: 'brief', title: 'Open Brief' }, { action: 'dismiss', title: 'Dismiss' }]
+      : [{ action: 'view', title: 'View Now' }, { action: 'dismiss', title: 'Dismiss' }],
     requireInteraction: data.urgent || false,
-    vibrate: [200, 100, 200],
+    vibrate: data.urgent ? [300, 100, 300, 100, 300] : [200, 100, 200],
   };
 
   event.waitUntil(
@@ -180,7 +185,8 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   if (event.action === 'dismiss') return;
 
-  const url = event.notification.data?.url || '/dashboard';
+  const baseUrl = event.notification.data?.url || '/scanner';
+  const url = event.action === 'brief' ? baseUrl + '/brief' : baseUrl;
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
