@@ -93,9 +93,9 @@ export default function LandingPage() {
   };
 
   const testimonials = [
-    { avatar: "AM", name: "Amara Mensah",    role: "Political Risk Analyst, Accra",  quote: "First platform I've found that gives me live stability scores and civic movement tracking across all 55 nations. We've replaced two expensive subscription services.", color: "from-cyan-500 to-blue-500" },
-    { avatar: "OJ", name: "Obiageli Johnson", role: "Newsroom Editor, Lagos",          quote: "The breaking-news alerts from Viral Beat flagged the Kano protests 48 hours before the wire services. That's competitive advantage.", color: "from-emerald-500 to-teal-500" },
-    { avatar: "FK", name: "Fatou Kouyaté",   role: "NGO Programme Lead, Dakar",       quote: "The geo-defaulting to your country's intelligence is brilliant. My team opens the app and immediately sees what's relevant to their work.", color: "from-purple-500 to-pink-500" },
+    { avatar: "AM", name: "Amara Mensah",    role: "Political Risk Analyst, Accra",        quote: "First platform I've found that produces a composite PESTEL+IR score I can actually defend in a board briefing. We've replaced two expensive subscription services.", color: "from-cyan-500 to-blue-500" },
+    { avatar: "DO", name: "David Okonkwo",   role: "Market Entry Director, Lagos",          quote: "The Go/No-Go Brief saved us three weeks of desk research on our West Africa expansion. The risk matrix alone was worth the subscription — structured, cited, exportable.", color: "from-emerald-500 to-teal-500" },
+    { avatar: "FK", name: "Fatou Kouyaté",   role: "DFI Programme Analyst, Dakar",          quote: "The Investment Readiness Scores alongside PESTEL data give us a single view that used to require four different tools. The scanner is now our first stop for any new market.", color: "from-purple-500 to-pink-500" },
   ];
 
   useEffect(() => {
@@ -723,7 +723,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-black mb-3">Who Uses Viral Beat</h2>
-            <p className="text-gray-400">Analysts, newsrooms, NGOs, and researchers across Africa</p>
+            <p className="text-gray-400">Business prospectors, political risk analysts, DFIs, and NGO teams across Africa</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((t, i) => (
@@ -908,15 +908,15 @@ export default function LandingPage() {
             <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Built for Africa. By Africans.</Badge>
             <h2 className="text-4xl sm:text-5xl font-black mb-4">Why ViralBeat Exists</h2>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Africa's political intelligence should be produced, verified, and distributed by the people who live it — not filtered through foreign newsrooms or aggregated from headlines alone.
+              Africa's political and market intelligence should be produced, verified, and structured by the people who live it — and delivered as a decision tool, not a news feed.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: Globe,   color: "#22d3ee", title: "Africa First",           desc: "Every product decision is made through the lens of what best serves African communities, journalists, and institutions." },
-              { icon: Users,   color: "#a78bfa", title: "People-Powered",         desc: "Ground truth comes from people on the ground. Verified contributors — not algorithms — determine what matters." },
-              { icon: Shield,  color: "#34d399", title: "Verified Intelligence",  desc: "Every signal is cross-referenced before it reaches your dashboard. We never publish unverified claims." },
-              { icon: Zap,     color: "#fb923c", title: "Speed with Depth",       desc: "Real-time news only has value with context. We deliver both — fast signal and structured analysis, together." },
+              { icon: Globe,   color: "#22d3ee", title: "Africa First",           desc: "Every product decision is made through the lens of what best serves African communities, businesses, and institutions entering the continent." },
+              { icon: Users,   color: "#a78bfa", title: "People-Powered",         desc: "Ground truth comes from verified contributors on the ground — not scraped headlines. Local knowledge, structured into intelligence you can cite." },
+              { icon: Shield,  color: "#34d399", title: "Verified Intelligence",  desc: "Every signal is cross-referenced before it reaches your dashboard. Confidence thresholds are published. We never fabricate a score." },
+              { icon: Zap,     color: "#fb923c", title: "Decision-Ready",         desc: "Raw intelligence is only useful when it drives a decision. Every score on VB maps directly to a Go-Market, Monitor, Caution, or No-Go verdict." },
             ].map(v => (
               <motion.div key={v.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 className="bg-[#0d1e36] border border-[#1e3a5f] rounded-xl p-6">
