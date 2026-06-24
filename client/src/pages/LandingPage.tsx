@@ -153,17 +153,11 @@ export default function LandingPage() {
           </button>
 
           <div className="hidden md:flex items-center gap-1">
-            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Contributors"], ["api", "API"]].map(([id, label]) => (
+            {[["scanner-section", "Scanner"], ["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => scrollTo(id)} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
                 {label}
               </button>
             ))}
-            <button onClick={() => scrollTo("download-app")} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-emerald-400 hover:text-emerald-300 rounded-lg hover:bg-white/5 transition-all">
-              <Smartphone className="w-3.5 h-3.5" /> Download App
-            </button>
-            <button onClick={() => setLocation("/contributor")} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
-              Contributors
-            </button>
             <button onClick={() => setLocation("/about#methodology")} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
               Methodology
             </button>
@@ -208,11 +202,9 @@ export default function LandingPage() {
         </div>
         {mobileMenuOpen && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="md:hidden border-t border-white/5 bg-[#050b1a] px-4 py-4 flex flex-col gap-1">
-            {[["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Contributors"], ["api", "API"]].map(([id, label]) => (
+            {[["scanner-section", "Scanner"], ["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => { setMobileMenuOpen(false); scrollTo(id); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
-            <button onClick={() => { setMobileMenuOpen(false); scrollTo("download-app"); }} className="text-left px-3 py-2.5 text-sm font-medium text-emerald-400 hover:text-emerald-300 rounded-lg hover:bg-white/5 flex items-center gap-2"><Smartphone className="w-3.5 h-3.5" /> Download App</button>
-            <button onClick={() => { setMobileMenuOpen(false); setLocation("/contributor"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Contributors</button>
             <button onClick={() => { setMobileMenuOpen(false); setLocation("/about#methodology"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Methodology</button>
             <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
               {!user && <Button variant="outline" className="w-full border-white/10 text-white" onClick={() => { setMobileMenuOpen(false); window.location.href = getLoginUrl(); }}>Sign In / Register</Button>}
@@ -266,18 +258,18 @@ export default function LandingPage() {
               {/* App grid */}
               <div className="grid grid-cols-4 gap-y-6 gap-x-4 px-8 pb-4">
                 {[
-                  { emoji: "🌍", label: "Africa Hub",       path: "/africa",          badge: 0, bg: "from-[#0d2e1a] to-[#0a4a28]" },
-                  { emoji: "📡", label: "Intelligence",     path: "/intelligence",    badge: 3, bg: "from-[#0d1e40] to-[#0a3070]" },
-                  { emoji: "⚡", label: "Aggregator",       path: "/aggregator",      badge: 0, bg: "from-[#2d0d30] to-[#5a1060]" },
-                  { emoji: "📊", label: "Trending",         path: "/trending",        badge: 0, bg: "from-[#002020] to-[#004040]" },
-                  { emoji: "🏗️", label: "Inv. Readiness",  path: "/doing-business",  badge: 0, bg: "from-[#2a1500] to-[#5a3000]" },
-                  { emoji: "🧑‍💻", label: "Contributors",   path: "/haa",             badge: 0, bg: "from-[#0d2a1a] to-[#1a4a30]" },
-                  { emoji: "🇰🇪", label: "Kenya",           path: "/kenya",           badge: 0, bg: "from-[#001a30] to-[#002a50]" },
-                  { emoji: "🗺️", label: "Elections",        path: "/africa",          badge: 0, bg: "from-[#1a0a30] to-[#350060]" },
-                  { emoji: "💎", label: "Pricing",          path: "/pricing",         badge: 0, bg: "from-[#0a200a] to-[#1a3a1a]" },
-                  { emoji: "📖", label: "About",            path: "/about",           badge: 0, bg: "from-[#151522] to-[#252540]" },
-                  { emoji: "✉️", label: "Newsletter",       path: "/newsletter",      badge: 0, bg: "from-[#0d1a1a] to-[#1a2e2e]" },
-                  { emoji: "⚙️", label: "Settings",         path: "/settings",        badge: 0, bg: "from-[#181818] to-[#2e2e2e]" },
+                  { emoji: "🌍", label: "Africa Hub",       path: "/africa",              badge: 0, bg: "from-[#0d2e1a] to-[#0a4a28]" },
+                  { emoji: "📡", label: "Scanner",          path: "/scanner",             badge: 3, bg: "from-[#0d1e40] to-[#0a3070]" },
+                  { emoji: "🧠", label: "Intelligence",     path: "/intelligence",        badge: 0, bg: "from-[#1a0d30] to-[#360060]" },
+                  { emoji: "⚡", label: "Signals",          path: "/aggregator",          badge: 0, bg: "from-[#2d0d30] to-[#5a1060]" },
+                  { emoji: "📋", label: "Go/No-Go",         path: "/scanner/ken/brief",   badge: 0, bg: "from-[#0a2a0a] to-[#1a4a1a]" },
+                  { emoji: "🏗️", label: "IRS Score",       path: "/doing-business",      badge: 0, bg: "from-[#2a1500] to-[#5a3000]" },
+                  { emoji: "🇰🇪", label: "Kenya Intel",     path: "/kenya",               badge: 0, bg: "from-[#001a30] to-[#002a50]" },
+                  { emoji: "🗺️", label: "Elections",        path: "/africa",              badge: 0, bg: "from-[#1a0a30] to-[#350060]" },
+                  { emoji: "💎", label: "Pricing",          path: "/pricing",             badge: 0, bg: "from-[#0a200a] to-[#1a3a1a]" },
+                  { emoji: "📖", label: "About",            path: "/about",               badge: 0, bg: "from-[#151522] to-[#252540]" },
+                  { emoji: "✉️", label: "Newsletter",       path: "/newsletter",          badge: 0, bg: "from-[#0d1a1a] to-[#1a2e2e]" },
+                  { emoji: "⚙️", label: "Settings",         path: "/settings",            badge: 0, bg: "from-[#181818] to-[#2e2e2e]" },
                 ].map(app => (
                   <button
                     key={app.path + app.label}
@@ -300,9 +292,9 @@ export default function LandingPage() {
               {/* Dock */}
               <div className="mx-3 mb-4 bg-white/6 backdrop-blur rounded-2xl px-4 py-3 flex justify-around border border-white/8">
                 {[
-                  { emoji: "📡", label: "Workspace", path: "/intelligence" },
+                  { emoji: "📡", label: "Scanner",   path: "/scanner" },
                   { emoji: "🌍", label: "Africa",    path: "/africa" },
-                  { emoji: "⚡", label: "Aggregator",path: "/aggregator" },
+                  { emoji: "⚡", label: "Signals",   path: "/aggregator" },
                   { emoji: "👤", label: "Profile",   path: "/contributor" },
                 ].map(d => (
                   <button key={d.path} onClick={() => user ? setLocation(d.path) : (window.location.href = getLoginUrl())} className="flex flex-col items-center gap-1 group">
@@ -367,7 +359,7 @@ export default function LandingPage() {
               </div>
 
               <div className="flex flex-wrap gap-8 pt-2">
-                {[["55", "Nations Covered"], ["6", "African Regions"], ["PESTEL+IR", "7 Dimensions"], ["People", "Verified Signal"]].map(([val, label]) => (
+                {[["55", "Nations Covered"], ["PESTEL+IR", "7 Dimensions"], ["Composite", "Go/No-Go Score"], ["Go-Market", "Verified Verdict"]].map(([val, label]) => (
                   <div key={label} className="flex flex-col">
                     <span className="text-2xl font-black text-cyan-400">{val}</span>
                     <span className="text-xs text-gray-500">{label}</span>
@@ -430,7 +422,7 @@ export default function LandingPage() {
       {/* ── SOCIAL PROOF BAR ────────────────────────────────────────────────── */}
       <div className="border-y border-white/5 bg-white/[0.02] py-4 px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-8 text-xs text-gray-500 font-medium uppercase tracking-wider">
-          {[["55", "Nations"], ["6", "Regions"], ["PESTEL+IR", "7 Dimensions"], ["People", "Verified Signal"], ["Open", "Developer API"]].map(([val, label]) => (
+          {[["55", "Nations"], ["PESTEL+IR", "7 Dimensions"], ["Composite", "Go/No-Go Score"], ["Go-Market", "Entry Verdict"], ["Open", "Developer API"]].map(([val, label]) => (
             <div key={label} className="flex items-center gap-2">
               <span className="text-cyan-400 font-black">{val}</span>
               <span>{label}</span>
@@ -494,6 +486,48 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── AFRICA SCANNER SECTION ─────────────────────────────────────────── */}
+      <section id="scanner-section" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Africa Scanner · New</Badge>
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">
+              From Signal to Decision<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-green-400">in One Flow</span>
+            </h2>
+            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+              Every African market scored on a Composite Index (PESTEL × 0.6 + IRS × 0.4). Scan 55 nations, deep-dive into any country, and generate a structured Go/No-Go entry brief — all without leaving the platform.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {[
+              { emoji: "📡", color: "#00d4ff", title: "Africa Scanner", desc: "55 AU markets ranked by composite PESTEL+IR score. Filter by region, sort by score, drill into any country.", badge: "Scan", href: "/scanner" },
+              { emoji: "📊", color: "#a78bfa", title: "Country Deep Dive", desc: "Full PESTEL+IR breakdown, signals, sector readiness scores, risk matrix, and 9-month trend for any AU nation.", badge: "Analyse", href: "/scanner/ken" },
+              { emoji: "📋", color: "#22c55e", title: "Go/No-Go Brief", desc: "Select country, sector, and horizon. Generate a structured entry verdict with risk matrix and PDF export.", badge: "Decide", href: "/scanner/ken/brief" },
+            ].map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }} viewport={{ once: true }}
+                onClick={() => user ? setLocation(item.href) : (window.location.href = getLoginUrl())}
+                className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl p-7 hover:border-cyan-500/40 transition-all cursor-pointer group">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style={{ background: `${item.color}15` }}>{item.emoji}</div>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border" style={{ color: item.color, borderColor: `${item.color}40`, background: `${item.color}10` }}>{item.badge}</span>
+                </div>
+                <h3 className="font-bold text-lg text-white mb-2 group-hover:text-cyan-300 transition-colors">{item.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-4">{item.desc}</p>
+                <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: item.color }}>
+                  Open {item.title} <ArrowRight className="w-3 h-3 ml-1" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          <div className="text-center">
+            <Button size="lg" onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20">
+              Open Africa Scanner <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* ── INTELLIGENCE SECTION ────────────────────────────────────────────── */}
       <section id="intelligence" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
@@ -529,18 +563,18 @@ export default function LandingPage() {
                 bullets: ["IP & language detection", "Per-user country profile", "55 country coverage", "Instant onboarding"],
               },
               {
-                icon: TrendingUp,
-                color: "#fb923c",
-                title: "Investment Readiness",
-                desc: "World Bank B-READY indicators, Investment Readiness Scores, side-by-side country comparator, and FDI sector maps — purpose-built for investors, DFIs, and business intelligence teams.",
-                bullets: ["B-READY scores for 20 AU economies", "IRS composite score + radar chart", "FDI sector breakdown by country", "AI-enriched PESTEL+IR overlay"],
-                href: "/doing-business",
-                badge: "New",
+                icon: BarChart3,
+                color: "#22c55e",
+                title: "Go/No-Go Briefs",
+                desc: "Composite entry verdict (PESTEL × 0.6 + IRS × 0.4) with sector readiness, risk matrix, and structured PDF export — built for the business prospector in a hurry.",
+                bullets: ["Go-Market / Monitor / Caution / No-Go", "Sector entry recommendation", "Risk matrix + mitigations", "PDF export with branded header"],
+                href: "/scanner/ken/brief",
+                badge: "Decide",
               },
             ].map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }} viewport={{ once: true }}
                 className={`bg-[#0f2240] border rounded-2xl p-7 hover:border-opacity-60 transition-all relative overflow-hidden ${i === 3 ? "border-orange-500/30 hover:border-orange-400/50" : "border-[#1e3a5f] hover:border-cyan-500/30"}`}
-                onClick={i === 3 ? () => user ? setLocation("/doing-business") : (window.location.href = getLoginUrl()) : undefined}
+                onClick={i === 3 ? () => user ? setLocation("/scanner/ken/brief") : (window.location.href = getLoginUrl()) : undefined}
                 style={i === 3 ? { cursor: "pointer" } : {}}
               >
                 {"badge" in item && item.badge && (
@@ -560,7 +594,7 @@ export default function LandingPage() {
                 </ul>
                 {i === 3 && (
                   <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-orange-400">
-                    Explore Investment Readiness <ArrowRight className="w-3 h-3" />
+                    Generate a Go/No-Go Brief <ArrowRight className="w-3 h-3" />
                   </div>
                 )}
               </motion.div>
@@ -723,10 +757,10 @@ export default function LandingPage() {
               </p>
               <div className="space-y-3 mb-8">
                 {[
-                  ["GET /v1/africa/:code/brief",      "Full country intelligence brief"],
-                  ["GET /v1/africa/:code/news",       "Live news articles by country"],
+                  ["GET /v1/scanner/:code",           "Composite score + verdict for any AU nation"],
+                  ["GET /v1/scanner/:code/brief",     "Full Go/No-Go brief with risk matrix"],
                   ["GET /v1/pestel/:code/signals",    "PESTEL+IR signals by country"],
-                  ["POST /v1/africa/:code/sentiment", "Sentiment analysis on any text"],
+                  ["GET /v1/africa/:code/news",       "Live news articles by country"],
                   ["GET /v1/elections/calendar",      "Upcoming elections for all 55 nations"],
                   ["GET /v1/irs/:code",               "Investment Readiness Score + B-READY indicators"],
                 ].map(([endpoint, desc]) => (
@@ -749,21 +783,22 @@ export default function LandingPage() {
                 </div>
                 <pre className="p-5 text-xs font-mono text-gray-300 leading-relaxed overflow-x-auto">{`{
   "country": "Nigeria",
-  "stabilityScore": 54,
+  "pestelScore": 58,
+  "irs": 51,
+  "compositeScore": 55,
+  "verdict": "caution",
   "riskLevel": "high",
   "headOfState": "Bola Tinubu",
-  "governmentType": "Federal Republic",
-  "economicOutlook": "moderate",
-  "keyFigures": [
-    { "name": "Peter Obi",
-      "title": "Opposition Leader",
-      "sentiment": "positive" }
-  ],
-  "civicMovements": [
-    { "name": "ENDSARS Revival",
-      "status": "active",
-      "summary": "Youth-led accountability..." }
-  ],
+  "pestelBreak": {
+    "P": 55, "E": 58, "S": 62,
+    "T": 60, "En": 52, "L": 56,
+    "IR": 51
+  },
+  "topSector": {
+    "name": "Fintech / Mobile Money",
+    "score": 78,
+    "verdict": "go"
+  },
   "nextElection": "Feb 2027"
 }`}</pre>
               </div>
@@ -1012,20 +1047,19 @@ export default function LandingPage() {
               <p className="text-sm text-gray-500 leading-relaxed">The intelligence layer for Africa — political briefings, civic movements, and trend signals for all 55 nations.</p>
             </div>
             {[
-              { title: "Consume", links: [
-                { label: "Africa Intelligence Hub",   href: "/africa" },
-                { label: "Kenya Political Tracker",   href: "/kenya/tracker" },
-                { label: "Country Briefings",         href: "/africa" },
-                { label: "Regional Risk Map",         href: "/kenya/regional-map" },
+              { title: "Scan & Monitor", links: [
+                { label: "Africa Scanner",            href: "/scanner" },
+                { label: "Signal Aggregator",         href: "/aggregator" },
+                { label: "PESTEL Trending",           href: "/trending" },
+                { label: "Field Signals",             href: "/haa" },
                 { label: "Electoral Calendar",        href: "/africa" },
               ]},
-              { title: "Translate & Distribute", links: [
-                { label: "Intelligence Brief Generator", href: "/intelligence" },
-                { label: "Share Intelligence Brief",    href: "/africa" },
-                { label: "PDF Export",                  href: "/africa" },
-                { label: "Alert Subscriptions",         href: "/pricing" },
-                { label: "Developer API",               href: "#api" },
-                { label: "Download App",                href: "#download-app" },
+              { title: "Analyse & Decide", links: [
+                { label: "Country Deep Dive",         href: "/scanner/ken" },
+                { label: "Go/No-Go Brief Generator",  href: "/scanner/ken/brief" },
+                { label: "Intelligence Workspace",    href: "/intelligence" },
+                { label: "Investment Readiness",      href: "/doing-business" },
+                { label: "Developer API",             href: "#api" },
               ]},
               { title: "Contribute & Cite", links: [
                 { label: "Contributor Profile",   href: "/contributor" },
