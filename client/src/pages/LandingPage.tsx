@@ -371,47 +371,65 @@ export default function LandingPage() {
             <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="relative">
               <div className="flex items-center gap-2 mb-4">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Live Intelligence Feed</span>
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Africa Intelligence Scanner</span>
               </div>
               <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
+                {/* Scanner header */}
                 <div className="px-4 pt-3 pb-2 border-b border-[#1e3a5f]">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                      <Globe className="w-3.5 h-3.5 text-cyan-400" />
-                      Africa Political Monitor
+                      <BarChart3 className="w-3.5 h-3.5 text-cyan-400" />
+                      Composite Score · PESTEL×0.6 + IRS×0.4
                     </div>
                     <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Live</Badge>
                   </div>
-                  {/* Scale legend */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[9px] text-red-400 font-medium">0 = Critical</span>
-                    <div className="flex-1 h-1 rounded-full" style={{ background: "linear-gradient(to right, #f87171, #fbbf24, #34d399)" }} />
-                    <span className="text-[9px] text-emerald-400 font-medium">100 = Stable</span>
+                  {/* Column headers */}
+                  <div className="grid grid-cols-12 gap-1 text-[9px] text-gray-600 uppercase tracking-wider font-medium pt-1">
+                    <span className="col-span-4">Country</span>
+                    <span className="col-span-2 text-center">PESTEL</span>
+                    <span className="col-span-2 text-center">IRS</span>
+                    <span className="col-span-2 text-center">Score</span>
+                    <span className="col-span-2 text-center">Verdict</span>
                   </div>
-                  <p className="text-[9px] text-gray-600 mt-1">Stability score — higher is safer</p>
                 </div>
+                {/* Scanner rows */}
                 <div className="divide-y divide-[#1e3a5f]">
-                  {DEMO_INTEL.map((c, i) => (
-                    <motion.div key={c.code} initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 + i * 0.08 }}
-                      className="px-4 py-3 hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={() => handleCountry(c.code)}>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl leading-none">{c.flag}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-sm font-semibold text-white">{c.name}</span>
-                            <Badge variant="outline" className={`text-[9px] px-1.5 py-0 border ${RISK[c.risk]?.cls}`}>{RISK[c.risk]?.label}</Badge>
-                          </div>
-                          <StabilityBar score={c.stability} />
-                          <div className="mt-1 text-[10px] text-gray-500 flex items-center gap-1">
-                            <Activity className="w-2.5 h-2.5" />{c.movement}
-                          </div>
+                  {[
+                    { flag: "🇷🇼", name: "Rwanda",    pestel: 82, irs: 79, score: 81, verdict: "Go-Market", vc: "#22c55e", trend: [55,60,68,75,80,81] },
+                    { flag: "🇰🇪", name: "Kenya",     pestel: 79, irs: 74, score: 77, verdict: "Go-Market", vc: "#22c55e", trend: [60,63,70,74,76,77] },
+                    { flag: "🇬🇭", name: "Ghana",     pestel: 74, irs: 68, score: 72, verdict: "Monitor",   vc: "#84cc16", trend: [68,70,71,72,71,72] },
+                    { flag: "🇸🇳", name: "Senegal",   pestel: 71, irs: 65, score: 69, verdict: "Monitor",   vc: "#84cc16", trend: [60,63,65,67,68,69] },
+                    { flag: "🇳🇬", name: "Nigeria",   pestel: 58, irs: 51, score: 55, verdict: "Caution",   vc: "#f59e0b", trend: [58,56,55,57,54,55] },
+                    { flag: "🇪🇹", name: "Ethiopia",  pestel: 44, irs: 38, score: 42, verdict: "No-Go",     vc: "#ef4444", trend: [50,47,44,43,41,42] },
+                  ].map((c, i) => {
+                    const mini = c.trend;
+                    const minV = Math.min(...mini), maxV = Math.max(...mini);
+                    const pts = mini.map((v, j) => `${(j / (mini.length - 1)) * 44},${12 - ((v - minV) / (maxV - minV + 1)) * 11}`).join(" ");
+                    return (
+                      <motion.div key={c.name} initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 + i * 0.08 }}
+                        className="px-4 py-2.5 hover:bg-white/[0.03] transition-colors cursor-pointer grid grid-cols-12 gap-1 items-center"
+                        onClick={() => user ? setLocation(`/scanner/${c.name.slice(0,3).toUpperCase()}`) : (window.location.href = getLoginUrl())}>
+                        <div className="col-span-4 flex items-center gap-2">
+                          <span className="text-base leading-none">{c.flag}</span>
+                          <span className="text-xs font-semibold text-white truncate">{c.name}</span>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                        <span className="col-span-2 text-center text-xs font-mono text-gray-300">{c.pestel}</span>
+                        <span className="col-span-2 text-center text-xs font-mono text-gray-300">{c.irs}</span>
+                        <div className="col-span-2 flex items-center justify-center gap-1">
+                          <span className="text-xs font-black" style={{ color: c.vc }}>{c.score}</span>
+                          <svg width="44" height="14" viewBox="0 0 44 14" className="opacity-70">
+                            <polyline points={pts} fill="none" stroke={c.vc} strokeWidth="1.5" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <div className="col-span-2 flex justify-center">
+                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded border truncate" style={{ color: c.vc, borderColor: `${c.vc}40`, background: `${c.vc}12` }}>{c.verdict}</span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
-                <button onClick={handleExplore} className="w-full py-3 text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center justify-center gap-1 border-t border-[#1e3a5f] hover:bg-cyan-500/5 transition-all">
-                  View all 55 nations <ChevronRight className="w-3.5 h-3.5" />
+                <button onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())} className="w-full py-3 text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center justify-center gap-1 border-t border-[#1e3a5f] hover:bg-cyan-500/5 transition-all">
+                  Open Africa Scanner — all 55 nations <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </motion.div>
