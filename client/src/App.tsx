@@ -50,6 +50,9 @@ const AboutPage = lazy(() => import("./pages/AboutPage"));
 const PublicBrief = lazy(() => import("./pages/PublicBrief"));
 const ContributorProfile = lazy(() => import("./pages/ContributorProfile"));
 const DoingBusinessPage = lazy(() => import("./pages/DoingBusinessPage"));
+const AfricaScanner = lazy(() => import("./pages/AfricaScanner"));
+const CountryIntelProfile = lazy(() => import("./pages/CountryIntelProfile"));
+const GoNoGoBrief = lazy(() => import("./pages/GoNoGoBrief"));
 
 // Country Intelligence — generic templates
 const CountryDashboard = lazy(() => import("./pages/country/CountryDashboard"));
@@ -177,6 +180,10 @@ function Router() {
     { path: "/kenya/movements", component: KenyaMovements },
     { path: "/kenya/movements/:id", component: KenyaMovementDetail },
     { path: "/doing-business", component: DoingBusinessPage },
+    // Africa Intelligence Scanner — composite country scores + deep dive + brief
+    { path: "/scanner", component: AfricaScanner },
+    { path: "/scanner/:code", component: CountryIntelProfile },
+    { path: "/scanner/:code/brief", component: GoNoGoBrief },
   ];
 
   return (

@@ -466,7 +466,7 @@ export default function Dashboard() {
             {/* Mission control quick-action cards */}
             <div id="dashboard-mission-cards" className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Africa Hub", desc: "Explore all 55 AU member states — stability scores, civic movements, elections", icon: "🌍", href: "/africa", color: "#22d3ee", badge: "55 Nations" },
+                { label: "Africa Market Scanner", desc: "55 AU markets ranked by composite PESTEL+IR score — country deep dive, sector readiness & Go/No-Go brief generator", icon: "📈", href: "/scanner", color: "#00d4ff", badge: "New" },
                 { label: "Intelligence Workspace", desc: "PESTEL+IR signal analysis with live AI briefings, reports & chat for any African country", icon: "📡", href: "/intelligence", color: "#a78bfa", badge: "Live AI" },
                 { label: "Political Aggregator", desc: "PESTEL+IR signals from RSS, social media, chambers, APEX bodies & field contributors", icon: "⚡", href: "/aggregator", color: "#f472b6", badge: "Multi-Source" },
                 { label: "Field Contributors", desc: "Ground-truth signals from Africa — submit, browse and verify intelligence from the network", icon: "🧑‍💻", href: "/haa", color: "#34d399", badge: "People-Powered" },
@@ -516,8 +516,8 @@ export default function Dashboard() {
                 {[
                   { icon: "🌍", label: "Africa Hub", href: "/africa", color: "#22d3ee" },
                   { icon: "📡", label: "Intelligence", href: "/intelligence", color: "#a78bfa" },
+                  { icon: "📈", label: "Mkt Scanner", href: "/scanner", color: "#00d4ff" },
                   { icon: "⚡", label: "Aggregator", href: "/aggregator", color: "#f472b6" },
-                  { icon: "📊", label: "Trending", href: "/trending", color: "#34d399" },
                   { icon: "🏗️", label: "Inv. Readiness", href: "/doing-business", color: "#fb923c" },
                   { icon: "🧑‍💻", label: "Contributors", href: "/haa", color: "#34d399" },
                 ].map((item) => (
