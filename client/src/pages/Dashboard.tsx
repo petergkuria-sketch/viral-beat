@@ -466,10 +466,10 @@ export default function Dashboard() {
             {/* Mission control quick-action cards */}
             <div id="dashboard-mission-cards" className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Africa Market Scanner", desc: "55 AU markets ranked by composite PESTEL+IR score — country deep dive, sector readiness & Go/No-Go brief generator", icon: "📈", href: "/scanner", color: "#00d4ff", badge: "New" },
-                { label: "Intelligence Workspace", desc: "PESTEL+IR signal analysis with live AI briefings, reports & chat for any African country", icon: "📡", href: "/intelligence", color: "#a78bfa", badge: "Live AI" },
-                { label: "Political Aggregator", desc: "PESTEL+IR signals from RSS, social media, chambers, APEX bodies & field contributors", icon: "⚡", href: "/aggregator", color: "#f472b6", badge: "Multi-Source" },
-                { label: "Field Contributors", desc: "Ground-truth signals from Africa — submit, browse and verify intelligence from the network", icon: "🧑‍💻", href: "/haa", color: "#34d399", badge: "People-Powered" },
+                { label: "Africa Scanner", desc: "55 AU markets scored on composite PESTEL+IR index — entry verdict, sector readiness & Go/No-Go brief in one flow", icon: "📡", href: "/scanner", color: "#00d4ff", badge: "Scan" },
+                { label: "Intelligence Workspace", desc: "AI-powered PESTEL+IR analysis for any African country — briefs, game theory, forecasts", icon: "🧠", href: "/intelligence", color: "#a78bfa", badge: "Analyse" },
+                { label: "Signal Aggregator", desc: "Live PESTEL+IR signal feed across RSS, social media, chambers, APEX bodies & field contributors", icon: "⚡", href: "/aggregator", color: "#f472b6", badge: "Monitor" },
+                { label: "Go/No-Go Briefs", desc: "Structured decision memo — sector entry verdict, risk matrix & PDF export for any AU market", icon: "📋", href: "/scanner/ken/brief", color: "#22c55e", badge: "Decide" },
               ].map((item, i) => (
                 <motion.button
                   key={i}
@@ -515,11 +515,11 @@ export default function Dashboard() {
               <div id="dashboard-quick-access" className="grid grid-cols-3 sm:grid-cols-6 gap-3 pb-2">
                 {[
                   { icon: "🌍", label: "Africa Hub", href: "/africa", color: "#22d3ee" },
-                  { icon: "📡", label: "Intelligence", href: "/intelligence", color: "#a78bfa" },
-                  { icon: "📈", label: "Mkt Scanner", href: "/scanner", color: "#00d4ff" },
-                  { icon: "⚡", label: "Aggregator", href: "/aggregator", color: "#f472b6" },
-                  { icon: "🏗️", label: "Inv. Readiness", href: "/doing-business", color: "#fb923c" },
-                  { icon: "🧑‍💻", label: "Contributors", href: "/haa", color: "#34d399" },
+                  { icon: "🧠", label: "Intelligence", href: "/intelligence", color: "#a78bfa" },
+                  { icon: "📡", label: "Scanner", href: "/scanner", color: "#00d4ff" },
+                  { icon: "⚡", label: "Signals", href: "/aggregator", color: "#f472b6" },
+                  { icon: "🏗️", label: "IRS Score", href: "/doing-business", color: "#fb923c" },
+                  { icon: "🧑‍💻", label: "Field Intel", href: "/haa", color: "#34d399" },
                 ].map((item) => (
                   <button
                     key={item.href}
@@ -570,9 +570,9 @@ export default function Dashboard() {
             {/* Quick access row */}
             <div className="grid sm:grid-cols-3 gap-4">
               {[
-                { label: "Kenya Deep-Dive", desc: "The richest country intelligence module on the platform", icon: TrendingUp, href: "/kenya", color: "#22d3ee" },
-                { label: "Investment Readiness", desc: "B-READY rankings, country comparator & FDI sector map for 20 AU economies", icon: BarChart3, href: "/doing-business", color: "#fb923c" },
-                { label: "Developer API", desc: "Embed Africa intelligence in your product", icon: Zap, href: "/developer-hub", color: "#34d399" },
+                { label: "Kenya Intelligence", desc: "The deepest single-country module on the platform — political actors, signals, election intelligence", icon: TrendingUp, href: "/kenya", color: "#22d3ee" },
+                { label: "Go/No-Go Briefs", desc: "Structured entry verdict with risk matrix, sector readiness & PDF export for any AU market", icon: BarChart3, href: "/scanner/ken/brief", color: "#22c55e" },
+                { label: "Investment Readiness", desc: "B-READY rankings, country comparator & FDI sector map across 20 AU economies", icon: Zap, href: "/doing-business", color: "#fb923c" },
               ].map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.1 }}>
                   <button

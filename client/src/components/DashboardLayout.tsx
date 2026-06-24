@@ -14,11 +14,15 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import {
   LayoutDashboard, LogOut, TrendingUp, Heart, User, Code2, Bot,
-  Settings as SettingsIcon, Shield, ShieldCheck, Coins, ShoppingCart,
-  BarChart3, BadgeCheck, Users, Sparkles, ArrowRightLeft, Crown,
-  MessageSquare, Mail, MapPin, Newspaper, AlertTriangle, Globe,
-  Scale, Building2, Landmark, Vote, Radio, FileText, ChevronDown,
-  ChevronRight, Home, UserCircle, Menu, X, PanelLeft, Layers, BarChart2,
+  Settings as SettingsIcon, Shield, ShieldCheck, Coins,
+  BarChart3, Users, Sparkles, Crown,
+  Mail, MapPin, Newspaper, AlertTriangle, Globe,
+  Scale, Building2, Vote, Radio, FileText, ChevronDown,
+  ChevronRight, UserCircle, Menu, X, PanelLeft, BarChart2,
+  Home,
+  // New for restructured nav
+  ScanLine, Brain, Target, Bell, Flag, Map, BookOpen, Activity,
+  Crosshair, Briefcase, Star,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -49,79 +53,85 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
+  // ── 1. SCAN & MONITOR — live signal ingestion ──────────────────────────────
+  {
+    id: "scan",
+    label: "Scan & Monitor",
+    icon: ScanLine,
+    accent: "#00d4ff",
+    items: [
+      { icon: BarChart3,  label: "Africa Scanner",         path: "/scanner",     badge: "New" },
+      { icon: Activity,   label: "Political Aggregator",   path: "/aggregator" },
+      { icon: TrendingUp, label: "PESTEL Trending",        path: "/trending" },
+      { icon: Users,      label: "Field Signals",          path: "/haa" },
+    ],
+  },
+  // ── 2. ANALYSE — deep-dive intelligence ────────────────────────────────────
+  {
+    id: "analyse",
+    label: "Analyse",
+    icon: Brain,
+    accent: "#a78bfa",
+    items: [
+      { icon: Sparkles,   label: "Intelligence Workspace", path: "/intelligence" },
+      { icon: Building2,  label: "Investment Readiness",   path: "/doing-business" },
+    ],
+  },
+  // ── 3. AFRICA COUNTRIES — country-level entry point ────────────────────────
   {
     id: "africa",
-    label: "Africa Intelligence",
+    label: "Africa Countries",
     icon: Globe,
     accent: "#818cf8",
     custom: true,
   },
+  // ── 4. KENYA MODULE — richest country module ───────────────────────────────
   {
     id: "kenya",
-    label: "Kenya Deep-Dive",
+    label: "Kenya Intelligence",
     icon: MapPin,
     accent: "#34d399",
     items: [
-      { icon: Globe,         label: "Overview",          path: "/kenya" },
-      { icon: MapPin,        label: "Sentiment Tracker",  path: "/kenya/tracker" },
-      { icon: MapPin,        label: "Regional Map",       path: "/kenya/regional-map" },
-      { icon: AlertTriangle, label: "Balkanization Risk", path: "/kenya/balkanization" },
-      { icon: Scale,         label: "ICC Hate Speech",    path: "/kenya/icc-agent" },
-      { icon: Users,         label: "Political Actors",   path: "/kenya/actors" },
-      { icon: Newspaper,     label: "Newsfeed",           path: "/kenya/newsfeed" },
-      { icon: Radio,         label: "Breaking News",      path: "/kenya/breaking-news" },
-      { icon: FileText,      label: "Election Phases",    path: "/kenya/election-phases" },
-      { icon: AlertTriangle, label: "Alerts",             path: "/kenya/alerts" },
-      { icon: FileText,      label: "Reports",            path: "/kenya/reports" },
-      { icon: Users,         label: "Movements",          path: "/kenya/movements" },
+      { icon: Globe,         label: "Country Overview",       path: "/kenya" },
+      { icon: BarChart2,     label: "Political Sentiment",    path: "/kenya/tracker" },
+      { icon: Map,           label: "Regional Map",           path: "/kenya/regional-map" },
+      { icon: AlertTriangle, label: "Fragmentation Risk",     path: "/kenya/balkanization" },
+      { icon: Scale,         label: "ICC & Hate Speech",      path: "/kenya/icc-agent" },
+      { icon: Users,         label: "Political Actors",       path: "/kenya/actors" },
+      { icon: Newspaper,     label: "Signal Newsfeed",        path: "/kenya/newsfeed" },
+      { icon: Radio,         label: "Breaking Signals",       path: "/kenya/breaking-news" },
+      { icon: Vote,          label: "Election Intelligence",  path: "/kenya/election-phases" },
+      { icon: Bell,          label: "Signal Alerts",          path: "/kenya/alerts" },
+      { icon: FileText,      label: "Intelligence Reports",   path: "/kenya/reports" },
+      { icon: Flag,          label: "Political Movements",    path: "/kenya/movements" },
     ],
   },
+  // ── 5. DECIDE — output, briefs, agents ────────────────────────────────────
   {
-    id: "intelligence",
-    label: "Intelligence Tools",
-    icon: TrendingUp,
-    accent: "#38bdf8",
+    id: "decide",
+    label: "Decide & Export",
+    icon: Target,
+    accent: "#22c55e",
     items: [
-      { icon: Sparkles,   label: "Intelligence Workspace", path: "/intelligence" },
-      { icon: BarChart3,  label: "Africa Scanner",        path: "/scanner", badge: "New" },
-      { icon: Layers,     label: "Political Aggregator",  path: "/aggregator" },
-      { icon: BarChart2,  label: "PESTEL Trending",       path: "/trending" },
-      { icon: Building2,  label: "Investment Readiness",  path: "/doing-business" },
-      { icon: Users,      label: "Field Contributors",    path: "/haa" },
-      { icon: Heart,      label: "Favorites",             path: "/favorites" },
-      { icon: Mail,       label: "Newsletter",            path: "/newsletter" },
-      { icon: Bot,        label: "AI Agents",             path: "/ai-agents" },
-      { icon: Code2,      label: "Widget Builder",        path: "/widget-builder" },
+      { icon: Briefcase,  label: "Go/No-Go Briefs",          path: "/scanner" },
+      { icon: Bot,        label: "AI Agents Hub",            path: "/ai-agents" },
+      { icon: Code2,      label: "Developer API",            path: "/developer-hub" },
+      { icon: Code2,      label: "Widget Builder",           path: "/widget-builder" },
     ],
   },
+  // ── 6. CONTRIBUTE — network & rewards ─────────────────────────────────────
   {
-    id: "credits",
-    label: "Contributions",
+    id: "contribute",
+    label: "Contribute",
     icon: Coins,
-    accent: "#34d399",
+    accent: "#f59e0b",
     items: [
-      { icon: Coins, label: "My Credits", path: "/credits" },
+      { icon: UserCircle, label: "Contributor Profile",      path: "/contributor" },
+      { icon: Coins,      label: "VBT Rewards",              path: "/credits" },
+      { icon: Star,       label: "Saved Signals",            path: "/favorites" },
     ],
   },
-  {
-    id: "advanced",
-    label: "Advanced",
-    icon: Sparkles,
-    accent: "#a78bfa",
-    items: [
-      { icon: BadgeCheck, label: "Creator Verification", path: "/creator-verification" },
-      { icon: Sparkles,   label: "Advanced Features",    path: "/advanced-features" },
-    ],
-  },
-  {
-    id: "developer",
-    label: "Developer",
-    icon: Code2,
-    accent: "#22d3ee",
-    items: [
-      { icon: Code2, label: "Developer Hub", path: "/developer-hub" },
-    ],
-  },
+  // ── 7. ADMIN (staff only) ─────────────────────────────────────────────────
   {
     id: "admin",
     label: "Admin",
@@ -129,21 +139,22 @@ const SECTIONS: Section[] = [
     accent: "#fb923c",
     adminOnly: true,
     items: [
-      { icon: ShieldCheck, label: "Admin Dashboard", path: "/admin" },
-      { icon: Users,       label: "User Management", path: "/admin/users" },
+      { icon: ShieldCheck, label: "Admin Dashboard",         path: "/admin" },
+      { icon: Users,       label: "User Management",         path: "/admin/users" },
     ],
   },
+  // ── 8. ACCOUNT ────────────────────────────────────────────────────────────
   {
-    id: "settings",
-    label: "Settings",
+    id: "account",
+    label: "Account",
     icon: SettingsIcon,
     accent: "#94a3b8",
     items: [
-      { icon: Crown,        label: "Pricing & Plans",      path: "/pricing" },
-      { icon: UserCircle,   label: "Contributor Profile",  path: "/contributor" },
-      { icon: FileText,     label: "About & Methodology",  path: "/about" },
-      { icon: SettingsIcon, label: "Settings",         path: "/settings" },
-      { icon: Shield,       label: "Privacy",          path: "/privacy-settings" },
+      { icon: Crown,        label: "Plans & Pricing",        path: "/pricing" },
+      { icon: Mail,         label: "Newsletter",             path: "/newsletter" },
+      { icon: BookOpen,     label: "About & Methodology",    path: "/about" },
+      { icon: SettingsIcon, label: "Settings",               path: "/settings" },
+      { icon: Shield,       label: "Privacy",                path: "/privacy-settings" },
     ],
   },
 ];
