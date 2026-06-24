@@ -329,7 +329,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-24 w-full">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-32 w-full">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
 
             <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="space-y-8">
@@ -338,7 +338,7 @@ export default function LandingPage() {
                 Real-Time African Political Intelligence
               </div>
 
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
                 The Intelligence<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400">
                   Layer for Africa
@@ -359,7 +359,7 @@ export default function LandingPage() {
               </div>
 
               <div className="flex flex-wrap gap-8 pt-2">
-                {[["55", "Nations Covered"], ["PESTEL+IR", "7 Dimensions"], ["Composite", "Go/No-Go Score"], ["Go-Market", "Verified Verdict"]].map(([val, label]) => (
+                {[["55", "Nations monitored"], ["312+", "Signals this week"], ["4", "Entry verdicts"], ["Daily", "Score updates"]].map(([val, label]) => (
                   <div key={label} className="flex flex-col">
                     <span className="text-2xl font-black text-cyan-400">{val}</span>
                     <span className="text-xs text-gray-500">{label}</span>
@@ -450,7 +450,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── PEOPLE SIGNAL — new first section ───────────────────────────────── */}
-      <section id="people-signal" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+      <section id="people-signal" className="py-32 px-4" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Field Contributors</Badge>
@@ -505,10 +505,13 @@ export default function LandingPage() {
       </section>
 
       {/* ── AFRICA SCANNER SECTION ─────────────────────────────────────────── */}
-      <section id="scanner-section" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+      <section id="scanner-section" className="py-32 px-4" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
-            <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Africa Scanner · New</Badge>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Africa Scanner</Badge>
+              <span className="text-xs text-green-400/80 border border-green-500/20 bg-green-500/5 rounded-full px-3 py-1">● Updated daily · 312 signals this week</span>
+            </div>
             <h2 className="text-4xl sm:text-5xl font-black mb-4">
               From Signal to Decision<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-green-400">in One Flow</span>
@@ -547,7 +550,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── INTELLIGENCE SECTION ────────────────────────────────────────────── */}
-      <section id="intelligence" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
+      <section id="intelligence" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">PESTEL+IR Intelligence</Badge>
@@ -636,7 +639,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── ELECTORAL CALENDAR ──────────────────────────────────────────────── */}
-      <section id="elections" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+      <section id="elections" className="py-32 px-4" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <Badge className="mb-4 bg-orange-500/10 text-orange-400 border-orange-500/20">Electoral Calendar</Badge>
@@ -681,7 +684,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CREATOR NETWORK ─────────────────────────────────────────────────── */}
-      <section id="creator-network" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
+      <section id="creator-network" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
@@ -737,7 +740,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── TESTIMONIALS ────────────────────────────────────────────────────── */}
-      <section className="py-24 px-4">
+      <section className="py-32 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-black mb-3">Who Uses Viral Beat</h2>
@@ -764,7 +767,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── API / DEVELOPER ──────────────────────────────────────────────────── */}
-      <section id="api" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
+      <section id="api" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
@@ -826,7 +829,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── DOWNLOAD APP ─────────────────────────────────────────────────────── */}
-      <section id="download-app" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
+      <section id="download-app" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Mobile App</Badge>
@@ -893,7 +896,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ─────────────────────────────────────────────────────────────── */}
-      <section className="py-24 px-4">
+      <section className="py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="relative bg-gradient-to-br from-cyan-500/20 via-blue-600/15 to-purple-600/20 border border-cyan-500/20 rounded-3xl p-14 overflow-hidden">
             <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
@@ -920,7 +923,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── MISSION ─────────────────────────────────────────────────────────── */}
-      <section id="mission" className="py-24 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
+      <section id="mission" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Built for Africa. By Africans.</Badge>
@@ -950,7 +953,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── METHODOLOGY SUMMARY ──────────────────────────────────────────────── */}
-      <section id="methodology" className="py-24 px-4" style={{ scrollMarginTop: "5rem" }}>
+      <section id="methodology" className="py-32 px-4" style={{ scrollMarginTop: "5rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
@@ -1013,7 +1016,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── TEAM ─────────────────────────────────────────────────────────────── */}
-      <section id="team" className="py-24 px-4 bg-white/[0.015] border-t border-white/5" style={{ scrollMarginTop: "4rem" }}>
+      <section id="team" className="py-32 px-4 bg-white/[0.015] border-t border-white/5" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">The Team</Badge>
