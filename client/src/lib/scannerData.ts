@@ -16,7 +16,7 @@ export interface RiskItem {
 export interface SectorScore {
   name: string;
   score: number;
-  verdict: "enter" | "watch" | "avoid";
+  verdict: "go" | "caution" | "no-go";
 }
 
 export interface TimelineEvent {
@@ -34,7 +34,7 @@ export interface SignalItem {
   time: string;
 }
 
-export type Verdict = "strong-buy" | "buy" | "watch" | "avoid";
+export type Verdict = "go-market" | "monitor" | "caution" | "no-go";
 
 export interface CountryProfile {
   code: string;
@@ -73,10 +73,10 @@ export function scoreColor(score: number): string {
 }
 
 export const VERDICT_LABELS: Record<Verdict, string> = {
-  "strong-buy": "Strong Buy",
-  "buy": "Buy",
-  "watch": "Watch",
-  "avoid": "Avoid",
+  "go-market": "Go-Market",
+  "monitor": "Monitor",
+  "caution": "Caution",
+  "no-go": "No-Go",
 };
 
 export const COUNTRIES: CountryProfile[] = [
@@ -85,7 +85,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "14M", capital: "Kigali", currency: "RWF",
     gdp: "$14B", fdi: "$430M",
     pestel: 82, irs: 79, change30d: 3.2, trend: [55,60,65,68,72,75,78,80,82],
-    verdict: "strong-buy",
+    verdict: "go-market",
     macroSummary: "Rwanda maintains Africa's strongest governance trajectory, anchored by the Kigali Innovation City SEZ and a digital services export strategy. Political stability is high; the presidency retains broad public mandate. Investment climate leads Sub-Saharan Africa on B-READY indicators.",
     opportunities: ["Digital governance services", "Agri-fintech & precision agriculture", "MICE tourism & hospitality", "Green bonds & climate finance"],
     pestelBreak: { P:85, E:78, S:72, T:80, En:76, L:81, IR:79 },
@@ -104,12 +104,12 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Social", risk:"Skills shortage in deep tech", likelihood:"Medium", impact:"Low", mitigation:"Partnership with CMU-Africa and UR for talent pipeline development." },
     ],
     sectors: [
-      { name:"Digital Services & GovTech", score:93, verdict:"enter" },
-      { name:"Agri-fintech", score:88, verdict:"enter" },
-      { name:"MICE Tourism & Hospitality", score:84, verdict:"enter" },
-      { name:"Clean Energy", score:79, verdict:"enter" },
-      { name:"Financial Services", score:73, verdict:"enter" },
-      { name:"Manufacturing & SEZ", score:68, verdict:"watch" },
+      { name:"Digital Services & GovTech", score:93, verdict:"go" },
+      { name:"Agri-fintech", score:88, verdict:"go" },
+      { name:"MICE Tourism & Hospitality", score:84, verdict:"go" },
+      { name:"Clean Energy", score:79, verdict:"go" },
+      { name:"Financial Services", score:73, verdict:"go" },
+      { name:"Manufacturing & SEZ", score:68, verdict:"caution" },
     ],
     timeline: [
       { date:"Sep 2026", text:"EAC digital trade corridor pilot launch", type:"positive" },
@@ -127,7 +127,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "56M", capital: "Nairobi", currency: "KES",
     gdp: "$118B", fdi: "$830M",
     pestel: 79, irs: 74, change30d: 1.8, trend: [60,63,66,70,72,74,75,76,79],
-    verdict: "strong-buy",
+    verdict: "go-market",
     macroSummary: "Kenya is East Africa's commercial gateway and the continent's leading fintech ecosystem. The M-Pesa mobile money infrastructure anchors a $12B+ digital payments market. IMF program on track. 2027 election cycle beginning to introduce political risk premium, but fundamentals remain strongest in Sub-Saharan Africa outside Rwanda.",
     opportunities: ["M-Pesa fintech ecosystem", "Nairobi Silicon Savannah", "East Africa logistics hub", "Agro-processing & cold chain", "Green bonds & climate finance"],
     pestelBreak: { P:74, E:80, S:75, T:88, En:70, L:76, IR:74 },
@@ -147,13 +147,13 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Social", risk:"Gen-Z political mobilisation", likelihood:"Medium", impact:"Medium", mitigation:"Community benefit commitments; hire local talent at 60%+ threshold." },
     ],
     sectors: [
-      { name:"Fintech / Mobile Money", score:91, verdict:"enter" },
-      { name:"Agri-tech & Food Processing", score:82, verdict:"enter" },
-      { name:"Clean Energy / Geothermal", score:79, verdict:"enter" },
-      { name:"Logistics & Port Infrastructure", score:75, verdict:"enter" },
-      { name:"Healthcare & MedTech", score:71, verdict:"enter" },
-      { name:"Real Estate / PropTech", score:62, verdict:"watch" },
-      { name:"Mining & Extractives", score:55, verdict:"watch" },
+      { name:"Fintech / Mobile Money", score:91, verdict:"go" },
+      { name:"Agri-tech & Food Processing", score:82, verdict:"go" },
+      { name:"Clean Energy / Geothermal", score:79, verdict:"go" },
+      { name:"Logistics & Port Infrastructure", score:75, verdict:"go" },
+      { name:"Healthcare & MedTech", score:71, verdict:"go" },
+      { name:"Real Estate / PropTech", score:62, verdict:"caution" },
+      { name:"Mining & Extractives", score:55, verdict:"caution" },
     ],
     timeline: [
       { date:"Aug 2026", text:"IMF 5th review — disbursement $410M expected", type:"positive" },
@@ -173,7 +173,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "34M", capital: "Accra", currency: "GHS",
     gdp: "$72B", fdi: "$580M",
     pestel: 76, irs: 71, change30d: 0.5, trend: [58,60,62,65,67,70,72,73,76],
-    verdict: "buy",
+    verdict: "monitor",
     macroSummary: "Ghana is the natural AfCFTA gateway into West Africa and ECOWAS's most business-friendly market. IMF program stabilising after 2023 debt restructuring. Strong democratic tradition; 2024 election transition completed peacefully. Cocoa value chain modernisation creating agri-tech openings. Currency volatility the primary risk for USD-exposed investors.",
     opportunities: ["AfCFTA trade gateway", "Cocoa value chain tech", "Oil & gas services", "Fintech & mobile banking", "Film & creative economy"],
     pestelBreak: { P:78, E:65, S:76, T:72, En:68, L:75, IR:71 },
@@ -192,11 +192,11 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Environmental", risk:"Galamsey water contamination — ESG flag", likelihood:"High", impact:"Medium", mitigation:"ESG disclosure: avoid agri supply chains in Ashanti/Western Region without traceability." },
     ],
     sectors: [
-      { name:"Trade & Logistics (AfCFTA)", score:85, verdict:"enter" },
-      { name:"Agri-tech / Cocoa Chain", score:80, verdict:"enter" },
-      { name:"Fintech", score:74, verdict:"enter" },
-      { name:"Oil & Gas Services", score:69, verdict:"watch" },
-      { name:"Real Estate", score:60, verdict:"watch" },
+      { name:"Trade & Logistics (AfCFTA)", score:85, verdict:"go" },
+      { name:"Agri-tech / Cocoa Chain", score:80, verdict:"go" },
+      { name:"Fintech", score:74, verdict:"go" },
+      { name:"Oil & Gas Services", score:69, verdict:"caution" },
+      { name:"Real Estate", score:60, verdict:"caution" },
     ],
     timeline: [
       { date:"Dec 2026", text:"IMF Extended Credit Facility — 4th review", type:"neutral" },
@@ -213,7 +213,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "38M", capital: "Rabat", currency: "MAD",
     gdp: "$142B", fdi: "$1.9B",
     pestel: 74, irs: 73, change30d: 2.1, trend: [54,57,60,63,66,68,70,72,74],
-    verdict: "buy",
+    verdict: "monitor",
     macroSummary: "Morocco has positioned itself as Africa's bridge to Europe and is the continent's largest automotive manufacturing hub. Green hydrogen strategy targeting EU export market. Strong institutional framework and investment promotion agency (AMDIE). Political system stable under the monarchy. Water scarcity the defining structural risk.",
     opportunities: ["Green hydrogen & renewables export", "Automotive & aerospace manufacturing", "Africa-Europe logistics corridor", "Digital services & nearshoring", "Tourism & hospitality"],
     pestelBreak: { P:70, E:76, S:72, T:75, En:65, L:74, IR:73 },
@@ -231,12 +231,12 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Political", risk:"Western Sahara sovereignty dispute", likelihood:"Low", impact:"Medium", mitigation:"Avoid projects in disputed territory. Maintain operational base in Rabat/Casablanca." },
     ],
     sectors: [
-      { name:"Green Hydrogen & Renewables", score:88, verdict:"enter" },
-      { name:"Automotive & Aerospace", score:84, verdict:"enter" },
-      { name:"Digital Services / Nearshore", score:82, verdict:"enter" },
-      { name:"Logistics & Ports", score:78, verdict:"enter" },
-      { name:"Tourism & Hospitality", score:72, verdict:"enter" },
-      { name:"Agriculture", score:45, verdict:"avoid" },
+      { name:"Green Hydrogen & Renewables", score:88, verdict:"go" },
+      { name:"Automotive & Aerospace", score:84, verdict:"go" },
+      { name:"Digital Services / Nearshore", score:82, verdict:"go" },
+      { name:"Logistics & Ports", score:78, verdict:"go" },
+      { name:"Tourism & Hospitality", score:72, verdict:"go" },
+      { name:"Agriculture", score:45, verdict:"no-go" },
     ],
     timeline: [
       { date:"Nov 2026", text:"Morocco-EU Green Hydrogen framework agreement signing", type:"positive" },
@@ -251,7 +251,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "18M", capital: "Dakar", currency: "XOF",
     gdp: "$31B", fdi: "$440M",
     pestel: 67, irs: 63, change30d: 4.5, trend: [48,50,52,54,56,58,60,63,67],
-    verdict: "buy",
+    verdict: "monitor",
     macroSummary: "Senegal is in the most dynamic window in its investment history following first oil production in 2024. The new Faye-Sonko administration has adopted a pragmatic investment stance. The score is rising rapidly (+4.5 in 30 days) — a rare early-mover window. WAEMU franc stability removes currency hedging complexity.",
     opportunities: ["Oil & gas services (new producer)", "WAEMU financial hub", "Dakar port logistics", "Agriculture & fisheries", "Creative economy & tourism"],
     pestelBreak: { P:65, E:68, S:68, T:60, En:62, L:66, IR:63 },
@@ -269,11 +269,11 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Infrastructure", risk:"Infrastructure gap vs. ambition", likelihood:"High", impact:"Medium", mitigation:"Factor 2× logistics timeline into project planning; use Dakar as hub, distribute later." },
     ],
     sectors: [
-      { name:"Oil & Gas Services", score:84, verdict:"enter" },
-      { name:"Port & Trade Logistics", score:77, verdict:"enter" },
-      { name:"Agro-processing", score:72, verdict:"enter" },
-      { name:"Fintech (WAEMU)", score:68, verdict:"watch" },
-      { name:"Tourism", score:65, verdict:"watch" },
+      { name:"Oil & Gas Services", score:84, verdict:"go" },
+      { name:"Port & Trade Logistics", score:77, verdict:"go" },
+      { name:"Agro-processing", score:72, verdict:"go" },
+      { name:"Fintech (WAEMU)", score:68, verdict:"caution" },
+      { name:"Tourism", score:65, verdict:"caution" },
     ],
     timeline: [
       { date:"Oct 2026", text:"First Sangomar field full production — 100k bpd target", type:"positive" },
@@ -289,7 +289,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "63M", capital: "Pretoria", currency: "ZAR",
     gdp: "$373B", fdi: "$5.2B",
     pestel: 65, irs: 70, change30d: -1.2, trend: [72,70,69,68,67,66,66,65,65],
-    verdict: "watch",
+    verdict: "caution",
     macroSummary: "South Africa remains Africa's most sophisticated financial market but is under structural stress. The GNU coalition is fragile. Load shedding has reduced to Stage 1–2 but infrastructure deficit is systemic. Johannesburg retains its position as Africa's financial capital and the JSE is the continent's only investment-grade exchange. Score declining slowly — monitor before new commitments.",
     opportunities: ["JSE-listed instruments & PE", "Renewable energy (Just Transition)", "Mining technology", "Financial services export", "Film & creative sector"],
     pestelBreak: { P:58, E:66, S:60, T:74, En:55, L:70, IR:70 },
@@ -308,12 +308,12 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Social", risk:"Crime & security cost", likelihood:"High", impact:"Medium", mitigation:"Factor 3-5% security premium into opex; locate in secure business parks." },
     ],
     sectors: [
-      { name:"Financial Services (JSE)", score:82, verdict:"enter" },
-      { name:"Mining Technology", score:77, verdict:"enter" },
-      { name:"Renewable Energy (IPP)", score:74, verdict:"enter" },
-      { name:"Tech & Digital Services", score:70, verdict:"enter" },
-      { name:"Manufacturing", score:52, verdict:"watch" },
-      { name:"Retail & Consumer", score:48, verdict:"watch" },
+      { name:"Financial Services (JSE)", score:82, verdict:"go" },
+      { name:"Mining Technology", score:77, verdict:"go" },
+      { name:"Renewable Energy (IPP)", score:74, verdict:"go" },
+      { name:"Tech & Digital Services", score:70, verdict:"go" },
+      { name:"Manufacturing", score:52, verdict:"caution" },
+      { name:"Retail & Consumer", score:48, verdict:"caution" },
     ],
     timeline: [
       { date:"Nov 2026", text:"Medium Term Budget Policy Statement — GNU coalition fiscal test", type:"warning" },
@@ -330,7 +330,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "128M", capital: "Addis Ababa", currency: "ETB",
     gdp: "$156B", fdi: "$890M",
     pestel: 58, irs: 52, change30d: -3.1, trend: [68,65,62,58,55,53,52,54,58],
-    verdict: "watch",
+    verdict: "caution",
     macroSummary: "Ethiopia is Africa's 2nd largest population and a manufacturing powerhouse (industrial parks model), but PESTEL score has declined sharply from 2022 highs due to post-Tigray reconstruction complexity and ethnic tension in Amhara and Oromia regions. Score stabilising in 2026. The risk-reward profile suits patient capital with 5+ year horizon.",
     opportunities: ["Industrial parks & manufacturing", "Agro-processing (coffee, cut flowers)", "Addis logistics hub", "Hydropower & clean energy", "Telecoms (post-liberalisation)"],
     pestelBreak: { P:48, E:60, S:58, T:55, En:65, L:52, IR:52 },
@@ -348,11 +348,11 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Economic", risk:"FX shortage and repatriation restrictions", likelihood:"High", impact:"High", mitigation:"Negotiate FX repatriation terms in investment agreement before commitment." },
     ],
     sectors: [
-      { name:"Manufacturing & Industrial Parks", score:72, verdict:"enter" },
-      { name:"Agro-processing", score:68, verdict:"watch" },
-      { name:"Telecoms", score:62, verdict:"watch" },
-      { name:"Hydropower & Energy", score:60, verdict:"watch" },
-      { name:"Financial Services", score:44, verdict:"avoid" },
+      { name:"Manufacturing & Industrial Parks", score:72, verdict:"go" },
+      { name:"Agro-processing", score:68, verdict:"caution" },
+      { name:"Telecoms", score:62, verdict:"caution" },
+      { name:"Hydropower & Energy", score:60, verdict:"caution" },
+      { name:"Financial Services", score:44, verdict:"no-go" },
     ],
     timeline: [
       { date:"Dec 2026", text:"IMF Extended Credit Facility negotiations expected to conclude", type:"neutral" },
@@ -368,7 +368,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "220M", capital: "Abuja", currency: "NGN",
     gdp: "$477B", fdi: "$2.1B",
     pestel: 55, irs: 50, change30d: 1.5, trend: [52,50,48,50,52,53,54,53,55],
-    verdict: "watch",
+    verdict: "caution",
     macroSummary: "Nigeria is Africa's largest economy by GDP and largest market by population, but persistent structural challenges — naira volatility, security patchwork, regulatory complexity — create a high risk-high reward profile. The Tinubu reform agenda (fuel subsidy removal, FX unification) has improved fundamentals. Score trending up from 2023 lows. Lagos fintech ecosystem is world-class.",
     opportunities: ["Lagos fintech unicorn ecosystem", "Oil & gas (upstream)", "Consumer market (220M)", "Media & entertainment (Nollywood)", "Agriculture (rice, cassava, palm oil)"],
     pestelBreak: { P:50, E:55, S:60, T:65, En:52, L:48, IR:50 },
@@ -387,12 +387,12 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Regulatory", risk:"Multiple regulatory body friction", likelihood:"High", impact:"Medium", mitigation:"Hire experienced Lagos-based regulatory counsel before entry; allow 18-month licensing timeline." },
     ],
     sectors: [
-      { name:"Fintech / Payments", score:82, verdict:"enter" },
-      { name:"Consumer & FMCG", score:72, verdict:"enter" },
-      { name:"Media & Entertainment", score:68, verdict:"watch" },
-      { name:"Oil & Gas Services", score:62, verdict:"watch" },
-      { name:"Agriculture", score:58, verdict:"watch" },
-      { name:"Manufacturing", score:42, verdict:"avoid" },
+      { name:"Fintech / Payments", score:82, verdict:"go" },
+      { name:"Consumer & FMCG", score:72, verdict:"go" },
+      { name:"Media & Entertainment", score:68, verdict:"caution" },
+      { name:"Oil & Gas Services", score:62, verdict:"caution" },
+      { name:"Agriculture", score:58, verdict:"caution" },
+      { name:"Manufacturing", score:42, verdict:"no-go" },
     ],
     timeline: [
       { date:"Sep 2026", text:"NNPC gas pipeline to Ghana — regional energy integration", type:"positive" },
@@ -409,7 +409,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "65M", capital: "Dodoma", currency: "TZS",
     gdp: "$79B", fdi: "$910M",
     pestel: 68, irs: 65, change30d: -0.8, trend: [60,62,64,65,67,68,67,66,68],
-    verdict: "watch",
+    verdict: "caution",
     macroSummary: "Tanzania has significant resource endowments (gold, gas, tourism) and a large agricultural sector, but governance opacity and FX controls create friction for foreign investors. Hassan administration has been more investor-friendly than Magufuli era. Score slightly declining on governance signals. Natural gas project (LNG) represents a generational investment opportunity if negotiations resolve.",
     opportunities: ["LNG development (offshore gas)", "Gold & mineral extraction", "Tourism (Serengeti/Zanzibar)", "Agriculture & agro-processing", "Dar es Salaam port logistics"],
     pestelBreak: { P:62, E:68, S:70, T:64, En:72, L:60, IR:65 },
@@ -427,11 +427,11 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Political", risk:"Mining code renegotiation precedent", likelihood:"Medium", impact:"High", mitigation:"Structure concession agreements with international arbitration clause (ICSID)." },
     ],
     sectors: [
-      { name:"LNG / Natural Gas", score:74, verdict:"watch" },
-      { name:"Mining (Gold)", score:70, verdict:"watch" },
-      { name:"Tourism", score:78, verdict:"enter" },
-      { name:"Agriculture & Agro-processing", score:68, verdict:"watch" },
-      { name:"Port Logistics", score:65, verdict:"watch" },
+      { name:"LNG / Natural Gas", score:74, verdict:"caution" },
+      { name:"Mining (Gold)", score:70, verdict:"caution" },
+      { name:"Tourism", score:78, verdict:"go" },
+      { name:"Agriculture & Agro-processing", score:68, verdict:"caution" },
+      { name:"Port Logistics", score:65, verdict:"caution" },
     ],
     timeline: [
       { date:"Dec 2026", text:"LNG project Final Investment Decision expected", type:"neutral" },
@@ -446,7 +446,7 @@ export const COUNTRIES: CountryProfile[] = [
     population: "105M", capital: "Kinshasa", currency: "CDF",
     gdp: "$65B", fdi: "$1.1B",
     pestel: 32, irs: 28, change30d: -2.0, trend: [35,34,33,32,31,30,29,28,32],
-    verdict: "avoid",
+    verdict: "no-go",
     macroSummary: "DRC holds an estimated $24 trillion in critical mineral wealth — the highest per-capita resource endowment of any nation on earth — but chronic conflict, governance failure, and infrastructure void make it one of the most challenging investment environments globally. Score declining. Active conflict in eastern DRC (M23/FARDC) is the primary risk. Specialist operators (mining majors, humanitarian orgs) are the current viable investor class.",
     opportunities: ["Critical minerals (cobalt, coltan, lithium)", "Hydropower (Inga potential)", "Kinshasa consumer market (18M)", "Telecoms (large underserved market)"],
     pestelBreak: { P:25, E:35, S:38, T:28, En:45, L:24, IR:28 },
@@ -464,11 +464,11 @@ export const COUNTRIES: CountryProfile[] = [
       { category:"Governance", risk:"Contract enforcement void", likelihood:"High", impact:"Critical", mitigation:"ICSID arbitration clause mandatory. Expect 3–5 year dispute timelines even with clause." },
     ],
     sectors: [
-      { name:"Critical Minerals (Majors only)", score:45, verdict:"watch" },
-      { name:"Telecoms", score:40, verdict:"watch" },
-      { name:"Hydropower (Long horizon)", score:38, verdict:"avoid" },
-      { name:"Consumer / FMCG", score:28, verdict:"avoid" },
-      { name:"Financial Services", score:22, verdict:"avoid" },
+      { name:"Critical Minerals (Majors only)", score:45, verdict:"caution" },
+      { name:"Telecoms", score:40, verdict:"caution" },
+      { name:"Hydropower (Long horizon)", score:38, verdict:"no-go" },
+      { name:"Consumer / FMCG", score:28, verdict:"no-go" },
+      { name:"Financial Services", score:22, verdict:"no-go" },
     ],
     timeline: [
       { date:"Ongoing", text:"M23 ceasefire negotiations (AU-mediated)", type:"critical" },

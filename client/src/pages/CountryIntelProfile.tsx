@@ -27,10 +27,10 @@ const DIM_COLORS: Record<string, string> = {
 
 function verdictStyle(v: Verdict) {
   const map: Record<Verdict, string> = {
-    "strong-buy": "bg-green-500/15 text-green-400 border-green-500/40",
-    "buy":        "bg-lime-500/15  text-lime-400  border-lime-500/40",
-    "watch":      "bg-amber-500/15 text-amber-400 border-amber-500/40",
-    "avoid":      "bg-red-500/15   text-red-400   border-red-500/40",
+    "go-market": "bg-green-500/15 text-green-400 border-green-500/40",
+    "monitor":   "bg-lime-500/15  text-lime-400  border-lime-500/40",
+    "caution":   "bg-amber-500/15 text-amber-400 border-amber-500/40",
+    "no-go":     "bg-red-500/15   text-red-400   border-red-500/40",
   };
   return map[v];
 }
@@ -133,8 +133,8 @@ function SectorsTab({ c, onBrief }: { c: CountryProfile; onBrief: (sector: strin
             </div>
             <span className="text-sm font-bold w-7 text-right" style={{ color }}>{s.score}</span>
             <span className={`text-[9px] px-2 py-0.5 rounded-full border font-semibold uppercase ${
-              s.verdict === "enter" ? "bg-green-500/10 text-green-400 border-green-500/30"
-              : s.verdict === "watch" ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+              s.verdict === "go" ? "bg-green-500/10 text-green-400 border-green-500/30"
+              : s.verdict === "caution" ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
               : "bg-red-500/10 text-red-400 border-red-500/30"
             }`}>{s.verdict}</span>
             <Button size="sm" variant="ghost" className="h-6 text-[10px] text-slate-500 hover:text-cyan-400 px-2"
@@ -265,9 +265,9 @@ export default function CountryIntelProfile() {
             <div className="text-[9px] text-slate-500 uppercase tracking-wider">Composite</div>
           </div>
           <div className={`flex flex-col items-center px-4 py-2 rounded-lg border ${
-            c.verdict === "strong-buy" ? "bg-green-500/15 border-green-500/40"
-            : c.verdict === "buy" ? "bg-lime-500/15 border-lime-500/40"
-            : c.verdict === "watch" ? "bg-amber-500/15 border-amber-500/40"
+            c.verdict === "go-market" ? "bg-green-500/15 border-green-500/40"
+            : c.verdict === "monitor" ? "bg-lime-500/15 border-lime-500/40"
+            : c.verdict === "caution" ? "bg-amber-500/15 border-amber-500/40"
             : "bg-red-500/15 border-red-500/40"
           }`}>
             <span className="text-xl font-extrabold uppercase" style={{ color }}>

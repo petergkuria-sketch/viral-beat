@@ -24,10 +24,10 @@ const DIM_LABELS: Record<string, string> = {
 
 function verdictStyle(v: Verdict) {
   const map: Record<Verdict, string> = {
-    "strong-buy": "bg-green-500/15 text-green-400 border-green-500/40",
-    "buy":        "bg-lime-500/15  text-lime-400  border-lime-500/40",
-    "watch":      "bg-amber-500/15 text-amber-400 border-amber-500/40",
-    "avoid":      "bg-red-500/15   text-red-400   border-red-500/40",
+    "go-market": "bg-green-500/15 text-green-400 border-green-500/40",
+    "monitor":   "bg-lime-500/15  text-lime-400  border-lime-500/40",
+    "caution":   "bg-amber-500/15 text-amber-400 border-amber-500/40",
+    "no-go":     "bg-red-500/15   text-red-400   border-red-500/40",
   };
   return map[v];
 }
@@ -172,10 +172,10 @@ export default function AfricaScanner() {
   }, [search, region, sortKey, sortDir]);
 
   const counts = useMemo(() => ({
-    strongBuy: COUNTRIES.filter(c => c.verdict === "strong-buy").length,
-    buy:       COUNTRIES.filter(c => c.verdict === "buy").length,
-    watch:     COUNTRIES.filter(c => c.verdict === "watch").length,
-    avoid:     COUNTRIES.filter(c => c.verdict === "avoid").length,
+    goMarket: COUNTRIES.filter(c => c.verdict === "go-market").length,
+    monitor:  COUNTRIES.filter(c => c.verdict === "monitor").length,
+    caution:  COUNTRIES.filter(c => c.verdict === "caution").length,
+    noGo:     COUNTRIES.filter(c => c.verdict === "no-go").length,
   }), []);
 
   function toggleSort(key: typeof sortKey) {
@@ -199,9 +199,9 @@ export default function AfricaScanner() {
         </div>
         <div className="flex gap-6 ml-auto">
           <div className="text-center"><div className="text-sm font-bold text-cyan-400">55</div><div className="text-[9px] text-slate-500 uppercase tracking-wider">AU Markets</div></div>
-          <div className="text-center"><div className="text-sm font-bold text-green-400">{counts.strongBuy + counts.buy}</div><div className="text-[9px] text-slate-500 uppercase tracking-wider">Buy Signal</div></div>
-          <div className="text-center"><div className="text-sm font-bold text-amber-400">{counts.watch}</div><div className="text-[9px] text-slate-500 uppercase tracking-wider">Watch</div></div>
-          <div className="text-center"><div className="text-sm font-bold text-red-400">{counts.avoid}</div><div className="text-[9px] text-slate-500 uppercase tracking-wider">Avoid</div></div>
+          <div className="text-center"><div className="text-sm font-bold text-green-400">{counts.goMarket + counts.monitor}</div><div className="text-[9px] text-slate-500 uppercase tracking-wider">Entry Signal</div></div>
+          <div className="text-center"><div className="text-sm font-bold text-amber-400">{counts.caution}</div><div className="text-[9px] text-slate-500 uppercase tracking-wider">Caution</div></div>
+          <div className="text-center"><div className="text-sm font-bold text-red-400">{counts.noGo}</div><div className="text-[9px] text-slate-500 uppercase tracking-wider">No-Go</div></div>
           <div id="scanner-tour-btn">
             <OnboardingTour tourId="aggregator" label="Scanner Tour" autoStart={false} />
           </div>

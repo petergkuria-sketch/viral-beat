@@ -33,10 +33,10 @@ function generateBriefContent(c: CountryProfile, sector: string, horizon: string
   const verdict = c.verdict;
 
   const verdictText: Record<Verdict, { headline: string; colour: string; icon: string }> = {
-    "strong-buy": { headline: "GO — Strong Entry Signal", colour: "#22c55e", icon: "✅" },
-    "buy":        { headline: "GO — Entry Recommended", colour: "#84cc16", icon: "✅" },
-    "watch":      { headline: "CONDITIONAL GO — Monitor Before Committing", colour: "#f59e0b", icon: "⚠️" },
-    "avoid":      { headline: "NO GO — Await Stabilisation", colour: "#ef4444", icon: "🚫" },
+    "go-market": { headline: "GO-MARKET — Strong Entry Signal", colour: "#22c55e", icon: "✅" },
+    "monitor":   { headline: "GO-MARKET — Entry Recommended, Monitor Closely", colour: "#84cc16", icon: "✅" },
+    "caution":   { headline: "CAUTION — Conditional Go, Monitor Before Committing", colour: "#f59e0b", icon: "⚠️" },
+    "no-go":     { headline: "NO-GO — Await Stabilisation", colour: "#ef4444", icon: "🚫" },
   };
 
   const timing: Record<string, string> = {
@@ -225,9 +225,9 @@ export default function GoNoGoBrief() {
                 <div className="text-[10px] text-slate-500">{c.region} · Composite {comp}</div>
               </div>
               <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded border ${
-                c.verdict === "strong-buy" ? "bg-green-500/15 text-green-400 border-green-500/40"
-                : c.verdict === "buy" ? "bg-lime-500/15 text-lime-400 border-lime-500/40"
-                : c.verdict === "watch" ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
+                c.verdict === "go-market" ? "bg-green-500/15 text-green-400 border-green-500/40"
+                : c.verdict === "monitor" ? "bg-lime-500/15 text-lime-400 border-lime-500/40"
+                : c.verdict === "caution" ? "bg-amber-500/15 text-amber-400 border-amber-500/40"
                 : "bg-red-500/15 text-red-400 border-red-500/40"
               }`}>{VERDICT_LABELS[c.verdict]}</span>
             </div>
@@ -391,8 +391,8 @@ export default function GoNoGoBrief() {
                       <div className="flex items-center gap-2">
                         <span className="text-xl font-extrabold" style={{ color: scoreColor(brief.sector.score) }}>{brief.sector.score}</span>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold uppercase ${
-                          brief.sector.verdict === "enter" ? "bg-green-500/10 text-green-400 border-green-500/30"
-                          : brief.sector.verdict === "watch" ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                          brief.sector.verdict === "go" ? "bg-green-500/10 text-green-400 border-green-500/30"
+                          : brief.sector.verdict === "caution" ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
                           : "bg-red-500/10 text-red-400 border-red-500/30"
                         }`}>{brief.sector.verdict}</span>
                       </div>
