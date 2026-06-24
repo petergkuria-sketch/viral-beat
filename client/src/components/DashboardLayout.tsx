@@ -35,6 +35,7 @@ interface NavItem {
   icon: React.ElementType;
   label: string;
   path: string;
+  badge?: string;
 }
 
 interface Section {
@@ -82,6 +83,7 @@ const SECTIONS: Section[] = [
     accent: "#38bdf8",
     items: [
       { icon: Sparkles,   label: "Intelligence Workspace", path: "/intelligence" },
+      { icon: BarChart3,  label: "Africa Scanner",        path: "/scanner", badge: "New" },
       { icon: Layers,     label: "Political Aggregator",  path: "/aggregator" },
       { icon: BarChart2,  label: "PESTEL Trending",       path: "/trending" },
       { icon: Building2,  label: "Investment Readiness",  path: "/doing-business" },
@@ -506,6 +508,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           setLocation={setLocation}
                           accent={section.accent}
                           pl={8}
+                          badge={item.badge ? (
+                            <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                              {item.badge}
+                            </span>
+                          ) : undefined}
                         />
                       ))
                     )}
