@@ -368,7 +368,7 @@ export default function IntelligencePage() {
     );
 
   // ── archive + memory ──
-  const { data: me } = trpc.me.useQuery();
+  const { data: me } = trpc.auth.me.useQuery();
   const { data: memoryContext } = trpc.reportArchive.memoryContext.useQuery(
     { sessionId, countryCodes: scopeKey && scopeKey !== "continental" ? [scopeKey.toUpperCase()] : [], limit: 5 },
     { enabled: !!me, staleTime: 5 * 60 * 1000 }

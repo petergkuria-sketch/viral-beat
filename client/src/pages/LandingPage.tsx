@@ -1120,6 +1120,7 @@ export default function LandingPage() {
                 { label: "Country Deep Dive",         href: "/scanner/ken" },
                 { label: "Go/No-Go Brief Generator",  href: "/scanner/ken/brief" },
                 { label: "Intelligence Workspace",    href: "/intelligence" },
+                { label: "Intelligence Archive",      href: "/archive" },
                 { label: "Investment Readiness",      href: "/doing-business" },
                 { label: "Developer API",             href: "#api" },
               ]},

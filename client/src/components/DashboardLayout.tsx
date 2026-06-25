@@ -75,6 +75,7 @@ const SECTIONS: Section[] = [
     accent: "#a78bfa",
     items: [
       { icon: Sparkles,   label: "Intelligence Workspace", path: "/intelligence" },
+      { icon: BookOpen,   label: "Intelligence Archive",   path: "/archive" },
       { icon: Building2,  label: "Investment Readiness",   path: "/doing-business" },
     ],
   },
