@@ -15,10 +15,10 @@ import crypto from "crypto";
 import { getDb } from "../db";
 import { ENV } from "../_core/env";
 import {
-  agentRuns, scannerSignals, tickerItems,
+  agentRuns, scannerSignals, tickerItems, signalWatchlists,
   type InsertAgentRun, type InsertScannerSignal, type InsertTickerItem,
 } from "../../drizzle/schema";
-import { eq, and, lt, gte } from "drizzle-orm";
+import { eq, and, lt, gte, inArray } from "drizzle-orm";
 
 async function db() {
   const d = await getDb();
@@ -359,6 +359,48 @@ async function persistSignals(
   return { ingested: signals.length, breaking, verdictChanges };
 }
 
+// ── Evaluate signal watchlists ────────────────────────────────────────────────
+
+async function evaluateWatchlists(freshSignals: ClassifiedSignal[]): Promise<void> {
+  if (freshSignals.length === 0) return;
+  const d = await db();
+
+  // Load all active watchlists
+  const watchlists = await d
+    .select()
+    .from(signalWatchlists)
+    .where(eq(signalWatchlists.isActive, true))
+    .catch(() => [] as typeof signalWatchlists.$inferSelect[]);
+
+  if (watchlists.length === 0) return;
+
+  const severityRank: Record<string, number> = { normal: 0, alert: 1, breaking: 2 };
+
+  for (const watch of watchlists) {
+    const codes    = (watch.countryCodes as string[]) ?? [];
+    const dims     = (watch.pestelDims  as string[]) ?? [];
+    const kws      = (watch.keywords    as string[]).map(k => k.toLowerCase());
+    const minRank  = severityRank[watch.thresholdSeverity] ?? 1;
+
+    const matched = freshSignals.some(sig => {
+      if (severityRank[sig.severity] < minRank) return false;
+      if (codes.length && !codes.includes(sig.countryCode)) return false;
+      if (dims.length  && !dims.includes(sig.dim))          return false;
+      if (watch.sector && !sig.headline.toLowerCase().includes(watch.sector.toLowerCase())) return false;
+      if (kws.length   && !kws.some(k => sig.headline.toLowerCase().includes(k))) return false;
+      return true;
+    });
+
+    if (matched) {
+      await d
+        .update(signalWatchlists)
+        .set({ triggerCount: (watch.triggerCount ?? 0) + 1, lastTriggeredAt: new Date() })
+        .where(eq(signalWatchlists.watchId, watch.watchId))
+        .catch(() => null);
+    }
+  }
+}
+
 // ── Expire stale ticker items ─────────────────────────────────────────────────
 
 async function expireTickerItems(): Promise<void> {
@@ -406,12 +448,15 @@ export async function runAgentCycle(trigger: InsertAgentRun["trigger"] = "schedu
     // 4. Persist + write ticker
     const stats = await persistSignals(fresh, runId);
 
-    // 5. Expire old ticker items
+    // 5. Evaluate signal watchlists against fresh signals
+    await evaluateWatchlists(fresh).catch(e => console.warn("[ScannerAgent] watchlist evaluation error:", e));
+
+    // 6. Expire old ticker items
     await expireTickerItems();
 
     const durationMs = Date.now() - startedAt;
 
-    // 6. Close run record
+    // 7. Close run record
     const uniqueCountries = new Set(fresh.map(s => s.countryCode)).size;
     await d
       .update(agentRuns)

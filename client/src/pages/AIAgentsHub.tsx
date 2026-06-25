@@ -253,6 +253,7 @@ export default function AIAgentsHub() {
     missionType: MissionType; country: string; sector: string | null;
     bodyMd: string; verdict: string; signalCount: number;
     signals: Array<{ headline: string; dim: string; severity: string; source: string }>;
+    reportId: string | null; citationKey: string | null;
     generatedAt: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -559,6 +560,17 @@ export default function AIAgentsHub() {
                           <p className="text-[10px] text-gray-500">Open in Intelligence Workspace</p>
                         </div>
                       </button>
+                      {missionResult.reportId && (
+                        <button
+                          onClick={() => setLocation("/archive")}
+                          className="w-full flex items-center gap-2.5 bg-[#050b1a] border border-emerald-500/25 rounded-xl p-3 hover:border-emerald-500/40 transition-all text-left group">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-emerald-300">Archived (private)</p>
+                            <p className="text-[10px] text-gray-500">{missionResult.citationKey ?? missionResult.reportId.slice(0,8)} · View in Archive</p>
+                          </div>
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           setWatchlistPrefill({

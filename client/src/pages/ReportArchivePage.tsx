@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import {
   Search, TrendingUp, Globe, BookOpen, Download, Star,
   Lock, Users, Crown, Eye, Archive, ChevronRight,
-  FileText, Loader2, Bookmark, BookmarkCheck,
+  FileText, Loader2, Bookmark, BookmarkCheck, LogIn,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -245,6 +247,7 @@ function ReportDrawer({ report, onClose, userTier }: { report: any; onClose: () 
 
 export default function ReportArchivePage() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [tab, setTab] = useState<"browse" | "trending" | "saved">("browse");
   const [search, setSearch] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -316,6 +319,23 @@ export default function ReportArchivePage() {
 
   return (
     <div className="min-h-screen bg-[#060d1b] text-white">
+      {/* ── Guest nav bar (shown when not logged in / no sidebar) ── */}
+      {!user && (
+        <div className="border-b border-[#1e293b] bg-[#050b1a] px-4 sm:px-6 py-3 flex items-center justify-between">
+          <button onClick={() => setLocation("/")} className="flex items-center gap-2 text-sm font-black text-white hover:text-cyan-400 transition-colors">
+            <Globe className="w-4 h-4 text-cyan-400" />
+            ViralBeat
+          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setLocation("/scanner")} className="text-xs text-gray-400 hover:text-white transition-colors hidden sm:block">Africa Scanner</button>
+            <button onClick={() => setLocation("/about")} className="text-xs text-gray-400 hover:text-white transition-colors hidden sm:block">About</button>
+            <Button size="sm" className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs"
+              onClick={() => window.location.href = getLoginUrl()}>
+              <LogIn className="w-3.5 h-3.5 mr-1.5" /> Sign in
+            </Button>
+          </div>
+        </div>
+      )}
       {/* ── Header ── */}
       <div className="border-b border-[#1e293b] bg-[#0a1628]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">

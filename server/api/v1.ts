@@ -2,6 +2,9 @@ import { Router } from "express";
 import { appRouter } from "../routers";
 import { invokeLLM } from "../_core/llm";
 import { apiKeyMiddleware } from "./middleware";
+import { getDb } from "../db";
+import { scannerSignals } from "../../drizzle/schema";
+import crypto from "crypto";
 
 // Caller with null user — all public procedures pass through, protected ones throw.
 const caller = () =>
@@ -385,5 +388,117 @@ v1.post("/africa/:countryCode/sentiment/analyze", wrap(async (req, res) => {
   const data = await caller().africa.analyzeSentiment({ countryCode: req.params.countryCode.toUpperCase(), text });
   ok(res, data);
 }));
+
+// ─── RATING AGENCY WEBHOOK ───────────────────────────────────────────────────
+
+/**
+ * @openapi
+ * /rating-event:
+ *   post:
+ *     summary: Ingest a sovereign credit rating action from Moody's, S&P, or Fitch
+ *     description: >
+ *       Webhook endpoint for rating agencies. Each event is stored as a scanner
+ *       signal with sourceType "rating_agency" and triggers the PESTEL+IR
+ *       scoring pipeline on next cycle. Authenticate with your VB API key in
+ *       the X-API-Key header.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [agency, countryCode, ratingNew, action, headline]
+ *             properties:
+ *               agency:
+ *                 type: string
+ *                 enum: [moodys, sp, fitch, gcr, agusto]
+ *                 description: Rating agency identifier
+ *               countryCode:
+ *                 type: string
+ *                 description: ISO 3166-1 alpha-3 country code (e.g. KEN, NGA)
+ *               ratingNew:
+ *                 type: string
+ *                 description: New rating designation (e.g. B1, BB-, CCC+)
+ *               ratingPrevious:
+ *                 type: string
+ *                 description: Prior rating designation (optional)
+ *               outlook:
+ *                 type: string
+ *                 enum: [positive, stable, negative, developing]
+ *               action:
+ *                 type: string
+ *                 enum: [upgrade, downgrade, affirm, watchlist_positive, watchlist_negative, new_rating, withdrawal]
+ *               headline:
+ *                 type: string
+ *                 description: Brief description of the rating action
+ *               rationale:
+ *                 type: string
+ *                 description: Full rationale text (optional, stored in body)
+ *               publishedAt:
+ *                 type: string
+ *                 format: date-time
+ *                 description: ISO 8601 timestamp of the rating action
+ *     responses:
+ *       200:
+ *         description: Rating event ingested
+ *       400:
+ *         description: Missing required fields
+ *       500:
+ *         description: Ingestion failed
+ */
+v1.post(
+  "/rating-event",
+  wrap(async (req, res) => {
+    const { agency, countryCode, ratingNew, ratingPrevious, outlook, action, headline, rationale, publishedAt } = req.body;
+
+    if (!agency || !countryCode || !ratingNew || !action || !headline) {
+      return err(res, 400, "agency, countryCode, ratingNew, action, and headline are required");
+    }
+
+    const code = String(countryCode).toUpperCase().slice(0, 3);
+    const agencyLabel = String(agency).toUpperCase().replace("SP", "S&P").replace("MOODYS", "Moody's").replace("FITCH", "Fitch");
+
+    const fullHeadline = `${agencyLabel} ${String(action).replace(/_/g, " ")} — ${code}: ${ratingNew}${ratingPrevious ? ` (from ${ratingPrevious})` : ""}${outlook ? `, Outlook ${outlook}` : ""}`;
+
+    const severity = ["downgrade","watchlist_negative","withdrawal"].includes(action) ? "alert"
+                   : action === "upgrade" ? "alert"
+                   : "normal";
+
+    const deltaDir = action === "upgrade" ? "up" : action === "downgrade" ? "down" : "neutral";
+
+    const signalId = crypto
+      .createHash("sha256")
+      .update(`${code}::${agencyLabel}::${ratingNew}::${action}::${publishedAt ?? Date.now()}`)
+      .digest("hex")
+      .slice(0, 64);
+
+    const db = await getDb();
+    if (!db) return err(res, 500, "Database unavailable");
+
+    await db.insert(scannerSignals).values({
+      signalId,
+      countryCode: code,
+      dim: "E",
+      severity,
+      headline: fullHeadline.slice(0, 599),
+      body: rationale ?? null,
+      deltaDir,
+      source: agencyLabel,
+      sourceType: "rating_agency",
+      publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
+    }).catch((e: Error) => {
+      // Silently ignore duplicate (unique constraint on signalId)
+      if (!e.message?.includes("Duplicate")) throw e;
+    });
+
+    ok(res, {
+      signalId,
+      countryCode: code,
+      headline: fullHeadline,
+      severity,
+      ingestedAt: new Date().toISOString(),
+    });
+  })
+);
 
 export default v1;

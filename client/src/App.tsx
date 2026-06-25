@@ -110,6 +110,7 @@ function Router() {
     { path: "/contributor", component: ContributorProfile },
     { path: "/embed/widget", component: EmbedWidget },
     { path: "/onboarding", component: OnboardingPage },
+    { path: "/archive", component: ReportArchivePage },
   ];
 
   // Authenticated routes (wrapped in DashboardLayout)
@@ -182,7 +183,6 @@ function Router() {
     { path: "/kenya/movements/:id", component: KenyaMovementDetail },
     { path: "/doing-business", component: DoingBusinessPage },
     // Africa Intelligence Scanner — composite country scores + deep dive + brief
-    { path: "/archive", component: ReportArchivePage },
     { path: "/scanner", component: AfricaScanner },
     { path: "/scanner/:code", component: CountryIntelProfile },
     { path: "/scanner/:code/brief", component: GoNoGoBrief },

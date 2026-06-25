@@ -60,6 +60,8 @@ import { countryRouter } from "./routers/country";
 import { intelligenceRouter } from "./routers/intelligence";
 import { scannerAgentRouter } from "./routers/scannerAgent";
 import { reportArchiveRouter } from "./routers/reportArchive";
+import { generateCitationKey, extractEntities } from "./services/reportMemory";
+import { reportArchive as reportArchiveTable } from "../drizzle/schema";
 
 // Types for API responses
 interface YouTubeVideo {
@@ -2359,6 +2361,51 @@ Generate the full intelligence product now.`,
         const verdictMatch = bodyMd.match(/\b(GO-MARKET|MONITOR|CAUTION|NO-GO|GREEN|AMBER|RED|CONDITIONAL GO|GO)\b/i);
         const verdict = verdictMatch ? verdictMatch[1].toUpperCase() : "MONITOR";
 
+        // Auto-archive to report archive (private visibility, user can publish later)
+        let reportId: string | null = null;
+        let citationKey: string | null = null;
+        try {
+          const { randomUUID } = await import("crypto");
+          const archiveDb = await getDb();
+          if (archiveDb) {
+            reportId = randomUUID();
+            const year = new Date().getFullYear();
+            const countryIso3 = input.countryCode?.toUpperCase() ?? "AFR";
+            citationKey = await generateCitationKey(countryIso3, year).catch(() => null);
+            const missionTypeMap: Record<string, "go_no_go"|"signal_brief"|"document_analysis"|"agent_report"|"custom"> = {
+              country_brief: "go_no_go",
+              business_case: "custom",
+              policy_brief:  "signal_brief",
+              crisis_sitrep: "agent_report",
+              investor_dd:   "custom",
+            };
+            const reportType = missionTypeMap[input.missionType] ?? "custom";
+            const title = `${input.missionType.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} — ${input.country}${input.sector ? " / " + input.sector : ""}`;
+            await archiveDb.insert(reportArchiveTable).values({
+              reportId,
+              authorId: ctx.user.id,
+              reportType,
+              title,
+              bodyMd,
+              summaryText: bodyMd.slice(0, 499),
+              wordCount: bodyMd.split(/\s+/).length,
+              countryCodes: input.countryCode ? [input.countryCode.toUpperCase()] : [],
+              pestelDims: input.pestelDims ?? [],
+              sector: input.sector ?? null,
+              verdictKey: verdict.toLowerCase().replace(/\s+/g, "-"),
+              signalIds: [],
+              visibility: "private",
+              isArchived: true,
+              archivedAt: new Date(),
+              citationKey,
+            }).catch(() => null);
+            // Async entity extraction — don't block response
+            extractEntities(reportId).catch(() => null);
+          }
+        } catch {
+          // Archive failure must not block mission response
+        }
+
         return {
           missionType: input.missionType,
           country: input.country,
@@ -2367,6 +2414,8 @@ Generate the full intelligence product now.`,
           verdict,
           signalCount: liveSignals.length,
           signals: liveSignals.slice(0, 12),
+          reportId,
+          citationKey,
           generatedAt: new Date().toISOString(),
         };
       }),
