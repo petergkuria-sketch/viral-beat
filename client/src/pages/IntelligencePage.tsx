@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import {
   Loader2, Send, Sparkles, TrendingUp, Target, Lightbulb, Zap, Paperclip, X as XIcon,
   FileText, Star, Share2, Download, Check, Globe, MapPin, ChevronRight, AlertCircle, Crown, Copy,
-  CheckCircle2, Lock, Plus, Link as LinkIcon, ClipboardPaste,
+  CheckCircle2, Lock, Plus, Link as LinkIcon, ClipboardPaste, Archive, ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
@@ -367,6 +367,19 @@ export default function IntelligencePage() {
       { enabled: false }
     );
 
+  // ── archive + memory ──
+  const { data: me } = trpc.me.useQuery();
+  const { data: memoryContext } = trpc.reportArchive.memoryContext.useQuery(
+    { sessionId, countryCodes: scopeKey && scopeKey !== "continental" ? [scopeKey.toUpperCase()] : [], limit: 5 },
+    { enabled: !!me, staleTime: 5 * 60 * 1000 }
+  );
+  const archiveCreate = trpc.reportArchive.create.useMutation();
+  const archiveRecordDownload = trpc.reportArchive.recordDownload.useMutation();
+  const [archivePanel, setArchivePanel] = useState<{ msgId: string; content: string } | null>(null);
+  const [archiveVisibility, setArchiveVisibility] = useState<"public" | "free" | "premium" | "private">("free");
+  const [archivingId, setArchivingId] = useState<string | null>(null);
+  const [archivedIds, setArchivedIds] = useState<Set<string>>(new Set());
+
   // ── pipeline mutations ──
   const pipelinePestel = trpc.xTrends.summarizeTrends.useMutation();
   const pipelineReports = trpc.aiAgents.repurposeContent.useMutation();
@@ -381,8 +394,11 @@ export default function IntelligencePage() {
       setFileExtracting(false);
       setAttachedFile({ name: data.fileName, content: data.text });
       toast.success(`${data.fileName} — ${Math.round(data.charCount / 1000)}k chars extracted`);
+      const memoryPrefix = memoryContext && memoryContext.length > 0
+        ? `\n\n[VB Memory — prior reports on this market]\n${memoryContext.map(r => `• ${r.citationKey ?? r.reportId}: ${r.title} — ${r.summaryText}`).join("\n")}\n`
+        : "";
       sendMessage.mutate({
-        message: `I've attached "${data.fileName}". Provide an overview: summarise key findings, identify active PESTEL dimensions, map key actors and positions, and flag signals relevant to East Africa.`,
+        message: `I've attached "${data.fileName}". Provide an overview: summarise key findings, identify active PESTEL dimensions, map key actors and positions, and flag signals relevant to East Africa.${memoryPrefix}`,
         sessionId: sessionId || undefined,
         fileContent: data.text,
         fileName: data.fileName,
@@ -492,6 +508,37 @@ export default function IntelligencePage() {
     a.download = `VB-${baseName}-${date}.md`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleArchiveReport = async (msgId: string, content: string) => {
+    if (!me) { toast.error("Sign in to archive reports."); return; }
+    setArchivingId(msgId);
+    const title = lastDocName
+      ? `Analysis: ${lastDocName.replace(/\.[^.]+$/, "")}`
+      : `Intelligence Report — ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`;
+    try {
+      const result = await archiveCreate.mutateAsync({
+        reportType: lastDocName ? "document_analysis" : "signal_brief",
+        title,
+        bodyMd: content,
+        sourceDocName: lastDocName ?? undefined,
+        countryCodes: scopeKey && scopeKey !== "continental" ? [scopeKey.toUpperCase()] : [],
+        pestelDims: selectedCategory ? [selectedCategory.slice(0, 2).toUpperCase()] : [],
+        visibility: archiveVisibility,
+        sessionId,
+      });
+      setArchivedIds(prev => new Set(prev).add(msgId));
+      setArchivePanel(null);
+      toast.success(
+        result.citationKey
+          ? `Archived · ${result.citationKey}`
+          : "Report archived successfully."
+      );
+    } catch (e: any) {
+      toast.error("Archive failed: " + (e?.message ?? "unknown error"));
+    } finally {
+      setArchivingId(null);
+    }
   };
 
   const handleShareAnalysis = async (insight: any) => {
@@ -2142,15 +2189,73 @@ export default function IntelligencePage() {
                               <div className="text-sm text-slate-100 [&_*]:text-slate-100 [&_strong]:text-white [&_b]:text-white [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white [&_li]:text-slate-100 [&_p]:text-slate-100">
                                 <Streamdown>{msg.message}</Streamdown>
                               </div>
-                              <div className="mt-2 pt-2 border-t border-white/10 flex justify-end">
-                                <button
-                                  onClick={() => handleDownloadChatReport(msg.message)}
-                                  className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-cyan-400 transition-colors group"
-                                  title="Download this analysis as a report"
-                                >
-                                  <Download className="w-3 h-3 group-hover:text-cyan-400" />
-                                  Download report
-                                </button>
+                              <div className="mt-2 pt-2 border-t border-white/10">
+                                {/* Archive visibility panel */}
+                                {archivePanel?.msgId === msg.id && (
+                                  <div className="mb-2 p-2.5 rounded-lg bg-slate-800/80 border border-slate-600/40 space-y-2">
+                                    <p className="text-[10px] text-slate-300 font-medium">Who can view this report in the archive?</p>
+                                    <div className="grid grid-cols-2 gap-1.5">
+                                      {(["public","free","premium","private"] as const).map(v => (
+                                        <button
+                                          key={v}
+                                          onClick={() => setArchiveVisibility(v)}
+                                          className={`text-[10px] px-2 py-1.5 rounded-md border transition-all capitalize ${
+                                            archiveVisibility === v
+                                              ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-300"
+                                              : "border-slate-600/40 text-slate-400 hover:text-slate-200"
+                                          }`}
+                                        >
+                                          {v === "public" ? "🌍 Public" : v === "free" ? "👤 Free" : v === "premium" ? "⭐ Premium" : "🔒 Private"}
+                                        </button>
+                                      ))}
+                                    </div>
+                                    <div className="flex gap-2 pt-0.5">
+                                      <button
+                                        onClick={() => handleArchiveReport(msg.id, msg.message)}
+                                        disabled={archivingId === msg.id}
+                                        className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-semibold py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white transition-colors disabled:opacity-50"
+                                      >
+                                        {archivingId === msg.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Archive className="w-3 h-3" />}
+                                        {archivingId === msg.id ? "Archiving…" : "Confirm archive"}
+                                      </button>
+                                      <button
+                                        onClick={() => setArchivePanel(null)}
+                                        className="px-2.5 text-[10px] text-slate-400 hover:text-slate-200 rounded-md border border-slate-600/40"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="flex items-center justify-end gap-3">
+                                  {archivedIds.has(msg.id) ? (
+                                    <span className="flex items-center gap-1 text-[10px] text-green-400">
+                                      <CheckCircle2 className="w-3 h-3" /> Archived
+                                    </span>
+                                  ) : (
+                                    <button
+                                      onClick={() => setArchivePanel(archivePanel?.msgId === msg.id ? null : { msgId: msg.id, content: msg.message })}
+                                      className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-purple-400 transition-colors group"
+                                      title="Save to VB archive"
+                                    >
+                                      <Archive className="w-3 h-3" />
+                                      Archive
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      handleDownloadChatReport(msg.message);
+                                      if (archivedIds.has(msg.id)) {
+                                        archiveRecordDownload.mutate({ reportId: msg.id }).catch(() => null);
+                                      }
+                                    }}
+                                    className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-cyan-400 transition-colors group"
+                                    title="Download as .md file"
+                                  >
+                                    <Download className="w-3 h-3" />
+                                    Download
+                                  </button>
+                                </div>
                               </div>
                             </>
                           ) : (

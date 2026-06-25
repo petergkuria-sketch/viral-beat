@@ -412,7 +412,7 @@ export const reportArchiveRouter = router({
     }),
 
   // ── Memory: context injection ─────────────────────────────────────────────
-  memoryContext: analystProcedure
+  memoryContext: protectedProcedure
     .input(z.object({
       sessionId:    z.string(),
       countryCodes: z.array(z.string()).default([]),
