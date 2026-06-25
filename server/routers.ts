@@ -2117,7 +2117,7 @@ Format as JSON array.`
         actors: z.string().optional(),   // comma-separated key political actors
         country: z.string().optional(),
         confidenceTier: z.enum(["corroborated", "single-source", "unverified"]).default("single-source"),
-        targetFormats: z.array(z.enum(["thread", "newsletter", "sitrep", "cable"])).min(1),
+        targetFormats: z.array(z.enum(["thread", "newsletter", "sitrep", "cable", "investor"])).min(1),
         // Legacy fields kept for backward-compat (ignored)
         originalContent: z.string().optional(),
         originalPlatform: z.string().optional(),
@@ -2147,6 +2147,10 @@ Format as JSON array.`
           cable: {
             name: "Diplomatic Intelligence Cable",
             structure: `Structure: CLASSIFICATION header → TO/FROM/DATE fields → SUBJECT → 1. SITUATION SUMMARY → 2. POLITICAL ACTORS (name, position, interest, likely move) → 3. GAME THEORY ASSESSMENT (dominant strategies, Nash equilibrium, signalling vs reality) → 4. PESTEL IMPLICATIONS (one paragraph per active dimension) → 5. REGIONAL IMPLICATIONS → 6. RECOMMENDED POSTURE → 7. CONFIDENCE ASSESSMENT (Corroborated/Single-source/Unverified + rationale) → END. Tone: precise, third-person, diplomatic register.`,
+          },
+          investor: {
+            name: "Investor / Private Sector Brief",
+            structure: `Structure: EXECUTIVE SUMMARY (3 sentences: situation, primary risk, recommended posture) → POLITICAL RISK SCORE (0–100, with 3-line rationale and direction: Improving/Stable/Deteriorating) → SECTOR EXPOSURE MAP (table: Sector | Risk Level | Opportunity | Recommended Action — cover energy, fintech, infrastructure, agriculture, telecoms where relevant) → REGULATORY & POLICY SIGNALS (key legislative/executive moves affecting investment climate, with probability and timeline) → ACTOR PAYOFF MATRIX for investors (table: Actor | Stated Position | Hidden Interest | Likely Policy Move | Impact on Investment) → ENTRY/EXIT SIGNALS (3 green-light indicators that suggest safe entry, 3 red-flag indicators that suggest hold or exit) → SOVEREIGN RISK & CREDIT CONTEXT (rating trajectory, IMF/World Bank posture, currency risk, debt dynamics) → GAME THEORY INVESTOR POSTURE (what is the Nash equilibrium for private capital given the current political configuration?) → RECOMMENDED INVESTMENT POSTURE: one of PROCEED / MONITOR / PAUSE / EXIT — with a 3-bullet rationale. Tone: concise, quantitative where possible, oriented toward PE/DFI/VC/infrastructure fund audiences.`,
           },
         };
 

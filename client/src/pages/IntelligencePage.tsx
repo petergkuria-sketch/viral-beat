@@ -1647,6 +1647,7 @@ export default function IntelligencePage() {
                         { id: "newsletter", label: "Intelligence Newsletter",      desc: "PESTEL breakdown + actor matrix" },
                         { id: "sitrep",     label: "NGO Situation Report",         desc: "Formal, citation-ready, risk matrix" },
                         { id: "cable",      label: "Diplomatic Cable",             desc: "Actor positions + regional implications" },
+                        { id: "investor",   label: "Investor / Private Sector Brief", desc: "Risk premium, entry signals, sector outlook" },
                       ] as const).map(fmt => {
                         const on = reportFormats.includes(fmt.id);
                         return (
