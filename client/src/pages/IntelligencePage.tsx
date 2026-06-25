@@ -187,6 +187,7 @@ export default function IntelligencePage() {
   const [attachedFile, setAttachedFile] = useState<{ name: string; content: string } | null>(null);
   const [fileExtracting, setFileExtracting] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [lastDocName, setLastDocName] = useState<string | null>(null);
 
   // ── right panel tabs ──
   const [rightTab, setRightTab] = useState("chat");
@@ -412,6 +413,7 @@ export default function IntelligencePage() {
       return;
     }
     setFileExtracting(true);
+    setLastDocName(file.name);
     setRightTab("chat");
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -478,6 +480,18 @@ export default function IntelligencePage() {
   const handleRateSignal = (signalId: string, rating: number) => {
     setRatings(prev => ({ ...prev, [signalId]: rating }));
     rateSignal.mutate({ signalId, rating });
+  };
+
+  const handleDownloadChatReport = (content: string) => {
+    const baseName = lastDocName ? lastDocName.replace(/\.[^.]+$/, "") : "intelligence-report";
+    const date = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `VB-${baseName}-${date}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleShareAnalysis = async (insight: any) => {
@@ -2124,9 +2138,21 @@ export default function IntelligencePage() {
                       <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                         <div className={`max-w-[85%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-cyan-600 text-white" : "bg-slate-700/80 border border-slate-600/60"}`}>
                           {msg.role === "assistant" ? (
-                            <div className="text-sm text-slate-100 [&_*]:text-slate-100 [&_strong]:text-white [&_b]:text-white [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white [&_li]:text-slate-100 [&_p]:text-slate-100">
-                              <Streamdown>{msg.message}</Streamdown>
-                            </div>
+                            <>
+                              <div className="text-sm text-slate-100 [&_*]:text-slate-100 [&_strong]:text-white [&_b]:text-white [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white [&_li]:text-slate-100 [&_p]:text-slate-100">
+                                <Streamdown>{msg.message}</Streamdown>
+                              </div>
+                              <div className="mt-2 pt-2 border-t border-white/10 flex justify-end">
+                                <button
+                                  onClick={() => handleDownloadChatReport(msg.message)}
+                                  className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-cyan-400 transition-colors group"
+                                  title="Download this analysis as a report"
+                                >
+                                  <Download className="w-3 h-3 group-hover:text-cyan-400" />
+                                  Download report
+                                </button>
+                              </div>
+                            </>
                           ) : (
                             <p className="text-sm whitespace-pre-wrap text-white">{msg.message}</p>
                           )}
