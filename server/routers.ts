@@ -2301,19 +2301,23 @@ Respond only with JSON.`,
         const db = await getDb();
 
         // Pull live signals from scannerSignals for this country (last 30 days)
+        // Non-fatal: query failure falls back to empty → LLM synthesises from knowledge base
         let liveSignals: Array<{ headline: string; dim: string; severity: string; source: string; body?: string | null }> = [];
         if (db && input.countryCode) {
-          const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-          const rows = await db
-            .select({ headline: scannerSignals.headline, dim: scannerSignals.dim, severity: scannerSignals.severity, source: scannerSignals.source, body: scannerSignals.body })
-            .from(scannerSignals)
-            .where(and(
-              eq(scannerSignals.countryCode, input.countryCode.toUpperCase()),
-              gte(scannerSignals.ingestedAt, since),
-            ))
-            .orderBy(desc(scannerSignals.ingestedAt))
-            .limit(20);
-          liveSignals = rows;
+          try {
+            const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+            liveSignals = await db
+              .select({ headline: scannerSignals.headline, dim: scannerSignals.dim, severity: scannerSignals.severity, source: scannerSignals.source, body: scannerSignals.body })
+              .from(scannerSignals)
+              .where(and(
+                eq(scannerSignals.countryCode, input.countryCode.toUpperCase()),
+                gte(scannerSignals.ingestedAt, since),
+              ))
+              .orderBy(desc(scannerSignals.ingestedAt))
+              .limit(20);
+          } catch {
+            // Table may not exist yet or DB unavailable — continue without signals
+          }
         }
 
         const signalBlock = liveSignals.length > 0
