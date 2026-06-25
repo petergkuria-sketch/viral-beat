@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Loader2, Globe, Briefcase, Landmark, AlertTriangle, TrendingUp,
   Radio, Trash2, Plus, Copy, CheckCircle2, Download, Bell, ChevronRight,
-  LogIn, Archive, X,
+  LogIn, Archive, X, Paperclip,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -240,6 +240,23 @@ export default function AIAgentsHub() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
 
+  // Document attachment
+  const [attachedDoc, setAttachedDoc] = useState<{ name: string; content: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDocAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      setAttachedDoc({ name: file.name, content: text });
+      toast.success(`${file.name} attached — will ground the mission`);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
   // Prompt + classification
   const [prompt, setPrompt] = useState("");
   const [classifying, setClassifying] = useState(false);
@@ -290,6 +307,8 @@ export default function AIAgentsHub() {
         pestelDims: result.pestelDims,
         keywords: result.keywords,
         refinedPrompt: result.refinedPrompt,
+        documentContext: attachedDoc?.content,
+        documentName: attachedDoc?.name,
       });
       setMissionResult(missionData as any);
     } catch (e: any) {
@@ -398,6 +417,13 @@ export default function AIAgentsHub() {
           <>
             {/* Prompt bar */}
             <div className="bg-[#0d1e36] border border-cyan-500/30 rounded-2xl p-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,.md,.csv,.json"
+                className="hidden"
+                onChange={handleDocAttach}
+              />
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0 mt-0.5">
                   <span className="text-cyan-400 font-black text-sm">⚡</span>
@@ -409,6 +435,13 @@ export default function AIAgentsHub() {
                   onChange={e => setPrompt(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !isRunning && handlePromptSubmit()}
                 />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach a document to ground the mission"
+                  className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${attachedDoc ? "bg-emerald-500/20 border border-emerald-500/50 text-emerald-400" : "bg-white/5 border border-white/10 text-gray-500 hover:text-gray-300 hover:border-white/20"}`}
+                >
+                  <Paperclip className="w-4 h-4" />
+                </button>
                 <Button
                   onClick={handlePromptSubmit}
                   disabled={!prompt.trim() || isRunning}
@@ -417,6 +450,20 @@ export default function AIAgentsHub() {
                   {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Run Agent <ChevronRight className="w-3.5 h-3.5 ml-1" /></>}
                 </Button>
               </div>
+              {/* Attached document chip */}
+              {attachedDoc && (
+                <div className="flex items-center gap-2 mt-2 ml-11">
+                  <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-2.5 py-1">
+                    <Paperclip className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span className="text-[11px] text-emerald-300 max-w-[200px] truncate">{attachedDoc.name}</span>
+                    <span className="text-[10px] text-emerald-600">{Math.round(attachedDoc.content.length / 1000)}k chars</span>
+                    <button onClick={() => setAttachedDoc(null)} className="ml-1 text-emerald-600 hover:text-emerald-300">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-gray-600">Document will be injected into the mission context</span>
+                </div>
+              )}
               {/* Example chips */}
               <div className="flex flex-wrap gap-2 mt-3 ml-11">
                 {EXAMPLE_PROMPTS.map((p, i) => (

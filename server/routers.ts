@@ -2296,6 +2296,8 @@ Respond only with JSON.`,
         pestelDims: z.array(z.string()).optional(),
         keywords: z.array(z.string()).optional(),
         refinedPrompt: z.string().optional(),
+        documentContext: z.string().max(50000).optional(),
+        documentName: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         try {
@@ -2355,7 +2357,7 @@ ${input.refinedPrompt ? `USER BRIEF: ${input.refinedPrompt}` : ""}
 
 LIVE VB SIGNALS (last 30 days):
 ${signalBlock}
-
+${input.documentContext ? `\nATTACHED DOCUMENT — ${input.documentName ?? "uploaded document"} (use this as primary source material, cross-reference with signals above):\n\n${input.documentContext.slice(0, 40000)}\n` : ""}
 Generate the full intelligence product now.`,
             },
           ],
