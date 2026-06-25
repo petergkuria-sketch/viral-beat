@@ -1343,3 +1343,135 @@ export const tickerItems = mysqlTable("tickerItems", {
 }));
 export type TickerItem = typeof tickerItems.$inferSelect;
 export type InsertTickerItem = typeof tickerItems.$inferInsert;
+
+// ── Report Archive ────────────────────────────────────────────────────────────
+
+/**
+ * Master record for every report generated on VB.
+ * Covers document-upload analyses, signal briefs, Go/No-Go entries,
+ * and automated agent reports. Access is gated by visibility tier.
+ */
+export const reportArchive = mysqlTable("reportArchive", {
+  id:             int("id").autoincrement().primaryKey(),
+  reportId:       varchar("reportId", { length: 36 }).notNull().unique(),   // UUID
+  authorId:       int("authorId"),                                           // FK → users.id (null = agent-generated)
+  sessionId:      varchar("sessionId", { length: 64 }),                     // chat session that produced it
+  reportType:     mysqlEnum("reportType", [
+    "document_analysis",   // uploaded doc → AI brief
+    "signal_brief",        // PESTEL signal analysis
+    "go_no_go",            // country entry verdict
+    "agent_report",        // AfricaScanner automated
+    "custom",
+  ]).notNull(),
+
+  // Content
+  title:          varchar("title", { length: 300 }).notNull(),
+  bodyMd:         text("bodyMd").notNull(),                                  // full markdown
+  summaryText:    varchar("summaryText", { length: 500 }),                   // ≤500-char abstract
+  sourceDocName:  varchar("sourceDocName", { length: 255 }),                 // original upload filename
+  wordCount:      int("wordCount").default(0),
+
+  // Classification
+  countryCodes:   json("countryCodes").$type<string[]>().default([]),        // ISO3 codes
+  pestelDims:     json("pestelDims").$type<string[]>().default([]),          // P/E/S/T/En/L/IR
+  sector:         varchar("sector", { length: 100 }),
+  verdictKey:     varchar("verdictKey", { length: 20 }),                     // go-market|monitor|caution|no-go
+  signalIds:      json("signalIds").$type<string[]>().default([]),           // FK → scannerSignals.signalId
+
+  // Access control
+  visibility:     mysqlEnum("visibility", ["public","free","premium","private"]).notNull().default("private"),
+  isArchived:     boolean("isArchived").notNull().default(false),
+  archivedAt:     timestamp("archivedAt"),
+  expiresAt:      timestamp("expiresAt"),                                    // null = never expires
+
+  // Engagement
+  viewCount:      int("viewCount").notNull().default(0),
+  downloadCount:  int("downloadCount").notNull().default(0),
+  saveCount:      int("saveCount").notNull().default(0),
+  citedByCount:   int("citedByCount").notNull().default(0),
+  qualityScore:   decimal("qualityScore", { precision: 4, scale: 3 }).default("0"), // 0–1, updated by memory pipeline
+
+  // Memory flags
+  usedForMemory:  boolean("usedForMemory").notNull().default(false),
+  memoryWeight:   decimal("memoryWeight", { precision: 4, scale: 3 }).default("0"), // 0–1
+  vectorEmbedded: boolean("vectorEmbedded").notNull().default(false),
+  embeddingId:    varchar("embeddingId", { length: 64 }),                   // ref to vector store
+  lastIndexedAt:  timestamp("lastIndexedAt"),
+
+  // Contributor reward
+  contributorTier: varchar("contributorTier", { length: 30 }),              // observer|analyst|correspondent
+  vbtEarned:      int("vbtEarned").notNull().default(0),
+  licenseType:    mysqlEnum("licenseType", ["cc_by","cc_by_nc","proprietary","vb_standard"]).default("vb_standard"),
+  citationKey:    varchar("citationKey", { length: 100 }),                  // VB-KEN-2026-001 style
+
+  createdAt:      timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:      timestamp("updatedAt").defaultNow().notNull(),
+}, t => ({
+  authorIdx:      index("reportArchive_author_idx").on(t.authorId),
+  typeIdx:        index("reportArchive_type_idx").on(t.reportType),
+  visibilityIdx:  index("reportArchive_visibility_idx").on(t.visibility, t.isArchived),
+  qualityIdx:     index("reportArchive_quality_idx").on(t.qualityScore),
+  createdIdx:     index("reportArchive_created_idx").on(t.createdAt),
+  verdictIdx:     index("reportArchive_verdict_idx").on(t.verdictKey),
+}));
+export type ReportArchive = typeof reportArchive.$inferSelect;
+export type InsertReportArchive = typeof reportArchive.$inferInsert;
+
+/**
+ * Tracks who has saved / bookmarked a report.
+ */
+export const reportSaves = mysqlTable("reportSaves", {
+  id:        int("id").autoincrement().primaryKey(),
+  userId:    int("userId").notNull(),
+  reportId:  varchar("reportId", { length: 36 }).notNull(),
+  savedAt:   timestamp("savedAt").defaultNow().notNull(),
+}, t => ({
+  unique:    index("reportSaves_unique_idx").on(t.userId, t.reportId),
+}));
+export type ReportSave = typeof reportSaves.$inferSelect;
+
+/**
+ * Named entities extracted from archived reports — feeds the country knowledge graph.
+ * One row per entity mention per report.
+ */
+export const reportEntities = mysqlTable("reportEntities", {
+  id:          int("id").autoincrement().primaryKey(),
+  reportId:    varchar("reportId", { length: 36 }).notNull(),
+  countryCode: varchar("countryCode", { length: 3 }),
+  entityType:  mysqlEnum("entityType", [
+    "person",       // political figure, executive
+    "organisation", // ministry, party, firm, IFI
+    "policy",       // law, regulation, programme
+    "event",        // election, protest, summit
+    "place",        // city, region, border zone
+  ]).notNull(),
+  entityName:  varchar("entityName", { length: 200 }).notNull(),
+  pestelDim:   mysqlEnum("pestelDim", ["P","E","S","T","En","L","IR"]),
+  sentiment:   mysqlEnum("sentiment", ["positive","negative","neutral"]),
+  confidence:  decimal("confidence", { precision: 4, scale: 3 }).default("0"),
+  extractedAt: timestamp("extractedAt").defaultNow().notNull(),
+}, t => ({
+  reportIdx:  index("reportEntities_report_idx").on(t.reportId),
+  entityIdx:  index("reportEntities_entity_idx").on(t.entityName),
+  countryIdx: index("reportEntities_country_idx").on(t.countryCode, t.entityType),
+}));
+export type ReportEntity = typeof reportEntities.$inferSelect;
+export type InsertReportEntity = typeof reportEntities.$inferInsert;
+
+/**
+ * Memory context log — records when archived reports were injected into a session.
+ * Used to avoid re-injecting the same context and to audit memory influence.
+ */
+export const memoryInjections = mysqlTable("memoryInjections", {
+  id:          int("id").autoincrement().primaryKey(),
+  sessionId:   varchar("sessionId", { length: 64 }).notNull(),
+  reportId:    varchar("reportId", { length: 36 }).notNull(),
+  countryCode: varchar("countryCode", { length: 3 }),
+  similarity:  decimal("similarity", { precision: 5, scale: 4 }),           // cosine score 0–1
+  injectedAt:  timestamp("injectedAt").defaultNow().notNull(),
+}, t => ({
+  sessionIdx: index("memoryInjections_session_idx").on(t.sessionId),
+  reportIdx:  index("memoryInjections_report_idx").on(t.reportId),
+}));
+export type MemoryInjection = typeof memoryInjections.$inferSelect;
+export type InsertMemoryInjection = typeof memoryInjections.$inferInsert;

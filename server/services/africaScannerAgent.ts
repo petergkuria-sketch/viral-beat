@@ -428,7 +428,7 @@ export async function runAgentCycle(trigger: InsertAgentRun["trigger"] = "schedu
       .catch(() => null);
 
     _cycleRunning = false;
-    return { runId, status: "completed", ...stats, durationMs };
+    return { runId, status: "completed", countriesProcessed: uniqueCountries, signalsIngested: stats.ingested, breakingFlagged: stats.breaking, verdictChanges: stats.verdictChanges, durationMs };
   } catch (err) {
     _cycleRunning = false;
     const errorLog = err instanceof Error ? err.message : String(err);
@@ -501,7 +501,7 @@ export async function runCountryCycle(countryCode: string): Promise<AgentRunResu
       verdictChanges: stats.verdictChanges, durationMs, completedAt: new Date(),
     }).where(eq(agentRuns.runId, runId)).catch(() => null);
 
-    return { runId, status: "completed", ...stats, durationMs };
+    return { runId, status: "completed", countriesProcessed: 1, signalsIngested: stats.ingested, breakingFlagged: stats.breaking, verdictChanges: stats.verdictChanges, durationMs };
   } catch (err) {
     const errorLog = err instanceof Error ? err.message : String(err);
     await d.update(agentRuns).set({ status: "failed", errorLog, completedAt: new Date() })
@@ -514,9 +514,10 @@ export async function runCountryCycle(countryCode: string): Promise<AgentRunResu
 
 export interface AgentRunResult {
   runId: string;
-  status: "completed" | "failed";
-  ingested: number;
-  breaking: number;
+  status: "completed" | "failed" | "skipped";
+  countriesProcessed: number;
+  signalsIngested: number;
+  breakingFlagged: number;
   verdictChanges: number;
   durationMs: number;
 }
