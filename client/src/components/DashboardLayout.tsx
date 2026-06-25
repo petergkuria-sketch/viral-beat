@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import IntelligenceTicker from "@/components/IntelligenceTicker";
 
 // ─── Route helper ──────────────────────────────────────────────────────────────
 function countryPath(code: string, hasRichData?: boolean): string {
@@ -580,6 +581,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
         </header>
 
+        <IntelligenceTicker />
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

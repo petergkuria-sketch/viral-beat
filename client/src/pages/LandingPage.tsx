@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import IntelligenceTicker from "@/components/IntelligenceTicker";
 
 const RISK: Record<string, { label: string; cls: string }> = {
   low:      { label: "Low Risk",      cls: "bg-green-500/20 text-green-400 border-green-500/30" },
@@ -213,6 +214,11 @@ export default function LandingPage() {
           </motion.div>
         )}
       </nav>
+
+      {/* ── INTELLIGENCE TICKER ────────────────────────────────────────────── */}
+      <div className="sticky top-16 z-30">
+        <IntelligenceTicker />
+      </div>
 
       {/* ── PHONE / ICON VIEW ──────────────────────────────────────────────── */}
       <AnimatePresence mode="wait">
