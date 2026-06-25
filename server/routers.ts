@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getDb } from "./db";
-import { users, apiKeys, politicalFigures } from "../drizzle/schema";
-import { eq, sql, and, asc, desc, type SQL } from "drizzle-orm";
+import { users, apiKeys, politicalFigures, scannerSignals, signalWatchlists } from "../drizzle/schema";
+import { eq, sql, and, asc, desc, gte, inArray, or, like, type SQL } from "drizzle-orm";
 import { createApiKey } from "./api/apiKeys";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -2213,6 +2213,214 @@ Apply the full triangulation framework. Mark any assertion that is only supporte
           adaptations,
           generatedAt: new Date().toISOString(),
         };
+      }),
+
+    // ── INTENT CLASSIFIER ────────────────────────────────────────────────────
+    classifyIntent: protectedProcedure
+      .input(z.object({ prompt: z.string().min(1).max(1000) }))
+      .mutation(async ({ input }) => {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `You are an intelligence routing system for ViralBeat, Africa's political intelligence platform. Classify the user's request into a structured mission spec.
+
+Mission types:
+- "country_brief": General political/PESTEL overview of a country
+- "business_case": Market entry, FDI, sector investment, M&A readiness
+- "policy_brief": Legislation, regulatory, bill tracking, compliance, government policy
+- "crisis_sitrep": Conflict, instability, protests, coups, security incidents
+- "investor_dd": Investment due diligence, sovereign risk, infrastructure, capital markets
+
+PESTEL dimensions: P, E, S, T, En, L, IR
+
+Respond only with JSON.`,
+            },
+            {
+              role: "user",
+              content: `Classify this request: "${input.prompt}"`,
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "intent_classification",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  missionType: { type: "string", enum: ["country_brief","business_case","policy_brief","crisis_sitrep","investor_dd"] },
+                  country: { type: "string", description: "Country name, or empty string" },
+                  countryCode: { type: "string", description: "ISO 3166-1 alpha-3 code, or empty string" },
+                  sector: { type: "string", description: "Industry sector, or empty string" },
+                  pestelDims: { type: "array", items: { type: "string" }, description: "Relevant PESTEL dimensions" },
+                  keywords: { type: "array", items: { type: "string" }, description: "Key terms from the request" },
+                  confidence: { type: "number", description: "0-1 classification confidence" },
+                  refinedPrompt: { type: "string", description: "Clarified one-sentence mission description" },
+                },
+                required: ["missionType","country","countryCode","sector","pestelDims","keywords","confidence","refinedPrompt"],
+                additionalProperties: false,
+              },
+            },
+          },
+          maxTokens: 512,
+        });
+
+        const rawContent = response.choices?.[0]?.message?.content;
+        const raw = (typeof rawContent === "string" ? rawContent : "") || "{}";
+        return JSON.parse(raw) as {
+          missionType: "country_brief"|"business_case"|"policy_brief"|"crisis_sitrep"|"investor_dd";
+          country: string;
+          countryCode: string;
+          sector: string;
+          pestelDims: string[];
+          keywords: string[];
+          confidence: number;
+          refinedPrompt: string;
+        };
+      }),
+
+    // ── MISSION RUNNER ───────────────────────────────────────────────────────
+    runMission: protectedProcedure
+      .input(z.object({
+        missionType: z.enum(["country_brief","business_case","policy_brief","crisis_sitrep","investor_dd"]),
+        country: z.string(),
+        countryCode: z.string().optional(),
+        sector: z.string().optional(),
+        pestelDims: z.array(z.string()).optional(),
+        keywords: z.array(z.string()).optional(),
+        refinedPrompt: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          await spendTokens(ctx.user.id, 40, "spend_ai_agent", `Mission: ${input.missionType} / ${input.country}`);
+        } catch (e: any) { throw new Error(e.message || "Token spend failed"); }
+
+        const db = await getDb();
+
+        // Pull live signals from scannerSignals for this country (last 30 days)
+        let liveSignals: Array<{ headline: string; dim: string; severity: string; source: string; body?: string | null }> = [];
+        if (db && input.countryCode) {
+          const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          const rows = await db
+            .select({ headline: scannerSignals.headline, dim: scannerSignals.dim, severity: scannerSignals.severity, source: scannerSignals.source, body: scannerSignals.body })
+            .from(scannerSignals)
+            .where(and(
+              eq(scannerSignals.countryCode, input.countryCode.toUpperCase()),
+              gte(scannerSignals.ingestedAt, since),
+            ))
+            .orderBy(desc(scannerSignals.ingestedAt))
+            .limit(20);
+          liveSignals = rows;
+        }
+
+        const signalBlock = liveSignals.length > 0
+          ? liveSignals.map(s => `[${s.dim}/${s.severity.toUpperCase()}] ${s.headline} (${s.source})`).join("\n")
+          : "No live signals in database for this country — synthesise from general knowledge.";
+
+        const missionInstructions: Record<string, string> = {
+          country_brief: `Produce a structured PESTEL+IR country intelligence brief. Include: Executive Summary, Political Risk, Economic Outlook, Social Dynamics, Legal/Regulatory, Security assessment, and Go/No-Go Verdict with score 0–100.`,
+          business_case: `Produce a board-ready market entry business case. Include: Executive Summary, Market Opportunity, PESTEL Risk Matrix (score each dimension 0–100), Regulatory Roadmap, Key Actors and their positions, Recommended Entry Strategy, Immediate Actions (ranked 1–3), and final Go/No-Go Verdict.`,
+          policy_brief: `Produce an intelligence policy brief. Include: Policy Context, Legislative Pipeline, Key Stakeholders and their positions, Regulatory Risk Assessment, Compliance Implications, and Policy Recommendation.`,
+          crisis_sitrep: `Produce a crisis situation report (SitRep). Include: Situation Overview, Escalation Trajectory (Stable/Deteriorating/Critical), Actor Positions, Geographic Scope, Recommended Response Actions, and Alert Level (Green/Amber/Red).`,
+          investor_dd: `Produce an investor political risk due diligence report. Include: Sovereign Risk Score (0–100), Political Risk Premium, Regulatory Stability Assessment, Exit Scenario Analysis, Key Risk Triggers to monitor, and Investment Verdict.`,
+        };
+
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `You are ViralBeat's senior intelligence analyst — Africa's foremost political intelligence platform. You synthesise live political signals and contextual knowledge into decision-grade intelligence products.
+
+Your output is used by investors, NGOs, policy teams, and journalists making high-stakes decisions. Be precise, structured, and action-oriented. Use markdown headings. Include specific named actors, bills, institutions, and data points wherever possible.`,
+            },
+            {
+              role: "user",
+              content: `MISSION: ${missionInstructions[input.missionType]}
+
+COUNTRY/REGION: ${input.country}
+${input.sector ? `SECTOR: ${input.sector}` : ""}
+${input.pestelDims?.length ? `FOCUS DIMENSIONS: ${input.pestelDims.join(", ")}` : ""}
+${input.refinedPrompt ? `USER BRIEF: ${input.refinedPrompt}` : ""}
+
+LIVE VB SIGNALS (last 30 days):
+${signalBlock}
+
+Generate the full intelligence product now.`,
+            },
+          ],
+          maxTokens: 3000,
+        });
+
+        const bodyContent = response.choices?.[0]?.message?.content;
+        const bodyMd = (typeof bodyContent === "string" ? bodyContent : "") || "Unable to generate intelligence brief.";
+
+        // Extract verdict from output for structured response
+        const verdictMatch = bodyMd.match(/\b(GO-MARKET|MONITOR|CAUTION|NO-GO|GREEN|AMBER|RED|CONDITIONAL GO|GO)\b/i);
+        const verdict = verdictMatch ? verdictMatch[1].toUpperCase() : "MONITOR";
+
+        return {
+          missionType: input.missionType,
+          country: input.country,
+          sector: input.sector ?? null,
+          bodyMd,
+          verdict,
+          signalCount: liveSignals.length,
+          signals: liveSignals.slice(0, 12),
+          generatedAt: new Date().toISOString(),
+        };
+      }),
+
+    // ── SIGNAL WATCHLISTS ────────────────────────────────────────────────────
+    createWatchlist: protectedProcedure
+      .input(z.object({
+        label: z.string().min(1).max(200),
+        countryCodes: z.array(z.string()).default([]),
+        pestelDims: z.array(z.string()).default([]),
+        sector: z.string().optional(),
+        keywords: z.array(z.string()).default([]),
+        thresholdSeverity: z.enum(["normal","alert","breaking"]).default("alert"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        const { randomUUID } = await import("crypto");
+        const watchId = randomUUID();
+        await db.insert(signalWatchlists).values({
+          watchId,
+          userId: ctx.user.id,
+          label: input.label,
+          countryCodes: input.countryCodes,
+          pestelDims: input.pestelDims,
+          sector: input.sector ?? null,
+          keywords: input.keywords,
+          thresholdSeverity: input.thresholdSeverity,
+          isActive: true,
+          triggerCount: 0,
+        });
+        return { watchId };
+      }),
+
+    listWatchlists: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const rows = await db
+        .select()
+        .from(signalWatchlists)
+        .where(eq(signalWatchlists.userId, ctx.user.id))
+        .orderBy(desc(signalWatchlists.createdAt));
+      return rows;
+    }),
+
+    deleteWatchlist: protectedProcedure
+      .input(z.object({ watchId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        await db
+          .delete(signalWatchlists)
+          .where(and(eq(signalWatchlists.watchId, input.watchId), eq(signalWatchlists.userId, ctx.user.id)));
+        return { success: true };
       }),
   }),
 

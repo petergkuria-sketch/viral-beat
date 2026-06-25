@@ -1475,3 +1475,30 @@ export const memoryInjections = mysqlTable("memoryInjections", {
 }));
 export type MemoryInjection = typeof memoryInjections.$inferSelect;
 export type InsertMemoryInjection = typeof memoryInjections.$inferInsert;
+
+// ── Signal Watchlists ─────────────────────────────────────────────────────────
+
+/**
+ * User-defined standing watches on country/PESTEL/sector combinations.
+ * Agent checks these on each scanner cycle and logs matches.
+ */
+export const signalWatchlists = mysqlTable("signalWatchlists", {
+  id:                int("id").autoincrement().primaryKey(),
+  watchId:           varchar("watchId", { length: 36 }).notNull().unique(),  // UUID
+  userId:            int("userId").notNull(),
+  label:             varchar("label", { length: 200 }).notNull(),            // user-defined name
+  countryCodes:      json("countryCodes").$type<string[]>().default([]),     // ISO3 codes, empty = all
+  pestelDims:        json("pestelDims").$type<string[]>().default([]),       // P/E/S/T/En/L/IR
+  sector:            varchar("sector", { length: 100 }),                     // optional sector filter
+  keywords:          json("keywords").$type<string[]>().default([]),         // headline keyword match
+  thresholdSeverity: mysqlEnum("thresholdSeverity", ["normal","alert","breaking"]).notNull().default("alert"),
+  isActive:          boolean("isActive").notNull().default(true),
+  triggerCount:      int("triggerCount").notNull().default(0),
+  lastTriggeredAt:   timestamp("lastTriggeredAt"),
+  createdAt:         timestamp("createdAt").defaultNow().notNull(),
+}, t => ({
+  userIdx:    index("signalWatchlists_user_idx").on(t.userId),
+  activeIdx:  index("signalWatchlists_active_idx").on(t.isActive),
+}));
+export type SignalWatchlist = typeof signalWatchlists.$inferSelect;
+export type InsertSignalWatchlist = typeof signalWatchlists.$inferInsert;
