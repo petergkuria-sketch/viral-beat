@@ -58,6 +58,7 @@ import { africaRouter } from "./routers/africa";
 import { subscriptionRouter } from "./routers/subscription";
 import { countryRouter } from "./routers/country";
 import { intelligenceRouter } from "./routers/intelligence";
+import { scannerAgentRouter } from "./routers/scannerAgent";
 
 // Types for API responses
 interface YouTubeVideo {
@@ -2931,6 +2932,7 @@ Be concise, technical, and actionable. When discussing features, consider:
   subscription: subscriptionRouter,
   country: countryRouter,
   intelligence: intelligenceRouter,
+  scannerAgent: scannerAgentRouter,
 
   briefs: router({
     // Save a brief and return a shareable ID

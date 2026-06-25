@@ -1,5 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function timeAgo(date: Date | string): string {
+  const ms = Date.now() - new Date(date).getTime();
+  const m = Math.floor(ms / 60000);
+  if (m < 2) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -146,8 +159,33 @@ function NormalItem({ item }: { item: TickerItem }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function IntelligenceTicker() {
-  const breakingItems = SEED_ITEMS.filter(i => i.severity === "breaking");
-  const normalItems   = SEED_ITEMS.filter(i => i.severity === "normal");
+  const { data: live } = trpc.scannerAgent.tickerList.useQuery(undefined, {
+    refetchInterval: 60_000, // re-check every 60s
+    staleTime: 30_000,
+  });
+
+  // Map DB rows → local TickerItem shape; fall back to seeds while DB is empty
+  function mapLive(rows: typeof live): TickerItem[] {
+    if (!rows || (rows.breaking.length === 0 && rows.normal.length === 0)) return SEED_ITEMS;
+    const map = (r: (typeof rows.breaking)[number]): TickerItem => ({
+      id: String(r.id),
+      severity: r.severity as TickerSeverity,
+      flag: r.countryFlag,
+      country: r.countryName,
+      headline: r.headline,
+      deltaLabel: r.deltaLabel ?? undefined,
+      deltaDir: (r.deltaDir as "up" | "down") ?? undefined,
+      verdict: r.verdictLabel ?? undefined,
+      verdictKey: (r.verdictKey as TickerItem["verdictKey"]) ?? undefined,
+      source: r.source,
+      timeAgo: timeAgo(r.createdAt),
+    });
+    return [...rows.breaking.map(map), ...rows.normal.map(map)];
+  }
+
+  const allItems    = mapLive(live);
+  const breakingItems = allItems.filter(i => i.severity === "breaking");
+  const normalItems   = allItems.filter(i => i.severity === "normal");
   const isBreaking    = breakingItems.length > 0;
 
   const [dismissed, setDismissed] = useState(false);

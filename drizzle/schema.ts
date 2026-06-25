@@ -1258,3 +1258,88 @@ export const signalRatings = mysqlTable("signalRatings", {
 
 export type SignalRating = typeof signalRatings.$inferSelect;
 export type InsertSignalRating = typeof signalRatings.$inferInsert;
+
+// ── AfricaScanner Agent ───────────────────────────────────────────────────────
+
+/**
+ * One row per agent execution cycle.
+ * Tracks what was fetched, how many signals produced, and any errors.
+ */
+export const agentRuns = mysqlTable("agentRuns", {
+  id: int("id").autoincrement().primaryKey(),
+  runId: varchar("runId", { length: 36 }).notNull().unique(),           // UUID
+  trigger: mysqlEnum("trigger", ["scheduled", "webhook", "manual", "rating_alert"]).notNull().default("scheduled"),
+  status: mysqlEnum("status", ["running", "completed", "failed", "partial"]).notNull().default("running"),
+  countriesProcessed: int("countriesProcessed").default(0),
+  signalsIngested: int("signalsIngested").default(0),
+  breakingFlagged: int("breakingFlagged").default(0),
+  verdictChanges: int("verdictChanges").default(0),
+  errorLog: text("errorLog"),
+  durationMs: int("durationMs"),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+}, t => ({
+  statusIdx: index("agentRuns_status_idx").on(t.status),
+  startedIdx: index("agentRuns_started_idx").on(t.startedAt),
+}));
+export type AgentRun = typeof agentRuns.$inferSelect;
+export type InsertAgentRun = typeof agentRuns.$inferInsert;
+
+/**
+ * Processed intelligence signal — one row per unique event/artefact.
+ * Written by the agent after classify + deduplicate + score steps.
+ */
+export const scannerSignals = mysqlTable("scannerSignals", {
+  id: int("id").autoincrement().primaryKey(),
+  signalId: varchar("signalId", { length: 64 }).notNull().unique(),     // semantic hash
+  runId: varchar("runId", { length: 36 }),                              // FK → agentRuns.runId
+  countryCode: varchar("countryCode", { length: 3 }).notNull(),         // ISO 3166-1 alpha-3
+  dim: mysqlEnum("dim", ["P","E","S","T","En","L","IR"]).notNull(),      // PESTEL + IR
+  severity: mysqlEnum("severity", ["normal","alert","breaking"]).notNull().default("normal"),
+  headline: varchar("headline", { length: 600 }).notNull(),
+  body: text("body"),
+  deltaScore: decimal("deltaScore", { precision: 5, scale: 2 }).default("0"),  // impact on composite
+  deltaDir: mysqlEnum("deltaDir", ["up","down","neutral"]).default("neutral"),
+  verdictBefore: varchar("verdictBefore", { length: 20 }),
+  verdictAfter: varchar("verdictAfter", { length: 20 }),
+  source: varchar("source", { length: 255 }).notNull(),
+  sourceUrl: text("sourceUrl"),
+  sourceType: mysqlEnum("sourceType", ["rating_agency","ifi","press","government","field","rss"]).notNull(),
+  publishedAt: timestamp("publishedAt"),
+  ingestedAt: timestamp("ingestedAt").defaultNow().notNull(),
+}, t => ({
+  countryIdx: index("scannerSignals_country_idx").on(t.countryCode),
+  severityIdx: index("scannerSignals_severity_idx").on(t.severity),
+  dimIdx:      index("scannerSignals_dim_idx").on(t.dim),
+  ingestedIdx: index("scannerSignals_ingested_idx").on(t.ingestedAt),
+}));
+export type ScannerSignal = typeof scannerSignals.$inferSelect;
+export type InsertScannerSignal = typeof scannerSignals.$inferInsert;
+
+/**
+ * Ticker items — what the IntelligenceTicker component renders.
+ * Agent writes here after severity classification; dismissed after 72h.
+ */
+export const tickerItems = mysqlTable("tickerItems", {
+  id: int("id").autoincrement().primaryKey(),
+  signalId: varchar("signalId", { length: 64 }).notNull(),              // FK → scannerSignals
+  countryCode: varchar("countryCode", { length: 3 }).notNull(),
+  countryFlag: varchar("countryFlag", { length: 8 }).notNull(),
+  countryName: varchar("countryName", { length: 100 }).notNull(),
+  severity: mysqlEnum("severity", ["normal","breaking"]).notNull().default("normal"),
+  headline: varchar("headline", { length: 300 }).notNull(),
+  deltaLabel: varchar("deltaLabel", { length: 80 }),                    // "▲ +6 pts" or "Monitor → Go-Market"
+  deltaDir: mysqlEnum("deltaDir", ["up","down"]),
+  verdictKey: varchar("verdictKey", { length: 20 }),
+  verdictLabel: varchar("verdictLabel", { length: 30 }),
+  source: varchar("source", { length: 120 }).notNull(),
+  active: boolean("active").notNull().default(true),
+  expiresAt: timestamp("expiresAt").notNull(),                          // auto-expire after 72h
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, t => ({
+  activeIdx:   index("tickerItems_active_idx").on(t.active),
+  expiresIdx:  index("tickerItems_expires_idx").on(t.expiresAt),
+  severityIdx: index("tickerItems_severity_idx").on(t.severity),
+}));
+export type TickerItem = typeof tickerItems.$inferSelect;
+export type InsertTickerItem = typeof tickerItems.$inferInsert;

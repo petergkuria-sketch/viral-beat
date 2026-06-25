@@ -14,6 +14,7 @@ import v1Router from "../api/v1";
 import { openapiSpec } from "../api/openapi";
 import { startMigrationService } from "../migrationService";
 import { startSentimentPipeline } from "../services/sentimentPipeline";
+import { runAgentCycle } from "../services/africaScannerAgent";
 import { sdk } from "./sdk";
 import * as db from "../db";
 import { ENV } from "./env";
@@ -93,6 +94,14 @@ async function startServer() {
 
     // Start RSS sentiment ingestion pipeline (runs immediately then every 4h)
     startSentimentPipeline();
+
+    // Start AfricaScanner Agent — initial sweep after 30s, then every 4h
+    setTimeout(() => {
+      runAgentCycle("scheduled").catch(e => console.error("[ScannerAgent] initial run failed:", e));
+    }, 30_000);
+    setInterval(() => {
+      runAgentCycle("scheduled").catch(e => console.error("[ScannerAgent] scheduled run failed:", e));
+    }, 4 * 60 * 60 * 1000);
 
     // Pre-warm Vite dep optimization so the first browser load is instant
     // (Vite in middleware mode does lazy dep bundling on first request)
