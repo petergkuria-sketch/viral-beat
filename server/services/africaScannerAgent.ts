@@ -45,27 +45,30 @@ const RSS_SOURCES: RssSource[] = [
   // Pan-Africa
   { name: "AllAfrica", url: "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf", type: "press" },
   { name: "The Africa Report", url: "https://www.theafricareport.com/feed/", type: "press" },
-  { name: "Reuters Africa", url: "https://feeds.reuters.com/reuters/AFRICANews", type: "press" },
   { name: "BBC Africa", url: "https://feeds.bbci.co.uk/news/world/africa/rss.xml", type: "press" },
   { name: "African Arguments", url: "https://africanarguments.org/feed/", type: "press" },
-  { name: "ISS Africa", url: "https://issafrica.org/rss/feed.xml", type: "press" },
-  // IFI / MDB
-  { name: "IMF Africa", url: "https://www.imf.org/en/News/rss?category=Africa", type: "ifi" },
-  { name: "World Bank Africa", url: "https://blogs.worldbank.org/africacan/rss.xml", type: "ifi" },
-  { name: "AfDB News", url: "https://www.afdb.org/en/rss/news.xml", type: "ifi" },
+  { name: "Africa Confidential", url: "https://www.africa-confidential.com/rss", type: "press" },
+  { name: "VOA Africa", url: "https://www.voanews.com/api/zmpqopee-qp_i", type: "press" },
+  // IFI / MDB — using direct article feeds that don't bot-block
+  { name: "IMF Blog", url: "https://www.imf.org/en/Blogs/rss", type: "ifi" },
+  { name: "World Bank Blog", url: "https://blogs.worldbank.org/rss.xml", type: "ifi" },
+  { name: "UNCTAD News", url: "https://unctad.org/rss.xml", type: "ifi" },
   // Country-specific
-  { name: "Business Daily Kenya", url: "https://businessdailyafrica.com/rss/", type: "press", countryCodes: ["KEN"] },
   { name: "Punch Nigeria", url: "https://punchng.com/feed/", type: "press", countryCodes: ["NGA"] },
-  { name: "GhanaWeb", url: "https://www.ghanaweb.com/GhanaHomePage/rss/news.xml", type: "press", countryCodes: ["GHA"] },
-  { name: "New Times Rwanda", url: "https://www.newtimes.co.rw/rss.xml", type: "press", countryCodes: ["RWA"] },
-  { name: "Daily Monitor Uganda", url: "https://www.monitor.co.ug/uganda/rss", type: "press", countryCodes: ["UGA"] },
+  { name: "Daily Nation Kenya", url: "https://nation.africa/kenya/rss.xml", type: "press", countryCodes: ["KEN"] },
   { name: "The Standard Kenya", url: "https://www.standardmedia.co.ke/rss/latest.php", type: "press", countryCodes: ["KEN"] },
+  { name: "MyJoyOnline Ghana", url: "https://www.myjoyonline.com/feed/", type: "press", countryCodes: ["GHA"] },
+  { name: "The New Times Rwanda", url: "https://newtimes.co.rw/feed", type: "press", countryCodes: ["RWA"] },
+  { name: "Daily Monitor Uganda", url: "https://www.monitor.co.ug/rss/", type: "press", countryCodes: ["UGA"] },
   { name: "Jeune Afrique", url: "https://www.jeuneafrique.com/feed/", type: "press" },
-  { name: "Morocco World News", url: "https://www.moroccoworldnews.com/feed/", type: "press", countryCodes: ["MAR"] },
+  { name: "Hespress Morocco", url: "https://en.hespress.com/feed", type: "press", countryCodes: ["MAR"] },
   { name: "Egypt Independent", url: "https://egyptindependent.com/feed/", type: "press", countryCodes: ["EGY"] },
   { name: "Zambia Daily Mail", url: "https://www.daily-mail.co.zm/feed/", type: "press", countryCodes: ["ZMB"] },
   { name: "Chronicle Zimbabwe", url: "https://www.chronicle.co.zw/feed/", type: "press", countryCodes: ["ZWE"] },
 ];
+
+// ── Concurrency guard — prevents overlapping scheduled cycles ────────────────
+let _cycleRunning = false;
 
 // ── Rating agency webhook events (structured, not RSS) ────────────────────────
 
@@ -370,6 +373,11 @@ async function expireTickerItems(): Promise<void> {
 // ── Core run cycle ────────────────────────────────────────────────────────────
 
 export async function runAgentCycle(trigger: InsertAgentRun["trigger"] = "scheduled"): Promise<AgentRunResult> {
+  if (_cycleRunning && trigger === "scheduled") {
+    console.log("[ScannerAgent] skipping scheduled cycle — previous run still in progress");
+    return { runId: "skipped", status: "skipped" as any, countriesProcessed: 0, signalsIngested: 0, breakingFlagged: 0, verdictChanges: 0, durationMs: 0 };
+  }
+  _cycleRunning = true;
   const d = await db();
   const runId = uuid();
   const startedAt = Date.now();
@@ -419,8 +427,10 @@ export async function runAgentCycle(trigger: InsertAgentRun["trigger"] = "schedu
       .where(eq(agentRuns.runId, runId))
       .catch(() => null);
 
+    _cycleRunning = false;
     return { runId, status: "completed", ...stats, durationMs };
   } catch (err) {
+    _cycleRunning = false;
     const errorLog = err instanceof Error ? err.message : String(err);
     await d
       .update(agentRuns)
