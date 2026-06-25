@@ -308,6 +308,32 @@ export default function IntelligencePage() {
     }
   }, [selectedCategory, countryNewsLoading, signalsLoading, filteredRssSignals.length, signals?.trends?.length, geoLayer, pipelineStage]);
 
+  // ── Auto-import from AI Agents Hub (Deep Analysis bridge) ──
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("vb_intelligence_import");
+      if (!raw) return;
+      sessionStorage.removeItem("vb_intelligence_import");
+      const { content, fileName, title } = JSON.parse(raw) as { content: string; fileName: string; title: string };
+      if (!content) return;
+      setAttachedFile({ name: fileName, content });
+      setLastDocName(fileName);
+      setRightTab("chat");
+      // Small delay so mutations are ready after mount
+      setTimeout(() => {
+        sendMessage.mutate({
+          message: `I've received an intelligence brief: "${title}". Provide a deep analysis: expand on the key findings, challenge any assumptions, identify gaps in the intelligence, cross-reference with PESTEL+IR framework, map actor positions and incentives, and recommend priority actions.`,
+          sessionId: sessionId || undefined,
+          fileContent: content,
+          fileName,
+        });
+      }, 300);
+    } catch {
+      // sessionStorage unavailable or parse error — ignore
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const summarizeTrends = trpc.xTrends.summarizeTrends.useMutation({
     onSuccess: (data) => {
       setSignalAnalysis(data.summary || "");

@@ -526,7 +526,7 @@ export default function AIAgentsHub() {
 
                   {/* Col 2: Full intelligence product */}
                   <div className="p-5 max-h-[560px] overflow-y-auto">
-                    <Streamdown className="prose prose-invert prose-sm max-w-none">{missionResult.bodyMd}</Streamdown>
+                    <Streamdown className="prose prose-invert prose-sm max-w-none [&_*]:text-gray-100 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white [&_strong]:text-white [&_p]:text-gray-200 [&_li]:text-gray-200 [&_code]:text-cyan-300 [&_blockquote]:text-gray-300 [&_blockquote]:border-cyan-500">{missionResult.bodyMd}</Streamdown>
                   </div>
 
                   {/* Col 3: Deliverables */}
@@ -552,7 +552,17 @@ export default function AIAgentsHub() {
                         </div>
                       </button>
                       <button
-                        onClick={() => setLocation("/intelligence")}
+                        onClick={() => {
+                          const title = `${currentMission?.label ?? "Intelligence Brief"} — ${missionResult.country}${missionResult.sector ? " / " + missionResult.sector : ""}`;
+                          try {
+                            sessionStorage.setItem("vb_intelligence_import", JSON.stringify({
+                              content: missionResult.bodyMd,
+                              fileName: `VB-${missionResult.country.replace(/\s+/g, "-")}-${missionResult.missionType}.md`,
+                              title,
+                            }));
+                          } catch {}
+                          setLocation("/intelligence");
+                        }}
                         className="w-full flex items-center gap-2.5 bg-[#050b1a] border border-[#1e3a5f] rounded-xl p-3 hover:border-violet-500/30 transition-all text-left group">
                         <Archive className="w-4 h-4 text-gray-500 group-hover:text-violet-400 shrink-0" />
                         <div>
