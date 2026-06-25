@@ -486,8 +486,8 @@ export default function LandingPage() {
                 icon: Shield,
                 color: "#34d399",
                 title: "Structured & Verified",
-                desc: "Raw signals are structured into stability scores, risk classifications, and country briefings — combining the depth of local knowledge with the clarity of organised intelligence.",
-                bullets: ["Stability score 0–100", "Risk classification", "Country briefings", "Civic movement tracker"],
+                desc: "Raw signals pass a 4-stage validation gate before entering the intelligence layer — corroboration, tier weighting, AI classification, and editorial review. Only verified signals move the composite score.",
+                bullets: ["4-stage validation gate", "Tier-weighted credibility scoring", "AI + editorial cross-check", "Composite score updated on pass"],
               },
             ].map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }} viewport={{ once: true }}
@@ -507,6 +507,41 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </div>
+
+          {/* ── Validation methodology strip ────────────────────────────────── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} viewport={{ once: true }}
+            className="bg-[#0a1628] border border-[#1e3a5f] rounded-2xl p-8">
+            <div className="flex items-center gap-2 mb-6">
+              <Shield className="w-4 h-4 text-green-400" />
+              <span className="text-xs font-bold tracking-[2px] text-green-400 uppercase">How Intelligence Gets Validated</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-start">
+              {[
+                { step: "01", color: "#a78bfa", title: "Field Submission", desc: "Contributor files signal with location, category, and evidence — photo, document, or URL." },
+                { step: "02", color: "#22d3ee", title: "Corroboration", desc: "3+ independent contributors or a senior analyst must independently confirm the event before it is accepted." },
+                { step: "03", color: "#fb923c", title: "Tier Weighting", desc: "Signals are weighted by contributor tier — Observer, Analyst, Correspondent — and institutional affiliation." },
+                { step: "04", color: "#f472b6", title: "AI Classification", desc: "VB engine auto-tags dimension (P/E/S/T/En/L/IR), severity, and estimated composite score impact (−20 to +20)." },
+                { step: "05", color: "#34d399", title: "Score Update", desc: "Validated signals move the country's PESTEL+IR composite score and surface in the Intelligence Workspace as citable intelligence." },
+              ].map((s, i) => (
+                <div key={i} className="relative">
+                  {i < 4 && (
+                    <div className="hidden md:block absolute top-4 left-full w-full h-px bg-gradient-to-r from-white/10 to-transparent z-0" style={{ width: "calc(100% - 2rem)", left: "calc(100% - 1rem)" }} />
+                  )}
+                  <div className="relative z-10">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black mb-3" style={{ background: `${s.color}20`, color: s.color, border: `1px solid ${s.color}40` }}>{s.step}</div>
+                    <div className="font-bold text-sm text-white mb-1">{s.title}</div>
+                    <div className="text-xs text-gray-400 leading-relaxed">{s.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-6 text-xs text-gray-500">
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-green-400" />Signals that fail corroboration are flagged, not published</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-green-400" />Every validated signal carries a source chain you can audit</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-green-400" />Composite scores update within 24h of signal validation</span>
+            </div>
+          </motion.div>
+
         </div>
       </section>
 
