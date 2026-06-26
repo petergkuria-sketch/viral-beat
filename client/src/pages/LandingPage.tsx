@@ -4,7 +4,7 @@ import {
   Globe, Shield, TrendingUp, ArrowRight, ChevronRight, X, Menu,
   Zap, Users, Newspaper, AlertTriangle, BarChart3, Coins,
   CheckCircle2, Star, Activity, MapPin, Code2, Calendar,
-  Rss, Brain, Database, Clock, FileText, LayoutGrid, Rows, Smartphone,
+  Rss, Brain, Database, Clock, FileText, LayoutGrid, Rows, Smartphone, Leaf,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -255,7 +255,7 @@ export default function LandingPage() {
           </button>
 
           <div className="hidden md:flex items-center gap-1">
-            {[["scanner-section", "Scanner"], ["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
+            {[["scanner-section", "Scanner"], ["intelligence", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => scrollTo(id)} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
                 {label}
               </button>
@@ -304,7 +304,7 @@ export default function LandingPage() {
         </div>
         {mobileMenuOpen && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="md:hidden border-t border-white/5 bg-[#050b1a] px-4 py-4 flex flex-col gap-1">
-            {[["scanner-section", "Scanner"], ["intelligence", "Intelligence"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
+            {[["scanner-section", "Scanner"], ["intelligence", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => { setMobileMenuOpen(false); scrollTo(id); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
             <button onClick={() => { setMobileMenuOpen(false); setLocation("/about#methodology"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Methodology</button>
@@ -864,6 +864,101 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── GREEN INVESTMENT (GIaaS) ────────────────────────────────────────── */}
+      <section id="green-investment" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-14">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 mb-4">
+                <Leaf className="w-3 h-3 mr-1" /> Green Intelligence — GIaaS × VB
+              </Badge>
+              <h2 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+                Africa's Green Investment<br />
+                <span className="text-emerald-400">Validation Layer</span>
+              </h2>
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                Citizen-validated ESG project intelligence across all 55 AU nations. Cut through greenwashing with ground-truth data. Earn VBT for field observations.
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Feature cards */}
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {[
+              {
+                emoji: "🌍",
+                color: "#34d399",
+                title: "Project Registry",
+                desc: "Every recognised renewable energy, REIT, and sustainable agriculture project across Africa — scored, ranked, and continuously updated by the VB Agent.",
+                badge: "Browse",
+                href: "/green",
+              },
+              {
+                emoji: "👁️",
+                color: "#a78bfa",
+                title: "Citizen Validation",
+                desc: "Local observers submit field data, photos, and community reports to validate or dispute developer claims. Divergence scores flag greenwashing in real time.",
+                badge: "Validate",
+                href: "/green",
+              },
+              {
+                emoji: "🪙",
+                color: "#fbbf24",
+                title: "VBT Rewards",
+                desc: "Earn ViralBeat Tokens for every approved field observation. Disputes earn a higher bonus — honest ground-truth reporting is the most valuable signal on the network.",
+                badge: "Earn",
+                href: "/green",
+              },
+            ].map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }} viewport={{ once: true }}
+                onClick={() => user ? setLocation(item.href) : (window.location.href = getLoginUrl())}
+                className="bg-[#0a1f0f] border border-emerald-900/40 rounded-2xl p-7 hover:border-emerald-500/40 transition-all cursor-pointer group">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style={{ background: `${item.color}15` }}>{item.emoji}</div>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border" style={{ color: item.color, borderColor: `${item.color}40`, background: `${item.color}10` }}>{item.badge}</span>
+                </div>
+                <h3 className="font-bold text-lg text-white mb-2 group-hover:text-emerald-300 transition-colors">{item.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-4">{item.desc}</p>
+                <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: item.color }}>
+                  Open {item.title} <ArrowRight className="w-3 h-3 ml-1" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Stats bar */}
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="bg-[#0a1f0f] border border-emerald-900/40 rounded-2xl p-6 flex flex-wrap items-center justify-between gap-6 mb-10">
+            {[
+              { value: "55", label: "Nations Covered", color: "text-emerald-400" },
+              { value: "3", label: "Sectors Tracked", color: "text-emerald-400" },
+              { value: "VBT", label: "Token Rewards", color: "text-yellow-400" },
+              { value: "AI", label: "Greenwashing Detection", color: "text-purple-400" },
+            ].map((stat, i) => (
+              <div key={i} className="text-center flex-1 min-w-[120px]">
+                <div className={`text-2xl font-black ${stat.color} mb-1`}>{stat.value}</div>
+                <div className="text-xs text-gray-500 uppercase tracking-wide">{stat.label}</div>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* CTA */}
+          <div className="text-center">
+            <Button size="lg"
+              onClick={() => user ? setLocation("/green") : (window.location.href = getLoginUrl())}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-xl shadow-emerald-900/30 mr-3">
+              <Leaf className="w-4 h-4 mr-2" /> Explore Green Projects
+            </Button>
+            <Button size="lg" variant="outline"
+              onClick={() => user ? setLocation("/green/register") : (window.location.href = getLoginUrl())}
+              className="border-emerald-700/50 text-emerald-400 hover:bg-emerald-900/20">
+              Register a Project
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* ── ELECTORAL CALENDAR ──────────────────────────────────────────────── */}
       <section id="elections" className="py-32 px-4" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
@@ -1296,6 +1391,7 @@ export default function LandingPage() {
             {[
               { title: "Scan & Monitor", links: [
                 { label: "Africa Scanner",            href: "/scanner" },
+                { label: "Green Intelligence",        href: "/green" },
                 { label: "Signal Aggregator",         href: "/aggregator" },
                 { label: "PESTEL Trending",           href: "/trending" },
                 { label: "Field Signals",             href: "/haa" },
