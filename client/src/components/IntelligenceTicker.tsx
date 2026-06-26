@@ -235,7 +235,7 @@ export default function IntelligenceTicker() {
           <div
             ref={trackRef}
             className="inline-flex"
-            style={{ animation: "ticker-scroll 91s linear infinite" }}
+            style={{ animation: "ticker-scroll 182s linear infinite" }}
           >
             {breakingLoop.map((item, i) => (
               <BreakingItem key={`${item.id}-${i}`} item={item} onClick={() => {
@@ -283,7 +283,7 @@ export default function IntelligenceTicker() {
         <div
           ref={trackRef}
           className="inline-flex items-center"
-          style={{ animation: "ticker-scroll 133s linear infinite" }}
+          style={{ animation: "ticker-scroll 266s linear infinite" }}
         >
           {normalLoop.map((item, i) => (
             <>
