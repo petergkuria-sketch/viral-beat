@@ -15,7 +15,7 @@
  */
 
 import { z } from "zod";
-import { router, publicProcedure, protectedProcedure, analystProcedure } from "../_core/trpc";
+import { router, publicProcedure, protectedProcedure, analystProcedure, adminProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 async function db() { const d = await getDb(); if (!d) throw new Error("DB unavailable"); return d; }
 import {
@@ -96,7 +96,7 @@ export const scannerAgentRouter = router({
 
   // ── Rating event ingestion (admin webhook bridge) ───────────────────────────
 
-  agentIngestRating: protectedProcedure
+  agentIngestRating: adminProcedure
     .input(z.object({
       agency:          z.enum(["Moody's", "S&P", "Fitch"]),
       countryCode:     z.string().min(2).max(3),

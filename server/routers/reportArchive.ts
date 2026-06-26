@@ -126,11 +126,10 @@ export const reportArchiveRouter = router({
   // ── Public: single report (access-gated) ─────────────────────────────────
   get: publicProcedure
     .input(z.object({
-      reportId:  z.string(),
-      userTier:  z.enum(["guest","free","premium","analyst"]).default("guest"),
-      requesterId: z.number().int().optional(),
+      reportId: z.string(),
+      userTier: z.enum(["guest","free","premium","analyst"]).default("guest"),
     }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const d = await db();
       const [row] = await d
         .select()
@@ -140,7 +139,7 @@ export const reportArchiveRouter = router({
 
       if (!row) return null;
 
-      const isOwner = input.requesterId != null && row.authorId === input.requesterId;
+      const isOwner = ctx.user?.id != null && row.authorId === ctx.user.id;
       const readable = isOwner || canRead(row.visibility, input.userTier);
       if (!readable) return { locked: true, title: row.title, summaryText: row.summaryText, visibility: row.visibility };
 
