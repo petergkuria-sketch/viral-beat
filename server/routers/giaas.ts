@@ -269,7 +269,7 @@ export const giaasRouter = router({
       textContent:  z.string().min(50).max(50_000).optional(),
       title:        z.string().max(255).optional(),
       description:  z.string().max(500).optional(),
-      countryHints: z.array(z.string().length(3).toUpperCase()).max(10).optional(),
+      countryHints: z.array(z.string().min(2).max(3)).max(20).optional(),
       sectorHints:  z.array(z.enum(["renewable_energy", "reit", "agriculture"])).optional(),
     }).refine(d =>
       (d.feedType === "url" && !!d.url) ||
