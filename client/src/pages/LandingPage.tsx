@@ -869,9 +869,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <Badge className="mb-4 bg-orange-500/10 text-orange-400 border-orange-500/20">Electoral Calendar</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mb-4">Upcoming African Elections</h2>
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">Keep Track of Transitional Leadership & Impact</h2>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Track elections across all 55 nations. Click any country for the full intelligence brief.
+              Monitor elections, leadership transitions, and political risk across all 55 nations. Click any country for the full intelligence brief.
             </p>
           </div>
 
