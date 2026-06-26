@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { AFRICAN_COUNTRIES } from "@shared/africanCountries";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SECTORS = [
   { key: undefined,             label: "All Sectors" },
@@ -42,11 +43,17 @@ export default function GIaaSHub() {
   const [sector, setSector] = useState<"renewable_energy" | "reit" | "agriculture" | undefined>(undefined);
   const [countryCode, setCountryCode] = useState<string | undefined>(undefined);
 
+  const queryClient = useQueryClient();
   const { data: projects, isLoading } = trpc.giaas.projectsList.useQuery({
     sector,
     countryCode,
     limit: 24,
   });
+  const { data: me } = trpc.auth.me.useQuery();
+  const agentRun = trpc.giaas.agentRun.useMutation({
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [["giaas", "projectsList"]] }),
+  });
+  const isAnalyst = me?.role && ["analyst", "admin"].includes(me.role);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-8 max-w-7xl mx-auto">
@@ -96,19 +103,40 @@ export default function GIaaSHub() {
           ))}
         </select>
 
-        {/* Submit CTA */}
-        <button
-          onClick={() => setLocation("/green/submit")}
-          className="ml-auto bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors"
-        >
-          + Submit Observation
-        </button>
-        <button
-          onClick={() => setLocation("/green/register")}
-          className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium px-4 py-1.5 rounded-lg transition-colors"
-        >
-          Register Project
-        </button>
+        {/* CTAs */}
+        <div className="ml-auto flex items-center gap-2 flex-wrap">
+          {isAnalyst && (
+            <button
+              onClick={() => agentRun.mutate()}
+              disabled={agentRun.isPending}
+              className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-zinc-200 text-sm font-medium px-4 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+              title="Harvest known green projects for all 55 African nations"
+            >
+              {agentRun.isPending ? (
+                <><span className="animate-spin">⟳</span> Harvesting…</>
+              ) : (
+                <><span>🤖</span> Run VB Agent</>
+              )}
+            </button>
+          )}
+          {agentRun.data && (
+            <span className="text-xs text-emerald-400">
+              +{agentRun.data.projectsInserted} inserted
+            </span>
+          )}
+          <button
+            onClick={() => setLocation("/green/submit")}
+            className="bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors"
+          >
+            + Submit Observation
+          </button>
+          <button
+            onClick={() => setLocation("/green/register")}
+            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium px-4 py-1.5 rounded-lg transition-colors"
+          >
+            Register Project
+          </button>
+        </div>
       </div>
 
       {/* Projects grid */}

@@ -25,6 +25,7 @@ import {
 } from "../../drizzle/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { runValidation, approveSubmission } from "../services/giaasEngine";
+import { runGiaasAgentCycle, runGiaasCountryCycle } from "../services/giaasProjectAgent";
 
 async function db() {
   const d = await getDb();
@@ -254,6 +255,19 @@ export const giaasRouter = router({
         .orderBy(desc(greenValidations.runAt))
         .limit(1);
       return row ?? null;
+    }),
+
+  // ── Agent controls ────────────────────────────────────────────────────────
+
+  agentRun: analystProcedure
+    .mutation(async () => {
+      return runGiaasAgentCycle();
+    }),
+
+  agentRunCountry: analystProcedure
+    .input(z.object({ countryCode: z.string().length(3).toUpperCase() }))
+    .mutation(async ({ input }) => {
+      return runGiaasCountryCycle(input.countryCode);
     }),
 
   // ── Dashboard stats (admin) ───────────────────────────────────────────────
