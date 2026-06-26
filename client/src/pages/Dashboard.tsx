@@ -512,7 +512,7 @@ export default function Dashboard() {
 
             {/* Widget view — icon tiles for quick navigation */}
             {dashView === "widget" && (
-              <div id="dashboard-quick-access" className="grid grid-cols-3 sm:grid-cols-6 gap-3 pb-2">
+              <div id="dashboard-quick-access" className="grid grid-cols-4 sm:grid-cols-7 gap-3 pb-2">
                 {[
                   { icon: "🌍", label: "Africa Hub", href: "/africa", color: "#22d3ee" },
                   { icon: "🧠", label: "Intelligence", href: "/intelligence", color: "#a78bfa" },
@@ -520,6 +520,7 @@ export default function Dashboard() {
                   { icon: "⚡", label: "Signals", href: "/aggregator", color: "#f472b6" },
                   { icon: "🏗️", label: "IRS Score", href: "/doing-business", color: "#fb923c" },
                   { icon: "🧑‍💻", label: "Field Intel", href: "/haa", color: "#34d399" },
+                  { icon: "🌿", label: "Green Intel", href: "/green", color: "#4ade80" },
                 ].map((item) => (
                   <button
                     key={item.href}
