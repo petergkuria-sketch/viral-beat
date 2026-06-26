@@ -138,6 +138,34 @@ export async function sendDailyBriefing(
 }
 
 /**
+ * Send a signal watchlist trigger notification
+ */
+export async function sendWatchlistAlert(
+  userId: number,
+  watchlist: {
+    label: string;
+    watchId: string;
+  },
+  signal: {
+    countryCode: string;
+    countryName: string;
+    headline: string;
+    severity: string;
+    dim: string;
+  }
+): Promise<void> {
+  const severityPrefix = signal.severity === "breaking" ? "🚨 BREAKING" : signal.severity === "alert" ? "⚠️ Alert" : "📡 Signal";
+  await sendPushToUser(userId, {
+    title: `${severityPrefix}: ${watchlist.label}`,
+    body: `${signal.countryName} · ${signal.headline}`,
+    icon: "/icons/icon-192x192.png",
+    url: `/scanner/${signal.countryCode}`,
+    tag: `watchlist-${watchlist.watchId}`,
+    data: { type: "watchlist_trigger", watchId: watchlist.watchId, countryCode: signal.countryCode, signal },
+  });
+}
+
+/**
  * Send a ViralMind AI message notification
  */
 export async function sendViralMindAlert(

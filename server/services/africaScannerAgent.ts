@@ -19,6 +19,7 @@ import {
   type InsertAgentRun, type InsertScannerSignal, type InsertTickerItem,
 } from "../../drizzle/schema";
 import { eq, and, lt, gte, inArray } from "drizzle-orm";
+import { sendWatchlistAlert } from "./pushNotifications";
 
 async function db() {
   const d = await getDb();
@@ -382,7 +383,7 @@ async function evaluateWatchlists(freshSignals: ClassifiedSignal[]): Promise<voi
     const kws      = (watch.keywords    as string[]).map(k => k.toLowerCase());
     const minRank  = severityRank[watch.thresholdSeverity] ?? 1;
 
-    const matched = freshSignals.some(sig => {
+    const matchedSignal = freshSignals.find(sig => {
       if (severityRank[sig.severity] < minRank) return false;
       if (codes.length && !codes.includes(sig.countryCode)) return false;
       if (dims.length  && !dims.includes(sig.dim))          return false;
@@ -391,12 +392,24 @@ async function evaluateWatchlists(freshSignals: ClassifiedSignal[]): Promise<voi
       return true;
     });
 
-    if (matched) {
+    if (matchedSignal) {
       await d
         .update(signalWatchlists)
         .set({ triggerCount: (watch.triggerCount ?? 0) + 1, lastTriggeredAt: new Date() })
         .where(eq(signalWatchlists.watchId, watch.watchId))
         .catch(() => null);
+
+      sendWatchlistAlert(
+        watch.userId,
+        { label: watch.label, watchId: watch.watchId },
+        {
+          countryCode: matchedSignal.countryCode,
+          countryName: matchedSignal.countryName,
+          headline: matchedSignal.headline,
+          severity: matchedSignal.severity,
+          dim: matchedSignal.dim,
+        }
+      ).catch(e => console.warn("[ScannerAgent] push notification failed:", e));
     }
   }
 }

@@ -157,23 +157,27 @@ self.addEventListener('push', (event) => {
     data = { title: 'Viral Beat', body: event.data.text() };
   }
 
-  // Scanner-specific alert types get tailored actions/urls
-  const isScannerAlert = data.data?.type === 'scanner_alert';
-  const targetUrl = data.url || (isScannerAlert && data.data?.code
-    ? `/scanner/${data.data.code.toLowerCase()}`
-    : '/scanner');
+  // Alert-type routing
+  const alertType = data.data?.type;
+  const isWatchlistTrigger = alertType === 'watchlist_trigger';
+  const isScannerAlert = alertType === 'scanner_alert';
+  const targetUrl = data.url || '/scanner';
+
+  const actions = isWatchlistTrigger
+    ? [{ action: 'view', title: 'View Country' }, { action: 'brief', title: 'Open Brief' }, { action: 'dismiss', title: 'Dismiss' }]
+    : isScannerAlert
+      ? [{ action: 'view', title: 'View Country' }, { action: 'brief', title: 'Open Brief' }, { action: 'dismiss', title: 'Dismiss' }]
+      : [{ action: 'view', title: 'View Now' }, { action: 'dismiss', title: 'Dismiss' }];
 
   const options = {
     body: data.body || 'New intelligence alert!',
     icon: data.icon || '/icons/icon-192x192.png',
     badge: '/icons/icon-72x72.png',
     tag: data.tag || 'vb-notification',
-    data: { url: targetUrl, type: data.data?.type },
-    actions: isScannerAlert
-      ? [{ action: 'view', title: 'View Country' }, { action: 'brief', title: 'Open Brief' }, { action: 'dismiss', title: 'Dismiss' }]
-      : [{ action: 'view', title: 'View Now' }, { action: 'dismiss', title: 'Dismiss' }],
-    requireInteraction: data.urgent || false,
-    vibrate: data.urgent ? [300, 100, 300, 100, 300] : [200, 100, 200],
+    data: { url: targetUrl, type: alertType, countryCode: data.data?.countryCode },
+    actions,
+    requireInteraction: isWatchlistTrigger || data.urgent || false,
+    vibrate: (isWatchlistTrigger || data.urgent) ? [300, 100, 300, 100, 300] : [200, 100, 200],
   };
 
   event.waitUntil(
@@ -186,7 +190,9 @@ self.addEventListener('notificationclick', (event) => {
   if (event.action === 'dismiss') return;
 
   const baseUrl = event.notification.data?.url || '/scanner';
-  const url = event.action === 'brief' ? baseUrl + '/brief' : baseUrl;
+  const countryCode = event.notification.data?.countryCode;
+  const briefUrl = countryCode ? `/scanner/${countryCode}/brief` : baseUrl + '/brief';
+  const url = event.action === 'brief' ? briefUrl : baseUrl;
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
