@@ -512,20 +512,30 @@ export default function LandingPage() {
 
           {/* Headline */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-2 text-sm font-medium text-cyan-400 mb-6">
+            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-2 text-sm font-medium text-cyan-400 mb-8">
               <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-              The Africa Intelligence Beat for Decision Makers · 55 Nations Live
+              55 African nations · Updated by people on the ground · Live now
             </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-5" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
-              The Africa<br />
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-6" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+              Your feet on the ground<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400">
-                Intelligence Beat
+                before you book the ticket.
               </span>
             </h1>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              Political briefings, sovereign risk scores, crisis alerts, and investor-grade intelligence for every African nation —{" "}
-              <span className="text-white">powered by people on the ground.</span>
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
+              Real-time political intelligence for all 55 African nations — from journalists, NGO officers and civic researchers who are{" "}
+              <span className="text-white font-semibold">already there.</span>{" "}
+              Live PESTEL+IR scores, Go/No-Go briefs and field signals. From $29/month.
             </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-3">
+              <Button size="lg" className="text-base px-7 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20" onClick={() => user ? setLocation("/scanner/ken/brief") : (window.location.href = getLoginUrl())}>
+                Read the Kenya brief free <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+              <Button size="lg" variant="outline" className="text-base px-7 py-5 border-white/10 text-gray-300 hover:text-white hover:border-cyan-500/40" onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())}>
+                See all 55 nations
+              </Button>
+            </div>
+            <p className="text-xs text-gray-600">No card required · Brief ready in 30 seconds · Cancel anytime</p>
           </motion.div>
 
           {/* Persona selector */}
@@ -611,27 +621,171 @@ export default function LandingPage() {
             })()}
           </AnimatePresence>
 
-          {/* Default CTAs when no persona selected */}
+          {/* Persona path panel */}
           {!selectedPersona && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
-              <Button size="lg" className="text-base px-7 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20" onClick={handleExplore}>
-                Explore Intelligence <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="text-base px-7 py-5 border-white/10 text-gray-300 hover:text-white hover:border-cyan-500/40" onClick={() => scrollTo("api")}>
-                <Code2 className="mr-2 w-4 h-4" /> View API Docs
-              </Button>
-            </motion.div>
+            <div className="flex flex-wrap justify-center gap-8 pt-2">
+              {[["55", "Nations monitored"], ["312+", "Signals this week"], ["PESTEL+IR", "7-dimension framework"], ["1/40×", "vs Oxford Analytica cost"]].map(([val, label]) => (
+                <div key={label} className="flex flex-col items-center">
+                  <span className="text-2xl font-black text-cyan-400">{val}</span>
+                  <span className="text-xs text-gray-500">{label}</span>
+                </div>
+              ))}
+            </div>
           )}
+        </div>
+      </section>
 
-          {/* Stats */}
-          <div className="flex flex-wrap justify-center gap-8 pt-2">
-            {[["55", "Nations monitored"], ["312+", "Signals this week"], ["PESTEL+IR", "7-dimension framework"], ["Citable", "VB citation keys"]].map(([val, label]) => (
-              <div key={label} className="flex flex-col items-center">
-                <span className="text-2xl font-black text-cyan-400">{val}</span>
-                <span className="text-xs text-gray-500">{label}</span>
+      {/* ── BEFORE / AFTER PAIN SECTION ─────────────────────────────────────── */}
+      <section className="pb-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+            <div className="grid sm:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-[#1e3a5f]">
+              {/* Without */}
+              <div className="bg-[#140a0a] border-r border-[#1e3a5f] p-7">
+                <div className="flex items-center gap-2 text-xs font-semibold text-red-400 uppercase tracking-widest mb-5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Without ViralBeat
+                </div>
+                {[
+                  "A 3-month-old country PDF from a consulting firm",
+                  "Google search and Wikipedia for political context",
+                  "Book flights. Arrive. Discover things have changed.",
+                  "$10,000+/yr for a generic global subscription",
+                  "No one on the ground to tell you what's really happening",
+                ].map((item) => (
+                  <div key={item} className="flex items-start gap-3 mb-3.5">
+                    <div className="w-4 h-4 rounded-full bg-red-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-red-400 text-[9px] font-black">✕</span>
+                    </div>
+                    <span className="text-sm text-gray-400 leading-snug">{item}</span>
+                  </div>
+                ))}
+                <div className="mt-5 rounded-xl bg-red-500/8 border border-red-500/20 px-4 py-3 text-sm text-red-300 font-medium">
+                  $50,000 wasted on a trip that should have been a 30-second brief.
+                </div>
               </div>
-            ))}
-          </div>
+              {/* With */}
+              <div className="bg-[#060c1e] p-7">
+                <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400 uppercase tracking-widest mb-5">
+                  <MapPin className="w-3.5 h-3.5" /> With ViralBeat
+                </div>
+                {[
+                  "Live PESTEL+IR score updated by contributors in-country today",
+                  "Field signals from journalists and NGO officers on the ground",
+                  "Go/No-Go brief in 30 seconds — cited, exportable, defensible",
+                  "From $29/month — cancel anytime",
+                  "People in Nairobi, Lagos, Dakar filing intelligence right now",
+                ].map((item) => (
+                  <div key={item} className="flex items-start gap-3 mb-3.5">
+                    <div className="w-4 h-4 rounded-full bg-cyan-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCircle2 className="w-2.5 h-2.5 text-cyan-400" />
+                    </div>
+                    <span className="text-sm text-gray-300 leading-snug">{item}</span>
+                  </div>
+                ))}
+                <div className="mt-5 rounded-xl bg-cyan-500/8 border border-cyan-500/20 px-4 py-3 text-sm text-cyan-300 font-medium">
+                  Your feet on the ground — before you book the ticket.
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── GATED LIVE BRIEF ─────────────────────────────────────────────────── */}
+      <section className="pb-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Kenya Intelligence Brief · Live · Updated 14 min ago</span>
+              </div>
+              <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px]">Page 1 of 8 — free</Badge>
+            </div>
+
+            <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
+              {/* Brief header */}
+              <div className="px-6 py-4 border-b border-[#1e3a5f] flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🇰🇪</span>
+                  <div>
+                    <div className="text-lg font-black text-white">Kenya Intelligence Brief</div>
+                    <div className="text-xs text-gray-500">PESTEL+IR Composite · June 2026 · Compiled from 3 field contributors</div>
+                  </div>
+                </div>
+                <span className="text-sm font-bold px-4 py-1.5 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">Go-Market</span>
+              </div>
+
+              {/* Score bar */}
+              <div className="grid grid-cols-6 border-b border-[#1e3a5f] divide-x divide-[#1e3a5f]">
+                {[["Political","62","#fb923c"],["Economic","71","#22d3ee"],["Social","68","#22d3ee"],["Tech","83","#4ade80"],["IRS","78","#4ade80"],["Composite","72","#22d3ee"]].map(([dim,val,col]) => (
+                  <div key={dim} className="px-2 py-3 text-center">
+                    <div className="text-[9px] text-gray-600 uppercase tracking-wider mb-1">{dim}</div>
+                    <div className="text-xl font-black" style={{ color: col }}>{val}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Body — two columns */}
+              <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[#1e3a5f]">
+                {/* Field signals */}
+                <div className="p-5">
+                  <div className="flex items-center gap-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                    Live field signals · past 48h
+                  </div>
+                  {[
+                    { dot: "#fb923c", text: "Opposition coalition meeting in Westlands — 3 parties aligning ahead of by-election", source: "VB Field Contributor · Nairobi · 4h ago" },
+                    { dot: "#4ade80", text: "Safaricom M-Pesa expansion into Ethiopia confirmed — tech sector bullish", source: "VB Analyst · 11h ago" },
+                    { dot: "#4ade80", text: "IMF ECF review positive — next disbursement tranche expected Q3", source: "IMF Press Release · 1d ago" },
+                  ].map((s, i) => (
+                    <div key={i} className="flex items-start gap-3 mb-4">
+                      <span className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: s.dot }} />
+                      <div>
+                        <div className="text-sm text-gray-200 leading-snug mb-1">{s.text}</div>
+                        <div className="text-[10px] text-gray-600">{s.source}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Contributors */}
+                <div className="p-5">
+                  <div className="flex items-center gap-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                    <Users className="w-3 h-3" />
+                    Who's reporting from Kenya right now
+                  </div>
+                  {[
+                    { initials: "JM", bg: "linear-gradient(135deg,#0e7490,#0284c7)", name: "James M.", role: "Political journalist · Nairobi", signals: "12 signals this month" },
+                    { initials: "AW", bg: "linear-gradient(135deg,#15803d,#16a34a)", name: "Amina W.", role: "NGO Programme Lead · Kisumu", signals: "8 signals this month" },
+                    { initials: "RO", bg: "linear-gradient(135deg,#7c3aed,#9333ea)", name: "Rahim O.", role: "Civic researcher · Mombasa", signals: "5 signals this month" },
+                  ].map((c) => (
+                    <div key={c.name} className="flex items-center gap-3 mb-4">
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: c.bg }}>{c.initials}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-white">{c.name}</div>
+                        <div className="text-[10px] text-gray-500">{c.role}</div>
+                      </div>
+                      <span className="text-[9px] text-green-400 bg-green-400/10 px-2 py-0.5 rounded-md shrink-0">{c.signals}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Gate bar */}
+              <div className="border-t border-[#1e3a5f] bg-[#060c1e]/60 px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+                <div className="text-sm text-gray-400">
+                  <span className="text-white font-semibold">Pages 2–8 locked:</span> Risk matrix · Sector verdicts · Go/No-Go rationale · Electoral calendar · Investment entry points
+                </div>
+                <Button
+                  onClick={() => user ? setLocation("/scanner/ken/brief") : (window.location.href = getLoginUrl())}
+                  className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold shrink-0"
+                >
+                  Unlock full brief — free <ArrowRight className="ml-1.5 w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
