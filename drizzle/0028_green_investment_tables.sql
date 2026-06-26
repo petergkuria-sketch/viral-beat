@@ -1,0 +1,70 @@
+-- GIaaS: Green Investment as a Service tables
+
+CREATE TABLE `greenProjects` (
+  `id` int AUTO_INCREMENT PRIMARY KEY,
+  `projectId` varchar(36) NOT NULL UNIQUE,
+  `title` varchar(255) NOT NULL,
+  `developer` varchar(255) NOT NULL,
+  `sector` ENUM('renewable_energy','reit','agriculture') NOT NULL,
+  `countryCode` varchar(3) NOT NULL,
+  `countryName` varchar(100) NOT NULL,
+  `description` text NOT NULL,
+  `claimedCo2Reduction` decimal(12,2),
+  `claimedJobsCreated` int,
+  `claimedCapacityMw` decimal(10,2),
+  `budget` decimal(15,2),
+  `startDate` varchar(10),
+  `endDate` varchar(10),
+  `certifications` json,
+  `sectorMetrics` json,
+  `status` ENUM('pending','active','validated','flagged') NOT NULL DEFAULT 'pending',
+  `giaasScore` decimal(5,2),
+  `politicalRiskScore` decimal(5,2),
+  `submittedBy` int,
+  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `greenProjects_country_idx` (`countryCode`),
+  INDEX `greenProjects_sector_idx` (`sector`),
+  INDEX `greenProjects_status_idx` (`status`)
+);
+
+CREATE TABLE `greenSubmissions` (
+  `id` int AUTO_INCREMENT PRIMARY KEY,
+  `submissionId` varchar(36) NOT NULL UNIQUE,
+  `projectId` varchar(36) NOT NULL,
+  `userId` int NOT NULL,
+  `observationType` ENUM('site_visit','photo','community_report','sensor') NOT NULL,
+  `content` text NOT NULL,
+  `photoUrls` json,
+  `geoLat` decimal(10,7),
+  `geoLng` decimal(10,7),
+  `confirms` boolean NOT NULL,
+  `confidenceLevel` ENUM('low','medium','high') NOT NULL DEFAULT 'medium',
+  `status` ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `qualityScore` decimal(3,2),
+  `vbtRewarded` int DEFAULT 0,
+  `rewardedAt` timestamp NULL,
+  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX `greenSubmissions_project_idx` (`projectId`),
+  INDEX `greenSubmissions_user_idx` (`userId`),
+  INDEX `greenSubmissions_status_idx` (`status`)
+);
+
+CREATE TABLE `greenValidations` (
+  `id` int AUTO_INCREMENT PRIMARY KEY,
+  `validationId` varchar(36) NOT NULL UNIQUE,
+  `projectId` varchar(36) NOT NULL,
+  `runAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `citizenDataPoints` int NOT NULL DEFAULT 0,
+  `confirmsCount` int NOT NULL DEFAULT 0,
+  `disputesCount` int NOT NULL DEFAULT 0,
+  `divergenceScore` decimal(5,2),
+  `confidenceScore` decimal(5,2),
+  `verdict` ENUM('verified','inconclusive','flagged','greenwashing') NOT NULL,
+  `verdictSummary` text,
+  `giaasScore` decimal(5,2),
+  `claimsAnalysis` json,
+  `triggeredAlert` boolean DEFAULT false,
+  `triggeredBy` int,
+  INDEX `greenValidations_project_idx` (`projectId`)
+);

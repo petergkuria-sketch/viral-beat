@@ -55,6 +55,12 @@ const ReportArchivePage = lazy(() => import("./pages/ReportArchivePage"));
 const CountryIntelProfile = lazy(() => import("./pages/CountryIntelProfile"));
 const GoNoGoBrief = lazy(() => import("./pages/GoNoGoBrief"));
 
+// GIaaS — Green Investment as a Service
+const GIaaSHub = lazy(() => import("./pages/GIaaSHub"));
+const GIaaSProject = lazy(() => import("./pages/GIaaSProject"));
+const GIaaSSubmit = lazy(() => import("./pages/GIaaSSubmit"));
+const GIaaSRegister = lazy(() => import("./pages/GIaaSRegister"));
+
 // Country Intelligence — generic templates
 const CountryDashboard = lazy(() => import("./pages/country/CountryDashboard"));
 const CountryNewsfeed = lazy(() => import("./pages/country/CountryNewsfeed"));
@@ -186,6 +192,12 @@ function Router() {
     { path: "/scanner", component: AfricaScanner },
     { path: "/scanner/:code", component: CountryIntelProfile },
     { path: "/scanner/:code/brief", component: GoNoGoBrief },
+    // GIaaS — Green Investment as a Service
+    { path: "/green", component: GIaaSHub },
+    { path: "/green/register", component: GIaaSRegister },
+    { path: "/green/submit", component: GIaaSSubmit },
+    { path: "/green/:id", component: GIaaSProject },
+    { path: "/green/:id/submit", component: GIaaSSubmit },
   ];
 
   return (

@@ -1502,3 +1502,83 @@ export const signalWatchlists = mysqlTable("signalWatchlists", {
 }));
 export type SignalWatchlist = typeof signalWatchlists.$inferSelect;
 export type InsertSignalWatchlist = typeof signalWatchlists.$inferInsert;
+
+// ── GIaaS: Green Investment as a Service ────────────────────────────────────
+
+export const greenProjects = mysqlTable("greenProjects", {
+  id:                   int("id").autoincrement().primaryKey(),
+  projectId:            varchar("projectId", { length: 36 }).notNull().unique(),
+  title:                varchar("title", { length: 255 }).notNull(),
+  developer:            varchar("developer", { length: 255 }).notNull(),
+  sector:               mysqlEnum("sector", ["renewable_energy", "reit", "agriculture"]).notNull(),
+  countryCode:          varchar("countryCode", { length: 3 }).notNull(),  // ISO3
+  countryName:          varchar("countryName", { length: 100 }).notNull(),
+  description:          text("description").notNull(),
+  claimedCo2Reduction:  decimal("claimedCo2Reduction", { precision: 12, scale: 2 }), // tonnes CO2
+  claimedJobsCreated:   int("claimedJobsCreated"),
+  claimedCapacityMw:    decimal("claimedCapacityMw", { precision: 10, scale: 2 }),   // MW for energy
+  budget:               decimal("budget", { precision: 15, scale: 2 }),               // USD
+  startDate:            varchar("startDate", { length: 10 }),
+  endDate:              varchar("endDate", { length: 10 }),
+  certifications:       json("certifications").$type<string[]>().default([]),
+  sectorMetrics:        json("sectorMetrics").$type<Record<string, string | number>>().default({}),
+  status:               mysqlEnum("status", ["pending", "active", "validated", "flagged"]).notNull().default("pending"),
+  giaasScore:           decimal("giaasScore", { precision: 5, scale: 2 }),
+  politicalRiskScore:   decimal("politicalRiskScore", { precision: 5, scale: 2 }),
+  submittedBy:          int("submittedBy"),
+  createdAt:            timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:            timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, t => ({
+  countryIdx: index("greenProjects_country_idx").on(t.countryCode),
+  sectorIdx:  index("greenProjects_sector_idx").on(t.sector),
+  statusIdx:  index("greenProjects_status_idx").on(t.status),
+}));
+export type GreenProject = typeof greenProjects.$inferSelect;
+export type InsertGreenProject = typeof greenProjects.$inferInsert;
+
+export const greenSubmissions = mysqlTable("greenSubmissions", {
+  id:               int("id").autoincrement().primaryKey(),
+  submissionId:     varchar("submissionId", { length: 36 }).notNull().unique(),
+  projectId:        varchar("projectId", { length: 36 }).notNull(),
+  userId:           int("userId").notNull(),
+  observationType:  mysqlEnum("observationType", ["site_visit", "photo", "community_report", "sensor"]).notNull(),
+  content:          text("content").notNull(),
+  photoUrls:        json("photoUrls").$type<string[]>().default([]),
+  geoLat:           decimal("geoLat", { precision: 10, scale: 7 }),
+  geoLng:           decimal("geoLng", { precision: 10, scale: 7 }),
+  confirms:         boolean("confirms").notNull(),  // true=supports claims, false=disputes
+  confidenceLevel:  mysqlEnum("confidenceLevel", ["low", "medium", "high"]).notNull().default("medium"),
+  status:           mysqlEnum("status", ["pending", "approved", "rejected"]).notNull().default("pending"),
+  qualityScore:     decimal("qualityScore", { precision: 3, scale: 2 }),
+  vbtRewarded:      int("vbtRewarded").default(0),
+  rewardedAt:       timestamp("rewardedAt"),
+  createdAt:        timestamp("createdAt").defaultNow().notNull(),
+}, t => ({
+  projectIdx: index("greenSubmissions_project_idx").on(t.projectId),
+  userIdx:    index("greenSubmissions_user_idx").on(t.userId),
+  statusIdx:  index("greenSubmissions_status_idx").on(t.status),
+}));
+export type GreenSubmission = typeof greenSubmissions.$inferSelect;
+export type InsertGreenSubmission = typeof greenSubmissions.$inferInsert;
+
+export const greenValidations = mysqlTable("greenValidations", {
+  id:               int("id").autoincrement().primaryKey(),
+  validationId:     varchar("validationId", { length: 36 }).notNull().unique(),
+  projectId:        varchar("projectId", { length: 36 }).notNull(),
+  runAt:            timestamp("runAt").defaultNow().notNull(),
+  citizenDataPoints: int("citizenDataPoints").notNull().default(0),
+  confirmsCount:    int("confirmsCount").notNull().default(0),
+  disputesCount:    int("disputesCount").notNull().default(0),
+  divergenceScore:  decimal("divergenceScore", { precision: 5, scale: 2 }),  // 0-100, higher = greenwashing risk
+  confidenceScore:  decimal("confidenceScore", { precision: 5, scale: 2 }),  // 0-100
+  verdict:          mysqlEnum("verdict", ["verified", "inconclusive", "flagged", "greenwashing"]).notNull(),
+  verdictSummary:   text("verdictSummary"),
+  giaasScore:       decimal("giaasScore", { precision: 5, scale: 2 }),
+  claimsAnalysis:   json("claimsAnalysis").$type<Record<string, any>>().default({}),
+  triggeredAlert:   boolean("triggeredAlert").default(false),
+  triggeredBy:      int("triggeredBy"),
+}, t => ({
+  projectIdx: index("greenValidations_project_idx").on(t.projectId),
+}));
+export type GreenValidation = typeof greenValidations.$inferSelect;
+export type InsertGreenValidation = typeof greenValidations.$inferInsert;

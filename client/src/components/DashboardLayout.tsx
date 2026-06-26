@@ -22,7 +22,7 @@ import {
   Home,
   // New for restructured nav
   ScanLine, Brain, Target, Bell, Flag, Map, BookOpen, Activity,
-  Crosshair, Briefcase, Star,
+  Crosshair, Briefcase, Star, Leaf,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -62,6 +62,7 @@ const SECTIONS: Section[] = [
     accent: "#00d4ff",
     items: [
       { icon: BarChart3,  label: "Africa Scanner",         path: "/scanner",     badge: "New" },
+      { icon: Leaf,       label: "Green Intelligence",      path: "/green",       badge: "Beta" },
       { icon: Activity,   label: "Political Aggregator",   path: "/aggregator" },
       { icon: TrendingUp, label: "PESTEL Trending",        path: "/trending" },
       { icon: Users,      label: "Field Signals",          path: "/haa" },
