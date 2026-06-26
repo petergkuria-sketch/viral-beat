@@ -455,11 +455,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Header */}
         <div className="flex items-center gap-3 px-3 h-14 shrink-0 border-b border-[#0f172a]">
-          <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-cyan-500/20">
-            <TrendingUp className="w-4 h-4 text-black" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="ViralBeat"
+            className="w-8 h-8 rounded-lg shrink-0 object-cover"
+          />
           {sidebarOpen && (
-            <span className="font-bold text-sm text-white tracking-tight truncate">The Viral Beat</span>
+            <span className="font-bold text-sm text-white tracking-tight truncate">ViralBeat</span>
           )}
           {isMobile && mobileOpen && (
             <button onClick={() => setMobileOpen(false)} className="ml-auto text-slate-500 hover:text-white">

@@ -320,10 +320,8 @@ export default function LandingPage() {
       <nav className="fixed top-0 w-full bg-[#050b1a]/90 backdrop-blur-xl border-b border-white/5 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <button className="flex items-center gap-2.5 focus:outline-none" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/30">
-              <Globe className="w-4 h-4 text-black" />
-            </div>
-            <span className="font-bold text-lg tracking-tight text-white">Viral Beat</span>
+            <img src="/logo.png" alt="ViralBeat" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-cyan-500/20" />
+            <span className="font-bold text-lg tracking-tight text-white">ViralBeat</span>
             <Badge className="hidden sm:inline-flex bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px]">Africa Intelligence</Badge>
           </button>
 
