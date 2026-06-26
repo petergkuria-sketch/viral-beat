@@ -14,9 +14,61 @@ import Anthropic from "@anthropic-ai/sdk";
 import { randomUUID } from "crypto";
 import { getDb } from "../db";
 import { ENV } from "../_core/env";
-import { greenProjects, scannerSignals, giaasDataFeeds } from "../../drizzle/schema";
+import { greenProjects, scannerSignals, giaasDataFeeds, tickerItems, type InsertTickerItem } from "../../drizzle/schema";
 import { AFRICAN_COUNTRIES } from "../../shared/africanCountries";
 import { eq, desc, inArray, and } from "drizzle-orm";
+
+const TICKER_TTL_H = 72; // hours before ticker item expires
+
+// ── Ticker helpers ────────────────────────────────────────────────────────────
+
+const SECTOR_EMOJI: Record<string, string> = {
+  renewable_energy: "⚡",
+  reit:             "🏗️",
+  agriculture:      "🌱",
+};
+
+/**
+ * Push a green investment news item to the breaking ticker.
+ * severity="breaking" puts it in the red breaking band; "normal" scrolls with regular items.
+ */
+export async function pushGreenTicker(opts: {
+  signalId:    string;
+  countryCode: string;
+  headline:    string;
+  severity:    "breaking" | "normal";
+  deltaLabel?: string;
+  deltaDir?:   "up" | "down";
+  verdictKey?: string;
+  verdictLabel?: string;
+  source?:     string;
+}): Promise<void> {
+  const d = await db();
+  const country = AFRICAN_COUNTRIES.find(c => c.iso3 === opts.countryCode);
+  if (!country) return;
+
+  const expiresAt = new Date(Date.now() + TICKER_TTL_H * 60 * 60 * 1000);
+
+  const row: InsertTickerItem = {
+    signalId:     opts.signalId,
+    countryCode:  opts.countryCode,
+    countryFlag:  country.flag,
+    countryName:  country.name,
+    severity:     opts.severity,
+    headline:     opts.headline.slice(0, 300),
+    deltaLabel:   opts.deltaLabel,
+    deltaDir:     opts.deltaDir,
+    verdictKey:   opts.verdictKey,
+    verdictLabel: opts.verdictLabel,
+    source:       opts.source ?? "GIaaS Agent",
+    active:       true,
+    expiresAt,
+  };
+
+  await d.insert(tickerItems).values(row).catch(e =>
+    console.warn("[GIaaS Agent] ticker insert failed:", e?.message)
+  );
+}
 
 const MODEL = "claude-opus-4-8";
 
@@ -289,6 +341,24 @@ Rules:
         .set({ status: "ingested", ingestedAt: new Date(), projectsCreated: inserted })
         .where(eq(giaasDataFeeds.feedId, feed.feedId));
 
+      // Push a ticker item when a community feed yields new projects
+      if (inserted > 0) {
+        const countryHints = (feed.countryHints as string[]) ?? [];
+        const primaryCountry = countryHints[0] ?? "AFR";
+        const country = AFRICAN_COUNTRIES.find(c => c.iso3 === primaryCountry) ?? AFRICAN_COUNTRIES[0];
+        await pushGreenTicker({
+          signalId:     `giaas-feed-${feed.feedId}`,
+          countryCode:  country.iso3,
+          headline:     `🌍 GIaaS: ${inserted} new green project${inserted > 1 ? "s" : ""} added from community data feed${feed.title ? ` — ${feed.title}` : ""}`,
+          severity:     inserted >= 3 ? "breaking" : "normal",
+          deltaLabel:   `+${inserted} project${inserted > 1 ? "s" : ""}`,
+          deltaDir:     "up",
+          verdictKey:   "green-project",
+          verdictLabel: "GIaaS",
+          source:       "GIaaS Data Feed",
+        }).catch(() => null);
+      }
+
       processed++;
       console.log(`[GIaaS Agent] Feed ${feed.feedId} ingested → ${inserted} projects created`);
 
@@ -375,6 +445,32 @@ async function persistProjects(
 
       existingKeys.add(key); // prevent intra-batch dupes
       inserted++;
+
+      // Push to ticker for high-confidence or large-scale projects
+      const isNotable =
+        (p as any).sourceConfidence === "high" ||
+        (Number(p.claimedCapacityMw) >= 50) ||
+        (Number(p.claimedCo2Reduction) >= 100_000) ||
+        (Number(p.claimedJobsCreated) >= 1_000);
+
+      if (isNotable) {
+        const sectorEmoji = SECTOR_EMOJI[p.sector] ?? "🌿";
+        const capacityStr  = p.claimedCapacityMw    ? ` · ${Number(p.claimedCapacityMw).toLocaleString()} MW`       : "";
+        const co2Str       = p.claimedCo2Reduction  ? ` · ${(Number(p.claimedCo2Reduction) / 1000).toFixed(0)}kt CO₂` : "";
+        const jobsStr      = p.claimedJobsCreated   ? ` · ${Number(p.claimedJobsCreated).toLocaleString()} jobs`    : "";
+
+        await pushGreenTicker({
+          signalId:     `giaas-${p.countryCode}-${Date.now()}`,
+          countryCode:  p.countryCode,
+          headline:     `${sectorEmoji} ${p.title} — ${p.developer}${capacityStr}${co2Str}${jobsStr}`,
+          severity:     (Number(p.claimedCapacityMw) >= 200 || Number(p.claimedCo2Reduction) >= 500_000) ? "breaking" : "normal",
+          deltaLabel:   p.budget ? `$${(Number(p.budget) / 1_000_000).toFixed(0)}M` : undefined,
+          deltaDir:     "up",
+          verdictKey:   "green-project",
+          verdictLabel: "Green",
+          source:       "GIaaS Agent",
+        }).catch(() => null);
+      }
     } catch (e: any) {
       // Duplicate key from concurrent run — treat as skip
       if (e?.code === "ER_DUP_ENTRY") {

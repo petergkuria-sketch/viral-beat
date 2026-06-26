@@ -10,6 +10,7 @@ import { greenProjects, greenSubmissions, greenValidations, scannerSignals } fro
 import { eq, and, desc } from "drizzle-orm";
 import { invokeLLM, type InvokeResult } from "../_core/llm";
 import { awardTokens } from "./tokenRewards";
+import { pushGreenTicker } from "./giaasProjectAgent";
 
 const VBT_REWARD_APPROVED_CONFIRMS  = 25;  // VBT for approved supporting observation
 const VBT_REWARD_APPROVED_DISPUTES  = 40;  // VBT for approved dispute (higher — ground-truth is harder)
@@ -105,10 +106,11 @@ export async function runValidation(
     })
     .where(eq(greenProjects.projectId, projectId));
 
-  // If greenwashing flagged, write a scanner signal into the 'En' dimension
+  // If greenwashing flagged, write a scanner signal and push to ticker
   if (result.verdict === "greenwashing" || result.verdict === "flagged") {
+    const sigId = randomUUID();
     await d.insert(scannerSignals).values({
-      signalId:    randomUUID(),
+      signalId:    sigId,
       countryCode: project.countryCode,
       dim:         "En",
       severity:    result.verdict === "greenwashing" ? "breaking" : "alert",
@@ -118,6 +120,20 @@ export async function runValidation(
       sourceType:  "field",
       ingestedAt:  new Date(),
     }).catch(e => console.warn("[GIaaS] failed to write scanner signal:", e));
+
+    await pushGreenTicker({
+      signalId:     sigId,
+      countryCode:  project.countryCode,
+      headline:     result.verdict === "greenwashing"
+        ? `🚨 Greenwashing Alert: ${project.developer} — ${project.title}`
+        : `⚠️ GIaaS Flag: ${project.developer} — ${project.title}`,
+      severity:     result.verdict === "greenwashing" ? "breaking" : "normal",
+      deltaLabel:   `Divergence ${Number(result.divergenceScore).toFixed(0)}%`,
+      deltaDir:     "down",
+      verdictKey:   result.verdict,
+      verdictLabel: result.verdict === "greenwashing" ? "Greenwashing" : "Flagged",
+      source:       "GIaaS Validation Engine",
+    }).catch(e => console.warn("[GIaaS] ticker push failed:", e));
   }
 
   const [saved] = await d

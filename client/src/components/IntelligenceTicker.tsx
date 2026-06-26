@@ -29,7 +29,7 @@ interface TickerItem {
   deltaLabel?: string;      // e.g. "▲ +6 pts" or "Monitor → Go-Market"
   deltaDir?: "up" | "down"; // colours the delta
   verdict?: string;         // current verdict label for normal items
-  verdictKey?: "go-market" | "monitor" | "caution" | "no-go";
+  verdictKey?: "go-market" | "monitor" | "caution" | "no-go" | "green-project" | "greenwashing" | "flagged";
   source: string;
   timeAgo: string;
 }
@@ -238,7 +238,10 @@ export default function IntelligenceTicker() {
             style={{ animation: "ticker-scroll 38s linear infinite" }}
           >
             {breakingLoop.map((item, i) => (
-              <BreakingItem key={`${item.id}-${i}`} item={item} onClick={() => setLocation(`/scanner/${item.countryCode}`)} />
+              <BreakingItem key={`${item.id}-${i}`} item={item} onClick={() => {
+                const isGreen = item.verdictKey === "green-project" || item.verdictKey === "greenwashing" || item.verdictKey === "flagged";
+                setLocation(isGreen ? "/green" : `/scanner/${item.countryCode}`);
+              }} />
             ))}
           </div>
         </div>
@@ -284,7 +287,10 @@ export default function IntelligenceTicker() {
         >
           {normalLoop.map((item, i) => (
             <>
-              <NormalItem key={`${item.id}-${i}`} item={item} onClick={() => setLocation(`/scanner/${item.countryCode}`)} />
+              <NormalItem key={`${item.id}-${i}`} item={item} onClick={() => {
+                const isGreen = item.verdictKey === "green-project" || item.verdictKey === "greenwashing" || item.verdictKey === "flagged";
+                setLocation(isGreen ? "/green" : `/scanner/${item.countryCode}`);
+              }} />
               {i < normalLoop.length - 1 && (
                 <span key={`sep-${i}`} className="text-white/10 mr-9 text-xs">◆</span>
               )}
