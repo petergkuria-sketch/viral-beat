@@ -55,9 +55,10 @@ const ReportArchivePage = lazy(() => import("./pages/ReportArchivePage"));
 const CountryIntelProfile = lazy(() => import("./pages/CountryIntelProfile"));
 const GoNoGoBrief = lazy(() => import("./pages/GoNoGoBrief"));
 
-// Intelligence Bulletins — newsletter archive
+// Intelligence Bulletins — newsletter archive + admin
 const BulletinArchive = lazy(() => import("./pages/BulletinArchive"));
 const BulletinIssue   = lazy(() => import("./pages/BulletinIssue"));
+const BulletinAdmin   = lazy(() => import("./pages/BulletinAdmin"));
 
 // GIaaS — Green Investment as a Service
 const GIaaSHub      = lazy(() => import("./pages/GIaaSHub"));
@@ -142,6 +143,7 @@ function Router() {
     { path: "/africa/:code", component: AfricaIntelligence },
     { path: "/admin", component: AdminDashboard },
     { path: "/admin/users", component: AdminUsers },
+    { path: "/admin/bulletins", component: BulletinAdmin },
     { path: "/developer-hub", component: DeveloperHub },
     { path: "/developer-hub/agent", component: () => <RedirectTo path="/developer-hub" /> },
     { path: "/developer-hub/thread/:threadId", component: ThreadDetail },

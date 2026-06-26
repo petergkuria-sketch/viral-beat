@@ -146,6 +146,7 @@ const SECTIONS: Section[] = [
       { icon: ShieldCheck, label: "Admin Dashboard",         path: "/admin" },
       { icon: Users,       label: "User Management",         path: "/admin/users" },
       { icon: Leaf,        label: "GIaaS Admin",             path: "/green/admin" },
+      { icon: BookOpen,    label: "Bulletin Admin",          path: "/admin/bulletins" },
     ],
   },
   // ── 8. ACCOUNT ────────────────────────────────────────────────────────────

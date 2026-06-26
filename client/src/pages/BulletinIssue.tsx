@@ -1,7 +1,133 @@
 import { useLocation, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { AFRICAN_COUNTRIES } from "@shared/africanCountries";
-import { ArrowLeft, Calendar, Zap, TrendingUp, Users, Leaf, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, Zap, TrendingUp, Users, Leaf, ExternalLink, Download } from "lucide-react";
+
+function downloadHtml(title: string, slug: string, htmlContent: string, sections: any, stats: any) {
+  const s = sections ?? {};
+  const ls = s.leadStory;
+  const signals: any[] = s.signals ?? [];
+  const shifts: any[]  = s.verdictShifts ?? [];
+  const fields: any[]  = s.fieldObservations ?? [];
+  const giaas           = s.giaasSpotlight;
+
+  const verdictBadge = (v: string) => {
+    const colors: Record<string, string> = {
+      "go-market": "#22c55e", monitor: "#a3e635", caution: "#f59e0b", "no-go": "#ef4444",
+    };
+    return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:${colors[v] ?? "#fff"}22;color:${colors[v] ?? "#ccc"};border:1px solid ${colors[v] ?? "#ccc"}44">${v.replace("-"," ")}</span>`;
+  };
+
+  const blob = new Blob([`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>${title}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#050b1a;color:#e5e7eb;line-height:1.6;padding:0}
+  a{color:#22d3ee}
+  .wrap{max-width:680px;margin:0 auto;padding:40px 24px}
+  .masthead{background:#030712;border:1px solid #ffffff0d;border-radius:12px;padding:32px;margin-bottom:32px}
+  .label{font-size:10px;font-weight:900;letter-spacing:.18em;color:#22d3ee;text-transform:uppercase}
+  h1{font-size:22px;font-weight:900;margin:12px 0 8px;line-height:1.25}
+  .summary{color:#9ca3af;font-size:13px;margin-bottom:24px}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stat{background:#ffffff07;border-radius:8px;padding:12px;text-align:center}
+  .stat-val{font-size:20px;font-weight:900}
+  .stat-lbl{font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  .section-label{font-size:9px;font-weight:900;letter-spacing:.18em;color:#4b5563;text-transform:uppercase;margin:32px 0 10px}
+  .card{background:#ffffff05;border:1px solid #ffffff0d;border-radius:10px;padding:16px;margin-bottom:10px}
+  .card-meta{font-size:11px;color:#6b7280;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+  .card h3{font-size:14px;font-weight:700;margin-bottom:6px}
+  .card p{font-size:12px;color:#9ca3af;line-height:1.55}
+  .signals-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .shifts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .shift{background:#ffffff05;border:1px solid #ffffff0d;border-radius:10px;padding:16px;text-align:center}
+  .shift-delta{font-size:18px;font-weight:900}
+  .shift-delta.pos{color:#22c55e}.shift-delta.neg{color:#ef4444}
+  .obs{border-left:2px solid #22c55e55;padding:12px 14px;border-radius:0 8px 8px 0;background:#ffffff04;margin-bottom:10px}
+  .obs-meta{font-size:10px;color:#6b7280}
+  .giaas{background:#22c55e08;border:1px solid #22c55e22;border-radius:10px;padding:20px;display:flex;gap:16px}
+  .giaas-body .tag{font-size:8px;font-weight:900;letter-spacing:.15em;color:#4ade80;text-transform:uppercase;margin-bottom:4px}
+  .footer{border-top:1px solid #ffffff08;margin-top:48px;padding-top:20px;text-align:center;font-size:11px;color:#374151}
+  @media print{body{background:#fff;color:#111}.masthead,.card,.obs,.giaas,.stat,.shift{border-color:#ddd;background:#f9f9f9}.label,.giaas-body .tag{color:#0e7490}.shift-delta.pos{color:#166534}.shift-delta.neg{color:#991b1b}.card p,.summary{color:#374151}.stat-lbl,.card-meta,.obs-meta,.footer{color:#6b7280}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <div class="label">Africa Intelligence Bulletin · ViralBeat</div>
+    <h1>${title}</h1>
+    <p class="summary">${htmlContent.replace(/<[^>]+>/g, " ").slice(0, 300)}…</p>
+    ${stats ? `<div class="stats-grid">
+      <div class="stat"><div class="stat-val">${stats.breakingShifts ?? 0}</div><div class="stat-lbl">Breaking shifts</div></div>
+      <div class="stat"><div class="stat-val">${stats.greenProjects ?? 0}</div><div class="stat-lbl">Green projects</div></div>
+      <div class="stat"><div class="stat-val">${stats.fieldSignals ?? 0}</div><div class="stat-lbl">Field signals</div></div>
+      <div class="stat"><div class="stat-val">${stats.verdictsChanged ?? 0}</div><div class="stat-lbl">Verdicts changed</div></div>
+    </div>` : ""}
+  </div>
+
+  ${ls ? `<div class="section-label">Lead story</div>
+  <div class="card">
+    <div class="card-meta"><span>${ls.countryFlag}</span><strong>${ls.country}</strong><span>${ls.source}</span></div>
+    <h3>${ls.headline}</h3>
+    <p>${ls.body}</p>
+    <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${(ls.verdicts ?? []).map(verdictBadge).join("")}</div>
+  </div>` : ""}
+
+  ${signals.length > 0 ? `<div class="section-label">Signals this issue</div>
+  <div class="signals-grid">
+    ${signals.map(s => `<div class="card">
+      <div class="card-meta"><span>${s.countryFlag}</span><strong>${s.country}</strong>${verdictBadge(s.verdict)}</div>
+      <p>${s.headline}</p>
+      <div style="font-size:10px;color:#6b7280;margin-top:6px">${s.source} · ${s.date}</div>
+    </div>`).join("")}
+  </div>` : ""}
+
+  ${shifts.length > 0 ? `<div class="section-label">Verdict shifts</div>
+  <div class="shifts-grid">
+    ${shifts.map(s => `<div class="shift">
+      <div style="font-size:24px;margin-bottom:4px">${s.countryFlag}</div>
+      <div class="shift-delta ${s.delta > 0 ? "pos" : "neg"}">${s.delta > 0 ? "+" : ""}${s.delta} pts</div>
+      <div style="font-size:10px;color:#6b7280;margin-top:4px">${s.from} → ${s.to}</div>
+    </div>`).join("")}
+  </div>` : ""}
+
+  ${fields.length > 0 ? `<div class="section-label">Field observations</div>
+  ${fields.map(f => `<div class="obs">
+    <div style="font-size:12px;font-weight:700;margin-bottom:2px">${f.location}</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px">${f.headline}</div>
+    <p>${f.body}</p>
+    <div class="obs-meta" style="margin-top:8px">Verified by ${f.contributors} contributor${f.contributors !== 1 ? "s" : ""} · ${f.date} · +${f.vbtAwarded} VBT</div>
+  </div>`).join("")}` : ""}
+
+  ${giaas ? `<div class="section-label">Green intelligence — GIaaS spotlight</div>
+  <div class="giaas">
+    <div style="font-size:28px">🌿</div>
+    <div class="giaas-body">
+      <div class="tag">GIaaS spotlight</div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:4px">${giaas.projectTitle}</div>
+      <div style="font-size:11px;color:#6b7280;margin-bottom:8px">${giaas.countryFlag} ${giaas.country} · ${giaas.developer}</div>
+      <p style="font-size:12px;color:#9ca3af">${giaas.summary}</p>
+    </div>
+  </div>` : ""}
+
+  <div class="footer">
+    Africa Intelligence Bulletin · ViralBeat · viralbeat.io<br>
+    Published ${new Date().toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })}
+  </div>
+</div>
+</body></html>`], { type: "text/html" });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `viralbeat-bulletin-${slug}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 const VERDICT_STYLE: Record<string, string> = {
   "go-market": "bg-green-500/10 text-green-400 border border-green-500/25",
@@ -65,7 +191,14 @@ export default function BulletinIssue() {
             <ArrowLeft className="w-4 h-4" /> Archive
           </button>
           <span className="text-white/15">/</span>
-          <span className="text-sm text-white/50 truncate">{issue.title}</span>
+          <span className="text-sm text-white/50 truncate flex-1">{issue.title}</span>
+          <button
+            onClick={() => downloadHtml(issue.title, issue.slug, issue.htmlContent, sections, stats)}
+            className="flex items-center gap-1.5 text-white/40 hover:text-cyan-400 text-xs transition-colors shrink-0"
+            title="Download as HTML (open in browser → Print → Save as PDF)"
+          >
+            <Download className="w-3.5 h-3.5" /> Download
+          </button>
         </div>
       </div>
 
