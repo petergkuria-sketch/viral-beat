@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import {
   Globe, Shield, TrendingUp, ArrowRight, ChevronRight, X, Menu,
@@ -156,7 +156,14 @@ export default function LandingPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [carouselIdx, setCarouselIdx]   = useState(0);
+  const [carouselPaused, setCarouselPaused] = useState(false);
+  const [carouselProgress, setCarouselProgress] = useState(0);
+  const carouselElapsed  = useRef(0);
+  const carouselT0       = useRef<number | null>(null);
+  const carouselRaf      = useRef<number | null>(null);
+  const CAROUSEL_N       = 6;
+  const CAROUSEL_DUR     = 6000;
   const [selectedPersona, setSelectedPersona] = useState<PersonaId | null>(null);
 
   // ── view mode (icon / classic) ──
@@ -194,16 +201,82 @@ export default function LandingPage() {
     }
   };
 
-  const testimonials = [
-    { avatar: "AM", name: "Amara Mensah",    role: "Political Risk Analyst, Accra",        quote: "First platform I've found that produces a composite PESTEL+IR score I can actually defend in a board briefing. We've replaced two expensive subscription services.", color: "from-cyan-500 to-blue-500" },
-    { avatar: "DO", name: "David Okonkwo",   role: "Market Entry Director, Lagos",          quote: "The Go/No-Go Brief saved us three weeks of desk research on our West Africa expansion. The risk matrix alone was worth the subscription — structured, cited, exportable.", color: "from-emerald-500 to-teal-500" },
-    { avatar: "FK", name: "Fatou Kouyaté",   role: "DFI Programme Analyst, Dakar",          quote: "The Investment Readiness Scores alongside PESTEL data give us a single view that used to require four different tools. The scanner is now our first stop for any new market.", color: "from-purple-500 to-pink-500" },
-  ];
+  const CAROUSEL_SLIDES = [
+    {
+      type: "stats",
+      cta: { label: "Open Africa Scanner", path: "/scanner" },
+    },
+    {
+      type: "quote",
+      avatar: "AM", avatarBg: "linear-gradient(135deg,#0e7490,#0284c7)",
+      name: "Amara Mensah", role: "Political Risk Analyst · Accra",
+      saving: "Saved $800/mo",
+      quote: "First platform I've found that produces a composite PESTEL+IR score I can actually <b>defend in a board briefing</b>. We replaced two expensive subscription services.",
+      cta: { label: "See a Go/No-Go Brief", path: "/scanner/ken/brief" },
+    },
+    {
+      type: "signals",
+      cta: { label: "Unlock full feed — free", path: "/register" },
+    },
+    {
+      type: "quote",
+      avatar: "DO", avatarBg: "linear-gradient(135deg,#15803d,#16a34a)",
+      name: "David Okonkwo", role: "Market Entry Director · Lagos",
+      saving: "3 weeks saved",
+      quote: "The Go/No-Go Brief <b>saved us three weeks of desk research</b> on our West Africa expansion. The risk matrix alone was worth the subscription — structured, cited, exportable.",
+      cta: { label: "Pick a country, get a brief", path: "/scanner" },
+    },
+    {
+      type: "compare",
+      cta: { label: "View pricing plans", path: "/pricing" },
+    },
+    {
+      type: "quote",
+      avatar: "FK", avatarBg: "linear-gradient(135deg,#7c3aed,#9333ea)",
+      name: "Fatou Kouyaté", role: "DFI Programme Analyst · Dakar",
+      saving: "4 tools → 1",
+      quote: "The Investment Readiness Scores alongside PESTEL give us a single view that <b>used to require four different tools</b>. The scanner is our first stop for any new market.",
+      cta: { label: "Open Africa Scanner", path: "/scanner" },
+    },
+  ] as const;
+
+  const carouselStop = useCallback(() => {
+    if (carouselRaf.current) cancelAnimationFrame(carouselRaf.current);
+  }, []);
+
+  const carouselStart = useCallback(() => {
+    carouselStop();
+    carouselT0.current = performance.now() - carouselElapsed.current;
+    const tick = (now: number) => {
+      const el = now - carouselT0.current!;
+      carouselElapsed.current = el;
+      const pct = Math.min(el / CAROUSEL_DUR * 100, 100);
+      setCarouselProgress(pct);
+      if (el < CAROUSEL_DUR) {
+        carouselRaf.current = requestAnimationFrame(tick);
+      } else {
+        carouselElapsed.current = 0;
+        setCarouselIdx(i => (i + 1) % CAROUSEL_N);
+      }
+    };
+    carouselRaf.current = requestAnimationFrame(tick);
+  }, [carouselStop]);
+
+  const carouselGoTo = useCallback((idx: number, userNav = false) => {
+    const next = ((idx % CAROUSEL_N) + CAROUSEL_N) % CAROUSEL_N;
+    setCarouselIdx(next);
+    carouselElapsed.current = 0;
+    setCarouselProgress(0);
+    if (!userNav || !carouselPaused) {
+      carouselStop();
+      carouselT0.current = null;
+    }
+  }, [carouselPaused, carouselStop]);
 
   useEffect(() => {
-    const t = setInterval(() => setActiveTestimonial(p => (p + 1) % testimonials.length), 5000);
-    return () => clearInterval(t);
-  }, []);
+    if (!carouselPaused) carouselStart();
+    return carouselStop;
+  }, [carouselIdx, carouselPaused, carouselStart, carouselStop]);
 
   // Scroll to hash section on mount (e.g. navigating to /#methodology from another page)
   useEffect(() => {
@@ -1060,29 +1133,181 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ────────────────────────────────────────────────────── */}
-      <section className="py-32 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-black mb-3">Who Uses Viral Beat</h2>
-            <p className="text-gray-400">Business prospectors, political risk analysts, DFIs, and NGO teams across Africa</p>
+      {/* ── SOCIAL PROOF CAROUSEL ───────────────────────────────────────────── */}
+      <section className="py-24 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-black mb-2">Why analysts and investors choose ViralBeat</h2>
+            <p className="text-gray-500 text-sm">Pause any slide to go deeper</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }}
-                className={`bg-[#0f2240] border rounded-2xl p-7 transition-all cursor-pointer ${i === activeTestimonial ? "border-cyan-500/60 shadow-xl shadow-cyan-500/5" : "border-[#1e3a5f]"}`}
-                onClick={() => setActiveTestimonial(i)}>
-                <div className="flex items-center gap-4 mb-5">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white font-black`}>{t.avatar}</div>
-                  <div>
-                    <div className="font-bold text-white text-sm">{t.name}</div>
-                    <div className="text-xs text-gray-500">{t.role}</div>
+
+          {/* Progress bar */}
+          <div className="h-[2px] bg-white/5 rounded-full mb-4 overflow-hidden">
+            <div className="h-full bg-cyan-400 rounded-full transition-none" style={{ width: `${carouselProgress}%` }} />
+          </div>
+
+          {/* Viewport */}
+          <div
+            className="relative overflow-hidden rounded-2xl"
+            onMouseEnter={() => { if (!carouselPaused) carouselStop(); }}
+            onMouseLeave={() => { if (!carouselPaused) carouselStart(); }}
+          >
+            {/* Track */}
+            <div
+              className="flex transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+              style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
+            >
+              {CAROUSEL_SLIDES.map((slide, idx) => (
+                <div key={idx} className="min-w-full">
+                  <div className="relative bg-[#0f2240] border border-[#1e3a5f] rounded-2xl p-7">
+
+                    {/* ── Slide content ── */}
+                    {slide.type === "stats" && (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {[["55", "African nations covered"], ["1/40×", "vs Oxford Analytica cost"], ["312+", "Signals this week"], ["Live", "People on the ground"]].map(([num, lbl]) => (
+                          <div key={lbl} className="text-center p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl">
+                            <span className="block text-2xl font-black text-cyan-400 mb-1">{num}</span>
+                            <span className="text-[11px] text-gray-500 leading-snug">{lbl}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {slide.type === "quote" && (
+                      <>
+                        <div className="flex gap-0.5 mb-4">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />)}</div>
+                        <p className="text-sm leading-relaxed text-gray-300 mb-5 italic"
+                          dangerouslySetInnerHTML={{ __html: `"${(slide as any).quote}"` }} />
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                            style={{ background: (slide as any).avatarBg }}>{(slide as any).avatar}</div>
+                          <div>
+                            <div className="text-sm font-semibold text-white">{(slide as any).name}</div>
+                            <div className="text-xs text-gray-500">{(slide as any).role}</div>
+                          </div>
+                          <div className="ml-auto text-[11px] font-medium text-green-400 bg-green-400/10 border border-green-400/20 px-2 py-1 rounded-md">{(slide as any).saving}</div>
+                        </div>
+                      </>
+                    )}
+
+                    {slide.type === "signals" && (
+                      <>
+                        <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-widest mb-3">
+                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                          Live signals — updating now
+                        </div>
+                        {[
+                          { flag: "🇰🇪", headline: "Kenya: Pre-election risk elevated — opposition coalition forming", meta: "Political · 4 min ago · VB Field Contributor, Nairobi", badge: "Caution", cls: "text-orange-400 bg-orange-400/10", blur: false },
+                          { flag: "🇷🇼", headline: "Rwanda: IRS score 81/100 — #1 ease of doing business, East Africa", meta: "Economic · 22 min ago · RDB Official", badge: "Go-market", cls: "text-green-400 bg-green-400/10", blur: false },
+                          { flag: "🇳🇬", headline: "Nigeria: Parallel FX divergence widens — central bank pressure", meta: "Economic · 1 hr ago", badge: "No-go", cls: "text-red-400 bg-red-400/10", blur: true },
+                        ].map((s, i) => (
+                          <div key={i} className={`flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] mb-1.5 ${s.blur ? "blur-sm opacity-40 pointer-events-none" : ""}`}>
+                            <span className="text-base">{s.flag}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[12px] text-gray-200 truncate">{s.headline}</div>
+                              <div className="text-[10px] text-gray-500 mt-0.5">{s.meta}</div>
+                            </div>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded shrink-0 ${s.cls}`}>{s.badge}</span>
+                          </div>
+                        ))}
+                        <div className="mt-3 text-center text-[11px] text-gray-400 bg-cyan-500/5 border border-cyan-500/15 rounded-lg py-2">
+                          Showing 2 of <span className="text-cyan-400 font-semibold">312 signals</span> this week — sign up free to unlock all 55 nations
+                        </div>
+                      </>
+                    )}
+
+                    {slide.type === "compare" && (
+                      <>
+                        <div className="text-xs text-gray-500 mb-3">How ViralBeat compares</div>
+                        <div className="grid grid-cols-3 text-[10px] text-gray-600 uppercase tracking-wider mb-2 gap-2">
+                          <span />
+                          <span className="text-center">Oxford Analytica / EIU</span>
+                          <span className="text-center text-cyan-400">ViralBeat</span>
+                        </div>
+                        {[
+                          ["Africa-specific", "— Generic global", "✓ All 55 AU nations"],
+                          ["Field contributors", "—", "✓ Ground-truth data"],
+                          ["Instant Go/No-Go brief", "— Custom project", "✓ Instant · PDF"],
+                          ["API access", "— Enterprise only", "✓ All tiers"],
+                        ].map(([feat, them, us]) => (
+                          <div key={feat} className="grid grid-cols-3 gap-2 py-2 border-b border-white/[0.05] text-[11px]">
+                            <span className="text-gray-500">{feat}</span>
+                            <span className="text-center text-gray-600">{them}</span>
+                            <span className="text-center text-green-400 font-medium">{us}</span>
+                          </div>
+                        ))}
+                        <div className="flex justify-around items-center mt-4">
+                          <div className="text-center"><div className="text-base font-black text-red-400">$10,000+/yr</div><div className="text-[10px] text-gray-600">Oxford Analytica</div></div>
+                          <div className="text-gray-700 text-lg">→</div>
+                          <div className="text-center"><div className="text-base font-black text-cyan-400">from $29/mo</div><div className="text-[10px] text-gray-600">ViralBeat Pro</div></div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* ── CTA overlay — visible when paused ── */}
+                    <AnimatePresence>
+                      {carouselPaused && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute inset-0 rounded-2xl bg-[#060c1e]/75 flex items-center justify-center"
+                        >
+                          <button
+                            onClick={() => {
+                              setCarouselPaused(false);
+                              user ? setLocation(slide.cta.path) : (window.location.href = getLoginUrl());
+                            }}
+                            className="inline-flex items-center gap-2 bg-cyan-400 hover:bg-cyan-300 text-black font-bold text-sm px-6 py-3 rounded-xl transition-colors shadow-xl shadow-cyan-500/20"
+                          >
+                            {slide.cta.label} <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
-                <div className="flex gap-0.5 mb-3">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className="w-3 h-3 fill-yellow-400 text-yellow-400" />)}</div>
-                <p className="text-sm leading-relaxed text-gray-300">"{t.quote}"</p>
-              </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center justify-center gap-2 mt-5">
+            <button
+              onClick={() => { carouselStop(); carouselGoTo(carouselIdx - 1, true); }}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+              aria-label="Previous"
+            >
+              <ChevronRight className="w-4 h-4 rotate-180" />
+            </button>
+
+            {CAROUSEL_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => { carouselStop(); carouselGoTo(i, true); }}
+                aria-label={`Slide ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === carouselIdx ? "w-5 bg-cyan-400" : "w-1.5 bg-white/15"}`}
+              />
             ))}
+
+            <button
+              onClick={() => { carouselStop(); carouselGoTo(carouselIdx + 1, true); }}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+              aria-label="Next"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => setCarouselPaused(p => !p)}
+              className={`flex items-center gap-1.5 h-8 px-3 rounded-lg border text-xs transition-all ${carouselPaused ? "border-cyan-500/40 text-cyan-400 bg-cyan-500/5" : "border-white/10 text-gray-500 bg-white/[0.03] hover:text-gray-300"}`}
+            >
+              {carouselPaused
+                ? <><Activity className="w-3 h-3" /> Resume</>
+                : <><Clock className="w-3 h-3" /> Pause</>
+              }
+            </button>
           </div>
         </div>
       </section>
