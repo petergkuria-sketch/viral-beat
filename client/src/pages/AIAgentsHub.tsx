@@ -13,6 +13,7 @@ import { Streamdown } from "streamdown";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
+import { AFRICAN_COUNTRIES } from "@shared/africanCountries";
 
 // ── Mission meta ──────────────────────────────────────────────────────────────
 
@@ -279,6 +280,7 @@ export default function AIAgentsHub() {
   const [showWatchlistModal, setShowWatchlistModal] = useState(false);
   const [watchlistPrefill, setWatchlistPrefill] = useState<{ label?: string; codes?: string[]; dims?: string[] }>({});
   const [activeTab, setActiveTab] = useState<"missions" | "watchlists">("missions");
+  const [selectedCountry, setSelectedCountry] = useState<{ code: string; iso3: string; name: string; flag: string } | null>(null);
 
   const classifyIntent = trpc.aiAgents.classifyIntent.useMutation();
   const runMission = trpc.aiAgents.runMission.useMutation({
@@ -297,6 +299,11 @@ export default function AIAgentsHub() {
     setClassified(null);
     try {
       const result = await classifyIntent.mutateAsync({ prompt: prompt.trim() });
+      // If user explicitly selected a country, override LLM inference
+      if (selectedCountry) {
+        result.country = selectedCountry.name;
+        result.countryCode = selectedCountry.iso3;
+      }
       setClassified(result);
       // Auto-run the mission immediately after classification
       const missionData = await runMission.mutateAsync({
@@ -464,8 +471,33 @@ export default function AIAgentsHub() {
                   <span className="text-[10px] text-gray-600">Document will be injected into the mission context</span>
                 </div>
               )}
-              {/* Example chips */}
-              <div className="flex flex-wrap gap-2 mt-3 ml-11">
+              {/* Country selector + example chips */}
+              <div className="flex flex-wrap items-center gap-2 mt-3 ml-11">
+                {/* Country pill */}
+                {selectedCountry ? (
+                  <button
+                    onClick={() => setSelectedCountry(null)}
+                    className="inline-flex items-center gap-1.5 text-[11px] bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 rounded-full px-3 py-1 hover:bg-cyan-500/25 transition-all"
+                  >
+                    <span>{selectedCountry.flag}</span>
+                    <span>{selectedCountry.name}</span>
+                    <X className="w-3 h-3 opacity-60" />
+                  </button>
+                ) : (
+                  <select
+                    value=""
+                    onChange={e => {
+                      const c = AFRICAN_COUNTRIES.find(ac => ac.iso3 === e.target.value);
+                      if (c) setSelectedCountry({ code: c.code, iso3: c.iso3, name: c.name, flag: c.flag });
+                    }}
+                    className="text-[11px] text-gray-500 bg-transparent border border-[#1e3a5f] rounded-full px-3 py-1 hover:border-cyan-500/30 cursor-pointer outline-none"
+                  >
+                    <option value="">+ Country</option>
+                    {AFRICAN_COUNTRIES.map(c => (
+                      <option key={c.iso3} value={c.iso3}>{c.flag} {c.name}</option>
+                    ))}
+                  </select>
+                )}
                 {EXAMPLE_PROMPTS.map((p, i) => (
                   <button key={i} onClick={() => setPrompt(p)}
                     className="text-[11px] text-gray-500 border border-[#1e3a5f] rounded-full px-3 py-1 hover:border-cyan-500/30 hover:text-gray-300 transition-all">

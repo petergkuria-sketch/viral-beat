@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "wouter";
 import { X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -21,6 +22,7 @@ type TickerSeverity = "breaking" | "normal";
 interface TickerItem {
   id: string;
   severity: TickerSeverity;
+  countryCode: string;
   flag: string;
   country: string;
   headline: string;
@@ -37,14 +39,14 @@ interface TickerItem {
 const SEED_ITEMS: TickerItem[] = [
   // Breaking items — these hijack the ticker
   {
-    id: "b1", severity: "breaking",
+    id: "b1", severity: "breaking", countryCode: "KE",
     flag: "🇰🇪", country: "Kenya",
     headline: "S&P upgrades sovereign rating BB− → BB — fiscal consolidation cited",
     deltaLabel: "▲ +6 pts composite", deltaDir: "up",
     source: "S&P", timeAgo: "2 min ago",
   },
   {
-    id: "b2", severity: "breaking",
+    id: "b2", severity: "breaking", countryCode: "NG",
     flag: "🇳🇬", country: "Nigeria",
     headline: "IMF approves $3.4B ECF facility — FX reform conditions met",
     deltaLabel: "▲ Caution → Monitor", deltaDir: "up",
@@ -52,56 +54,56 @@ const SEED_ITEMS: TickerItem[] = [
   },
   // Normal items
   {
-    id: "n1", severity: "normal",
+    id: "n1", severity: "normal", countryCode: "RW",
     flag: "🇷🇼", country: "Rwanda",
     headline: "Kigali hosts inaugural Africa AI Summit — 40 nations represented",
     verdictKey: "go-market", verdict: "Go-Market",
     source: "RDB", timeAgo: "3w ago",
   },
   {
-    id: "n2", severity: "normal",
+    id: "n2", severity: "normal", countryCode: "MA",
     flag: "🇲🇦", country: "Morocco",
     headline: "Green hydrogen MOU signed with EU — €2.8B investment pipeline",
     verdictKey: "go-market", verdict: "Go-Market",
     source: "Morocco Energy Ministry", timeAgo: "2w ago",
   },
   {
-    id: "n3", severity: "normal",
+    id: "n3", severity: "normal", countryCode: "ZM",
     flag: "🇿🇲", country: "Zambia",
     headline: "Copper production hits 830k tonnes — 10-year high under new mine expansions",
     verdictKey: "monitor", verdict: "Monitor",
     source: "Zambia Chamber of Mines", timeAgo: "3w ago",
   },
   {
-    id: "n4", severity: "normal",
+    id: "n4", severity: "normal", countryCode: "CI",
     flag: "🇨🇮", country: "Côte d'Ivoire",
     headline: "Abidjan port container terminal expansion complete — capacity +40%",
     verdictKey: "monitor", verdict: "Monitor",
     source: "Port Autonome d'Abidjan", timeAgo: "2w ago",
   },
   {
-    id: "n5", severity: "normal",
+    id: "n5", severity: "normal", countryCode: "NA",
     flag: "🇳🇦", country: "Namibia",
     headline: "TotalEnergies confirms $9B Orange Basin FID — first oil 2029",
     verdictKey: "monitor", verdict: "Monitor",
     source: "TotalEnergies", timeAgo: "2w ago",
   },
   {
-    id: "n6", severity: "normal",
+    id: "n6", severity: "normal", countryCode: "GH",
     flag: "🇬🇭", country: "Ghana",
     headline: "IMF ECF fourth review completed — $360M tranche released",
     verdictKey: "monitor", verdict: "Monitor",
     source: "IMF", timeAgo: "1w ago",
   },
   {
-    id: "n7", severity: "normal",
+    id: "n7", severity: "normal", countryCode: "BW",
     flag: "🇧🇼", country: "Botswana",
     headline: "Duma government's first budget — infrastructure and digital economy focus",
     verdictKey: "monitor", verdict: "Monitor",
     source: "Ministry of Finance", timeAgo: "1m ago",
   },
   {
-    id: "n8", severity: "normal",
+    id: "n8", severity: "normal", countryCode: "SN",
     flag: "🇸🇳", country: "Senegal",
     headline: "GTA LNG first cargo delivered — BP confirms production ramp",
     verdictKey: "monitor", verdict: "Monitor",
@@ -120,9 +122,12 @@ const VERDICT_CHIP: Record<string, string> = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function BreakingItem({ item }: { item: TickerItem }) {
+function BreakingItem({ item, onClick }: { item: TickerItem; onClick: () => void }) {
   return (
-    <span className="inline-flex items-center gap-2 mr-10 whitespace-nowrap">
+    <button
+      onClick={onClick}
+      className="inline-flex items-center gap-2 mr-10 whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity text-left bg-transparent border-0 p-0"
+    >
       <span className="text-sm">{item.flag}</span>
       <span className="text-xs font-bold text-white">{item.country}</span>
       <span className="text-white/20 text-xs">·</span>
@@ -136,13 +141,16 @@ function BreakingItem({ item }: { item: TickerItem }) {
         {item.source}
       </span>
       <span className="text-[10px] text-red-400/60">{item.timeAgo}</span>
-    </span>
+    </button>
   );
 }
 
-function NormalItem({ item }: { item: TickerItem }) {
+function NormalItem({ item, onClick }: { item: TickerItem; onClick: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1.5 mr-9 whitespace-nowrap">
+    <button
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 mr-9 whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity text-left bg-transparent border-0 p-0"
+    >
       <span className="text-sm">{item.flag}</span>
       <span className="text-xs font-bold text-white">{item.country}</span>
       <span className="text-[11px] text-white/50">{item.headline}</span>
@@ -152,13 +160,14 @@ function NormalItem({ item }: { item: TickerItem }) {
         </span>
       )}
       <span className="text-[10px] text-white/25">{item.source} · {item.timeAgo}</span>
-    </span>
+    </button>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function IntelligenceTicker() {
+  const [, setLocation] = useLocation();
   const { data: live } = trpc.scannerAgent.tickerList.useQuery(undefined, {
     refetchInterval: 60_000, // re-check every 60s
     staleTime: 30_000,
@@ -170,6 +179,7 @@ export default function IntelligenceTicker() {
     const map = (r: (typeof rows.breaking)[number]): TickerItem => ({
       id: String(r.id),
       severity: r.severity as TickerSeverity,
+      countryCode: r.countryCode,
       flag: r.countryFlag,
       country: r.countryName,
       headline: r.headline,
@@ -228,7 +238,7 @@ export default function IntelligenceTicker() {
             style={{ animation: "ticker-scroll 38s linear infinite" }}
           >
             {breakingLoop.map((item, i) => (
-              <BreakingItem key={`${item.id}-${i}`} item={item} />
+              <BreakingItem key={`${item.id}-${i}`} item={item} onClick={() => setLocation(`/scanner/${item.countryCode}`)} />
             ))}
           </div>
         </div>
@@ -274,7 +284,7 @@ export default function IntelligenceTicker() {
         >
           {normalLoop.map((item, i) => (
             <>
-              <NormalItem key={`${item.id}-${i}`} item={item} />
+              <NormalItem key={`${item.id}-${i}`} item={item} onClick={() => setLocation(`/scanner/${item.countryCode}`)} />
               {i < normalLoop.length - 1 && (
                 <span key={`sep-${i}`} className="text-white/10 mr-9 text-xs">◆</span>
               )}

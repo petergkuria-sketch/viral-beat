@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
+import { ARCHIVE_COUNTRIES } from "@shared/africanCountries";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -49,15 +50,7 @@ const TYPE_LABEL: Record<string, string> = {
   custom:            "Custom",
 };
 
-const AFRICA_COUNTRIES = [
-  { code: "KEN", name: "Kenya" }, { code: "NGA", name: "Nigeria" }, { code: "ZAF", name: "South Africa" },
-  { code: "GHA", name: "Ghana" }, { code: "EGY", name: "Egypt" }, { code: "MAR", name: "Morocco" },
-  { code: "ETH", name: "Ethiopia" }, { code: "TZA", name: "Tanzania" }, { code: "RWA", name: "Rwanda" },
-  { code: "UGA", name: "Uganda" }, { code: "ZMB", name: "Zambia" }, { code: "MOZ", name: "Mozambique" },
-  { code: "SEN", name: "Senegal" }, { code: "CIV", name: "Côte d'Ivoire" }, { code: "CMR", name: "Cameroon" },
-  { code: "ZWE", name: "Zimbabwe" }, { code: "BWA", name: "Botswana" }, { code: "NAM", name: "Namibia" },
-  { code: "DZA", name: "Algeria" }, { code: "TUN", name: "Tunisia" },
-];
+const AFRICA_COUNTRIES = ARCHIVE_COUNTRIES;
 
 // ── Report card ───────────────────────────────────────────────────────────────
 

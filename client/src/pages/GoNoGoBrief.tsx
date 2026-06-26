@@ -176,7 +176,12 @@ export default function GoNoGoBrief() {
   const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const defaultSector = searchParams.get("sector") ?? "";
 
-  const c = COUNTRIES.find(x => x.code === code) ?? COUNTRIES[1];
+  const found = COUNTRIES.find(x => x.code === code);
+  if (!found) {
+    setLocation("/scanner");
+    return null;
+  }
+  const c = found;
   const comp = composite(c);
   const color = scoreColor(comp);
 
@@ -198,7 +203,7 @@ export default function GoNoGoBrief() {
 
       {/* Nav */}
       <div className="bg-[#0a1628] border-b border-[#1a2d4a] px-6 py-2.5 flex items-center gap-3">
-        <button onClick={() => setLocation(`/scanner/${c.code.toLowerCase()}`)}
+        <button onClick={() => setLocation(`/scanner/${c.code}`)}
           className="flex items-center gap-1.5 text-[11px] text-slate-500 hover:text-cyan-400 transition-colors">
           <ArrowLeft className="w-3.5 h-3.5" />{c.name} Deep Dive
         </button>
@@ -474,7 +479,7 @@ export default function GoNoGoBrief() {
                   <Download className="w-4 h-4" />Export PDF Brief
                 </Button>
                 <Button variant="outline" className="flex-1 h-9 text-sm border-[#1a2d4a] text-slate-400 hover:bg-slate-800 gap-2"
-                  onClick={() => setLocation(`/scanner/${c.code.toLowerCase()}`)}>
+                  onClick={() => setLocation(`/scanner/${c.code}`)}>
                   <ArrowLeft className="w-4 h-4" />Back to {c.name} Profile
                 </Button>
               </div>

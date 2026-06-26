@@ -14,6 +14,7 @@ import {
   COUNTRIES, composite, scoreColor, VERDICT_LABELS,
   type CountryProfile, type Verdict,
 } from "@/lib/scannerData";
+import { AFRICAN_REGIONS } from "@shared/africanCountries";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -157,7 +158,7 @@ export default function AfricaScanner() {
   const [sortKey, setSortKey] = useState<"composite" | "pestel" | "irs" | "change">("composite");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
 
-  const REGIONS = ["All Africa", "East Africa", "West Africa", "Southern Africa", "North Africa", "Central Africa"];
+  const REGIONS = ["All Africa", ...AFRICAN_REGIONS];
 
   const filtered = useMemo(() => {
     let list = [...COUNTRIES];
@@ -307,7 +308,7 @@ export default function AfricaScanner() {
                       <Button
                         size="sm" variant="outline"
                         className="h-7 text-[10px] border-[#1a2d4a] text-slate-400 hover:border-cyan-500/40 hover:text-cyan-400"
-                        onClick={e => { e.stopPropagation(); setLocation(`/scanner/${c.code.toLowerCase()}`); }}
+                        onClick={e => { e.stopPropagation(); setLocation(`/scanner/${c.code}`); }}
                       >
                         Deep Dive →
                       </Button>
@@ -317,7 +318,7 @@ export default function AfricaScanner() {
                     <ExpandedDetail
                       key={`${c.code}-detail`}
                       c={c}
-                      onNavigate={() => setLocation(`/scanner/${c.code.toLowerCase()}`)}
+                      onNavigate={() => setLocation(`/scanner/${c.code}`)}
                     />
                   )}
                 </>

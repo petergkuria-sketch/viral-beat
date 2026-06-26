@@ -198,13 +198,18 @@ export default function CountryIntelProfile() {
   const params = useParams<{ code: string }>();
   const code = params.code?.toUpperCase() ?? "";
 
-  const c = COUNTRIES.find(x => x.code === code) ?? COUNTRIES[1];
+  const found = COUNTRIES.find(x => x.code === code);
+  if (!found) {
+    setLocation("/scanner");
+    return null;
+  }
+  const c = found;
   const comp = composite(c);
   const color = scoreColor(comp);
 
   function handleBrief(sector = "") {
     const qs = sector ? `?sector=${encodeURIComponent(sector)}` : "";
-    setLocation(`/scanner/${c.code.toLowerCase()}/brief${qs}`);
+    setLocation(`/scanner/${c.code}/brief${qs}`);
   }
 
   return (
