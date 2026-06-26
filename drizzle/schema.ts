@@ -1,4 +1,4 @@
-import { int, mysqlTable, text, timestamp, varchar, mysqlEnum, boolean, bigint, json, decimal, index } from "drizzle-orm/mysql-core";
+import { int, mysqlTable, text, longtext, timestamp, varchar, mysqlEnum, boolean, bigint, json, decimal, index } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -1606,3 +1606,27 @@ export const giaasDataFeeds = mysqlTable("giaasDataFeeds", {
 }));
 export type GiaasDataFeed = typeof giaasDataFeeds.$inferSelect;
 export type InsertGiaasDataFeed = typeof giaasDataFeeds.$inferInsert;
+
+/**
+ * Intelligence Bulletins — monthly Africa Intelligence newsletter archive
+ */
+export const intelligenceBulletins = mysqlTable("intelligenceBulletins", {
+  id:           int("id").autoincrement().primaryKey(),
+  slug:         varchar("slug", { length: 128 }).notNull().unique(), // e.g. "2026-07"
+  issueNumber:  int("issueNumber").notNull(),
+  title:        varchar("title", { length: 512 }).notNull(),
+  summary:      text("summary").notNull(),           // 1-2 sentence teaser shown on archive page
+  htmlContent:  longtext("htmlContent").notNull(),   // full rendered HTML for the issue viewer
+  sections:     json("sections").notNull(),          // structured JSON: leadStory, signals[], verdictShifts[], fieldObservations[], giaasSpotlight
+  coverCountries: json("coverCountries"),            // string[] iso3 codes featured this issue
+  stats: json("stats"),                              // { breakingShifts, greenProjects, fieldSignals, verdictsChanged }
+  status:       mysqlEnum("status", ["draft", "published"]).default("draft").notNull(),
+  publishedAt:  timestamp("publishedAt"),
+  createdAt:    timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:    timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, t => ({
+  statusIdx:    index("bulletins_status_idx").on(t.status),
+  publishedIdx: index("bulletins_published_idx").on(t.publishedAt),
+}));
+export type IntelligenceBulletin = typeof intelligenceBulletins.$inferSelect;
+export type InsertIntelligenceBulletin = typeof intelligenceBulletins.$inferInsert;

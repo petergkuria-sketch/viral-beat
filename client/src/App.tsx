@@ -55,6 +55,10 @@ const ReportArchivePage = lazy(() => import("./pages/ReportArchivePage"));
 const CountryIntelProfile = lazy(() => import("./pages/CountryIntelProfile"));
 const GoNoGoBrief = lazy(() => import("./pages/GoNoGoBrief"));
 
+// Intelligence Bulletins — newsletter archive
+const BulletinArchive = lazy(() => import("./pages/BulletinArchive"));
+const BulletinIssue   = lazy(() => import("./pages/BulletinIssue"));
+
 // GIaaS — Green Investment as a Service
 const GIaaSHub      = lazy(() => import("./pages/GIaaSHub"));
 const GIaaSProject  = lazy(() => import("./pages/GIaaSProject"));
@@ -118,6 +122,8 @@ function Router() {
     { path: "/embed/widget", component: EmbedWidget },
     { path: "/onboarding", component: OnboardingPage },
     { path: "/archive", component: ReportArchivePage },
+    { path: "/bulletins", component: BulletinArchive },
+    { path: "/bulletins/:slug", component: BulletinIssue },
   ];
 
   // Authenticated routes (wrapped in DashboardLayout)

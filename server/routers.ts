@@ -61,6 +61,7 @@ import { intelligenceRouter } from "./routers/intelligence";
 import { scannerAgentRouter } from "./routers/scannerAgent";
 import { reportArchiveRouter } from "./routers/reportArchive";
 import { giaasRouter } from "./routers/giaas";
+import { bulletinsRouter } from "./routers/bulletins";
 import { generateCitationKey, extractEntities } from "./services/reportMemory";
 import { reportArchive as reportArchiveTable } from "../drizzle/schema";
 
@@ -3204,6 +3205,7 @@ Be concise, technical, and actionable. When discussing features, consider:
   scannerAgent: scannerAgentRouter,
   reportArchive: reportArchiveRouter,
   giaas: giaasRouter,
+  bulletins: bulletinsRouter,
 
   briefs: router({
     // Save a brief and return a shareable ID

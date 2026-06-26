@@ -77,6 +77,7 @@ const SECTIONS: Section[] = [
     items: [
       { icon: Sparkles,   label: "Intelligence Workspace", path: "/intelligence" },
       { icon: BookOpen,   label: "Intelligence Archive",   path: "/archive" },
+      { icon: Mail,       label: "Bulletin Archive",       path: "/bulletins" },
       { icon: Building2,  label: "Investment Readiness",   path: "/doing-business" },
     ],
   },
