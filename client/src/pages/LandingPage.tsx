@@ -444,9 +444,9 @@ export default function LandingPage() {
               The Africa Intelligence Beat for Decision Makers · 55 Nations Live
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-5" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
-              The Intelligence<br />
+              The Africa<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400">
-                Layer for Africa
+                Intelligence Beat
               </span>
             </h1>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto">
