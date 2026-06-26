@@ -34,7 +34,7 @@ export function exportBriefPDF(brief: BriefData) {
   doc.setTextColor(148, 163, 184); // slate-400
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text("Africa Political Intelligence", margin, 17);
+  doc.text("The Africa Intelligence Beat for Decision Makers", margin, 17);
   doc.text("viralbeat.io/about#methodology", margin, 22);
 
   // Risk badge (top right)

@@ -197,7 +197,7 @@ export default function Dashboard() {
         <div className="relative max-w-3xl mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-muted-foreground">Africa Political Intelligence Search</span>
+            <span className="text-sm font-medium text-muted-foreground">Africa Intelligence Beat — Search</span>
             {user && <div className="ml-auto flex items-center gap-2"><TokenBalanceIndicator /><OnboardingTour tourId="dashboard" label="Site Tour" /></div>}
           </div>
           <form onSubmit={handleSearch} className="flex gap-2">

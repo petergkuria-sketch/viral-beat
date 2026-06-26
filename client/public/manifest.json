@@ -1,7 +1,7 @@
 {
   "name": "ViralBeat",
   "short_name": "ViralBeat",
-  "description": "Africa's political intelligence layer. Real-time PESTEL signals, election tracking, and AI-powered country briefs across all 55 African nations.",
+  "description": "The Africa Intelligence Beat for Decision Makers. Real-time PESTEL signals, election tracking, and AI-powered country briefs across all 55 African nations.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0f1e",

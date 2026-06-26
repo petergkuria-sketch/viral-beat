@@ -352,7 +352,7 @@ export default function LandingPage() {
               {/* Brand */}
               <div className="text-center py-3">
                 <p className="text-[11px] font-bold tracking-[3px] text-cyan-400 uppercase">Viral Beat</p>
-                <p className="text-[9px] text-slate-500 tracking-wider mt-0.5">Africa's Political Intelligence Layer</p>
+                <p className="text-[9px] text-slate-500 tracking-wider mt-0.5">The Africa Intelligence Beat for Decision Makers</p>
 
               </div>
 
@@ -441,7 +441,7 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-2 text-sm font-medium text-cyan-400 mb-6">
               <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-              Africa's Political Intelligence Layer · 55 Nations Live
+              The Africa Intelligence Beat for Decision Makers · 55 Nations Live
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-5" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
               The Intelligence<br />

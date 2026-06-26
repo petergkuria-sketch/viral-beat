@@ -253,7 +253,7 @@ export default function ViralMindPage() {
       ``,
       tags.length ? `PESTEL SIGNAL TAGS\n${tags.join("  ")}` : "",
       ``,
-      `— ViralBeat Africa Political Intelligence | viralbeat.io`,
+      `— ViralBeat: The Africa Intelligence Beat | viralbeat.io`,
     ].filter(Boolean).join("\n");
   };
 
