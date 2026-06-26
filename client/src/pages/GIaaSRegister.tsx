@@ -430,7 +430,7 @@ export default function GIaaSRegister() {
             {/* Country hints */}
             <div>
               <label className="text-xs text-zinc-400 mb-2 block">Countries Referenced (optional — helps agent focus)</label>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
                 {AFRICAN_COUNTRIES.slice(0, 20).map(c => (
                   <button key={c.iso3} type="button"
                     onClick={() => setFeedCountries(prev => prev.includes(c.iso3) ? prev.filter(x => x !== c.iso3) : [...prev, c.iso3])}
@@ -443,8 +443,27 @@ export default function GIaaSRegister() {
                     {c.flag} {c.name}
                   </button>
                 ))}
+                {/* Show countries added from More... as removable chips */}
+                {feedCountries.filter(iso3 => !AFRICAN_COUNTRIES.slice(0, 20).find(c => c.iso3 === iso3)).map(iso3 => {
+                  const c = AFRICAN_COUNTRIES.find(x => x.iso3 === iso3);
+                  if (!c) return null;
+                  return (
+                    <button key={iso3} type="button"
+                      onClick={() => setFeedCountries(prev => prev.filter(x => x !== iso3))}
+                      className="text-xs px-2.5 py-1 rounded-full border border-emerald-600 bg-emerald-900/30 text-emerald-300 flex items-center gap-1"
+                    >
+                      {c.flag} {c.name} <span className="text-emerald-500 ml-0.5">×</span>
+                    </button>
+                  );
+                })}
                 <select
-                  onChange={e => { if (e.target.value && !feedCountries.includes(e.target.value)) setFeedCountries(prev => [...prev, e.target.value]); e.target.value = ""; }}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val && val.length >= 2 && !feedCountries.includes(val)) {
+                      setFeedCountries(prev => [...prev, val]);
+                    }
+                    e.target.value = "";
+                  }}
                   className="text-xs bg-zinc-950 border border-zinc-700 text-zinc-400 rounded-full px-2 py-1 focus:outline-none"
                 >
                   <option value="">+ More…</option>
@@ -497,7 +516,7 @@ export default function GIaaSRegister() {
                   documentUrl:  feedType === "document_url" ? feedDocUrl : undefined,
                   textContent:  feedType === "text"         ? feedText   : undefined,
                   title:        feedTitle || undefined,
-                  countryHints: feedCountries.length ? feedCountries : undefined,
+                  countryHints: feedCountries.filter(x => x.length >= 2).length ? feedCountries.filter(x => x.length >= 2) : undefined,
                   sectorHints:  feedSectors.length   ? feedSectors   : undefined,
                 })}
                 className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors flex items-center gap-2"
