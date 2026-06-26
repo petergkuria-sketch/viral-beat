@@ -25,7 +25,9 @@ import {
 } from "../../drizzle/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { runValidation, approveSubmission } from "../services/giaasEngine";
-import { runGiaasAgentCycle, runGiaasCountryCycle } from "../services/giaasProjectAgent";
+import { runGiaasAgentCycle, runGiaasCountryCycle, ingestPendingFeeds } from "../services/giaasProjectAgent";
+import Anthropic from "@anthropic-ai/sdk";
+import { giaasDataFeeds } from "../../drizzle/schema";
 
 async function db() {
   const d = await getDb();
@@ -255,6 +257,67 @@ export const giaasRouter = router({
         .orderBy(desc(greenValidations.runAt))
         .limit(1);
       return row ?? null;
+    }),
+
+  // ── Data Feeds ────────────────────────────────────────────────────────────
+
+  submitDataFeed: publicProcedure
+    .input(z.object({
+      feedType:     z.enum(["url", "document_url", "text"]),
+      url:          z.string().url().optional(),
+      documentUrl:  z.string().url().optional(),
+      textContent:  z.string().min(50).max(50_000).optional(),
+      title:        z.string().max(255).optional(),
+      description:  z.string().max(500).optional(),
+      countryHints: z.array(z.string().length(3).toUpperCase()).max(10).optional(),
+      sectorHints:  z.array(z.enum(["renewable_energy", "reit", "agriculture"])).optional(),
+    }).refine(d =>
+      (d.feedType === "url" && !!d.url) ||
+      (d.feedType === "document_url" && !!d.documentUrl) ||
+      (d.feedType === "text" && !!d.textContent),
+      { message: "Provide url, documentUrl, or textContent matching feedType" }
+    ))
+    .mutation(async ({ input, ctx }) => {
+      const d = await db();
+      const feedId = randomUUID();
+      await d.insert(giaasDataFeeds).values({
+        feedId,
+        submittedBy:  ctx.user?.id ?? null,
+        feedType:     input.feedType,
+        url:          input.url ?? null,
+        documentUrl:  input.documentUrl ?? null,
+        textContent:  input.textContent ?? null,
+        title:        input.title ?? null,
+        description:  input.description ?? null,
+        countryHints: input.countryHints ?? [],
+        sectorHints:  input.sectorHints ?? [],
+        status:       "pending",
+      });
+      return { feedId, message: "Feed queued for ingestion. The GIaaS Agent will process it on the next cycle." };
+    }),
+
+  feedsList: analystProcedure
+    .input(z.object({
+      status: z.enum(["pending", "ingested", "failed"]).optional(),
+      limit:  z.number().min(1).max(100).default(50),
+    }))
+    .query(async ({ input }) => {
+      const d = await db();
+      const conditions = input.status ? [eq(giaasDataFeeds.status, input.status)] : [];
+      return d
+        .select()
+        .from(giaasDataFeeds)
+        .where(conditions.length ? conditions[0] : undefined)
+        .orderBy(desc(giaasDataFeeds.createdAt))
+        .limit(input.limit);
+    }),
+
+  feedsIngest: analystProcedure
+    .mutation(async () => {
+      const { ENV } = await import("../_core/env");
+      if (!ENV.anthropicApiKey) throw new Error("ANTHROPIC_API_KEY not configured");
+      const client = new Anthropic({ apiKey: ENV.anthropicApiKey });
+      return ingestPendingFeeds(client);
     }),
 
   // ── Agent controls ────────────────────────────────────────────────────────

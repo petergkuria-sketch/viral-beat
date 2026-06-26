@@ -1582,3 +1582,27 @@ export const greenValidations = mysqlTable("greenValidations", {
 }));
 export type GreenValidation = typeof greenValidations.$inferSelect;
 export type InsertGreenValidation = typeof greenValidations.$inferInsert;
+
+export const giaasDataFeeds = mysqlTable("giaasDataFeeds", {
+  id:               int("id").autoincrement().primaryKey(),
+  feedId:           varchar("feedId", { length: 36 }).notNull().unique(),
+  submittedBy:      int("submittedBy"),                                        // null = anonymous
+  feedType:         mysqlEnum("feedType", ["url", "document_url", "text"]).notNull(),
+  url:              text("url"),                                                // public web URL
+  documentUrl:      text("documentUrl"),                                        // PDF / GDocs / public doc link
+  textContent:      text("textContent"),                                        // pasted text
+  title:            varchar("title", { length: 255 }),
+  description:      varchar("description", { length: 500 }),
+  countryHints:     json("countryHints").$type<string[]>().default([]),         // ISO3 codes this data relates to
+  sectorHints:      json("sectorHints").$type<string[]>().default([]),          // renewable_energy|reit|agriculture
+  status:           mysqlEnum("status", ["pending", "ingested", "failed"]).notNull().default("pending"),
+  ingestedAt:       timestamp("ingestedAt"),
+  projectsCreated:  int("projectsCreated").default(0),
+  errorMessage:     text("errorMessage"),
+  createdAt:        timestamp("createdAt").defaultNow().notNull(),
+}, t => ({
+  statusIdx: index("giaasDataFeeds_status_idx").on(t.status),
+  userIdx:   index("giaasDataFeeds_user_idx").on(t.submittedBy),
+}));
+export type GiaasDataFeed = typeof giaasDataFeeds.$inferSelect;
+export type InsertGiaasDataFeed = typeof giaasDataFeeds.$inferInsert;

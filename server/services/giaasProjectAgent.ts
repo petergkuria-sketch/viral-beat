@@ -14,9 +14,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import { randomUUID } from "crypto";
 import { getDb } from "../db";
 import { ENV } from "../_core/env";
-import { greenProjects, scannerSignals } from "../../drizzle/schema";
+import { greenProjects, scannerSignals, giaasDataFeeds } from "../../drizzle/schema";
 import { AFRICAN_COUNTRIES } from "../../shared/africanCountries";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, and } from "drizzle-orm";
 
 const MODEL = "claude-opus-4-8";
 
@@ -143,6 +143,168 @@ function dedupeKey(countryCode: string, developer: string, title: string): strin
   return `${countryCode}::${developer.toLowerCase().trim()}::${title.toLowerCase().trim()}`;
 }
 
+// ── Fetch URL content for feed ingestion ─────────────────────────────────────
+
+async function fetchTextFromUrl(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "ViralBeat-GIaaS-Agent/1.0 (+https://viralbeat.io)" },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) return "";
+    const html = await res.text();
+    // Strip HTML tags and collapse whitespace — good enough for LLM context
+    return html
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 12_000); // cap at 12k chars to fit in prompt
+  } catch {
+    return "";
+  }
+}
+
+// ── Ingest pending data feeds and extract projects ────────────────────────────
+
+export async function ingestPendingFeeds(client: Anthropic): Promise<{ processed: number; projectsCreated: number }> {
+  const d = await db();
+  const pending = await d
+    .select()
+    .from(giaasDataFeeds)
+    .where(eq(giaasDataFeeds.status, "pending"))
+    .limit(20);
+
+  if (pending.length === 0) return { processed: 0, projectsCreated: 0 };
+
+  let processed = 0;
+  let totalCreated = 0;
+
+  for (const feed of pending) {
+    try {
+      let content = "";
+
+      if (feed.feedType === "text" && feed.textContent) {
+        content = feed.textContent.slice(0, 12_000);
+      } else if (feed.feedType === "url" && feed.url) {
+        content = await fetchTextFromUrl(feed.url);
+      } else if (feed.feedType === "document_url" && feed.documentUrl) {
+        content = await fetchTextFromUrl(feed.documentUrl);
+      }
+
+      if (!content.trim()) {
+        await d.update(giaasDataFeeds)
+          .set({ status: "failed", errorMessage: "No extractable content", ingestedAt: new Date() })
+          .where(eq(giaasDataFeeds.feedId, feed.feedId));
+        processed++;
+        continue;
+      }
+
+      const countryHints = (feed.countryHints as string[]) ?? [];
+      const sectorHints  = (feed.sectorHints as string[])  ?? [];
+
+      const countryContext = countryHints.length
+        ? `Focus on these countries: ${countryHints.map(c => AFRICAN_COUNTRIES.find(x => x.iso3 === c)?.name ?? c).join(", ")}.`
+        : "Extract for any African country mentioned.";
+
+      const sectorContext = sectorHints.length
+        ? `Focus on these sectors: ${sectorHints.join(", ")}.`
+        : "Cover renewable_energy, reit, and agriculture.";
+
+      const prompt = `You are a green investment intelligence analyst. Extract all green investment projects mentioned in the following source document.
+
+${countryContext}
+${sectorContext}
+
+SOURCE CONTENT:
+"""
+${content}
+"""
+
+Return ONLY valid JSON with this exact structure (same as GIaaS schema):
+{
+  "projects": [
+    {
+      "countryIso3": "KEN",
+      "title": "Project Name",
+      "developer": "Company or Developer Name",
+      "sector": "renewable_energy",
+      "description": "Brief description of the project and its environmental impact.",
+      "claimedCo2Reduction": null,
+      "claimedJobsCreated": null,
+      "claimedCapacityMw": null,
+      "budget": null,
+      "startDate": null,
+      "endDate": null,
+      "certifications": [],
+      "sectorMetrics": {},
+      "sourceConfidence": "medium"
+    }
+  ]
+}
+
+Rules:
+- Only extract projects explicitly mentioned in the source
+- If a value is not in the source, use null
+- sector must be exactly: "renewable_energy", "reit", or "agriculture"
+- countryIso3 must be valid ISO 3166-1 alpha-3
+- Return empty array if no clear projects found
+- Return only JSON`;
+
+      const response = await client.messages.create({
+        model: MODEL,
+        max_tokens: 4096,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const raw = response.content[0].type === "text" ? response.content[0].text : "";
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        await d.update(giaasDataFeeds)
+          .set({ status: "failed", errorMessage: "LLM returned no JSON", ingestedAt: new Date() })
+          .where(eq(giaasDataFeeds.feedId, feed.feedId));
+        processed++;
+        continue;
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]) as { projects: (RawProject & { countryIso3: string })[] };
+      const toInsert: (RawProject & { countryCode: string; countryName: string })[] = [];
+
+      for (const p of parsed.projects ?? []) {
+        const iso3 = p.countryIso3?.toUpperCase();
+        const country = AFRICAN_COUNTRIES.find(c => c.iso3 === iso3);
+        if (!country) continue;
+        const { countryIso3: _, ...rest } = p;
+        toInsert.push({ ...rest, countryCode: iso3, countryName: country.name });
+      }
+
+      const { inserted } = toInsert.length > 0
+        ? await persistProjects(toInsert)
+        : { inserted: 0 };
+
+      totalCreated += inserted;
+
+      await d.update(giaasDataFeeds)
+        .set({ status: "ingested", ingestedAt: new Date(), projectsCreated: inserted })
+        .where(eq(giaasDataFeeds.feedId, feed.feedId));
+
+      processed++;
+      console.log(`[GIaaS Agent] Feed ${feed.feedId} ingested → ${inserted} projects created`);
+
+      // Brief pause between feeds
+      await new Promise(r => setTimeout(r, 1_000));
+    } catch (err: any) {
+      await d.update(giaasDataFeeds)
+        .set({ status: "failed", errorMessage: err?.message ?? "Unknown error", ingestedAt: new Date() })
+        .where(eq(giaasDataFeeds.feedId, feed.feedId));
+      processed++;
+    }
+  }
+
+  return { processed, projectsCreated: totalCreated };
+}
+
 // ── Persist projects ──────────────────────────────────────────────────────────
 
 async function persistProjects(
@@ -250,6 +412,13 @@ export async function runGiaasAgentCycle(): Promise<GiaasAgentResult> {
   console.log(`[GIaaS Agent] Starting full cycle ${runId} — ${AFRICAN_COUNTRIES.length} countries`);
 
   try {
+    // Always ingest pending data feeds first — they add context for the country sweep
+    const feedResult = await ingestPendingFeeds(client);
+    if (feedResult.processed > 0) {
+      console.log(`[GIaaS Agent] Feed pre-pass: ${feedResult.processed} feeds → ${feedResult.projectsCreated} projects`);
+      totalInserted += feedResult.projectsCreated;
+    }
+
     // Process in batches of 10 countries to keep prompts manageable
     const BATCH_SIZE = 10;
     for (let i = 0; i < AFRICAN_COUNTRIES.length; i += BATCH_SIZE) {

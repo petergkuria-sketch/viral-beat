@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { AFRICAN_COUNTRIES } from "@shared/africanCountries";
 
 type Sector = "renewable_energy" | "reit" | "agriculture";
+type FeedType = "url" | "document_url" | "text";
 
 const SECTOR_OPTIONS: { key: Sector; label: string; icon: string; metrics: { key: string; label: string; unit: string }[] }[] = [
   {
@@ -59,7 +60,20 @@ export default function GIaaSRegister() {
   const [submitted, setSubmitted]             = useState(false);
   const [newProjectId, setNewProjectId]       = useState<string | null>(null);
 
+  // Data feed state
+  const [feedType, setFeedType]               = useState<FeedType>("url");
+  const [feedUrl, setFeedUrl]                 = useState("");
+  const [feedDocUrl, setFeedDocUrl]           = useState("");
+  const [feedText, setFeedText]               = useState("");
+  const [feedTitle, setFeedTitle]             = useState("");
+  const [feedCountries, setFeedCountries]     = useState<string[]>([]);
+  const [feedSectors, setFeedSectors]         = useState<Sector[]>([]);
+  const [feedSubmitted, setFeedSubmitted]     = useState(false);
+
   const create = trpc.giaas.projectsCreate.useMutation();
+  const submitFeed = trpc.giaas.submitDataFeed.useMutation({
+    onSuccess: () => setFeedSubmitted(true),
+  });
   const { data: me } = trpc.auth.me.useQuery();
 
   const country = AFRICAN_COUNTRIES.find(c => c.iso3 === countryCode);
@@ -319,6 +333,187 @@ export default function GIaaSRegister() {
           )}
         </div>
       </form>
+
+      {/* ── DATA FEED SECTION ─────────────────────────────────────────── */}
+      <div className="mt-10 border-t border-zinc-800 pt-10">
+        <div className="mb-5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">📡</span>
+            <h2 className="text-lg font-bold text-zinc-100">Share Public Data with the GIaaS Agent</h2>
+          </div>
+          <p className="text-sm text-zinc-400">
+            Have a public report, article, or dataset about green investments in Africa? Share it here. The GIaaS Agent will read it, extract project data, and use it to build context and populate the registry — attributed to your contribution.
+          </p>
+        </div>
+
+        {feedSubmitted ? (
+          <div className="bg-emerald-900/20 border border-emerald-700/40 rounded-xl p-5 flex items-center gap-3">
+            <span className="text-2xl">✅</span>
+            <div>
+              <div className="font-semibold text-emerald-300 mb-0.5">Feed queued!</div>
+              <div className="text-sm text-zinc-400">The GIaaS Agent will process it on the next cycle and extract any project data found.</div>
+            </div>
+            <button onClick={() => { setFeedSubmitted(false); setFeedUrl(""); setFeedDocUrl(""); setFeedText(""); setFeedTitle(""); }} className="ml-auto text-xs text-zinc-500 hover:text-zinc-300">
+              Submit another
+            </button>
+          </div>
+        ) : (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-5">
+
+            {/* Feed type tabs */}
+            <div>
+              <label className="text-xs text-zinc-400 mb-2 block font-medium">Data Type</label>
+              <div className="flex gap-1 bg-zinc-950 border border-zinc-800 rounded-lg p-1 w-fit">
+                {([
+                  { key: "url",          label: "🌐 Web URL",       desc: "Article, news, project page" },
+                  { key: "document_url", label: "📄 Document Link", desc: "PDF, Google Doc, report" },
+                  { key: "text",         label: "📋 Paste Text",    desc: "Copy & paste any content" },
+                ] as { key: FeedType; label: string; desc: string }[]).map(opt => (
+                  <button key={opt.key} type="button" onClick={() => setFeedType(opt.key)}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      feedType === opt.key ? "bg-emerald-700 text-white" : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Optional title */}
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Source Title (optional)</label>
+              <input
+                value={feedTitle} onChange={e => setFeedTitle(e.target.value)}
+                placeholder="e.g. IRENA Africa Renewable Energy Report 2024"
+                className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-600 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none"
+              />
+            </div>
+
+            {/* URL / document URL / text */}
+            {feedType === "url" && (
+              <div>
+                <label className="text-xs text-zinc-400 mb-1 block">Web URL *</label>
+                <input
+                  type="url" value={feedUrl} onChange={e => setFeedUrl(e.target.value)}
+                  placeholder="https://example.com/africa-green-investment-report"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-600 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none"
+                />
+                <p className="text-xs text-zinc-600 mt-1">The agent will fetch and read the page content.</p>
+              </div>
+            )}
+
+            {feedType === "document_url" && (
+              <div>
+                <label className="text-xs text-zinc-400 mb-1 block">Document URL *</label>
+                <input
+                  type="url" value={feedDocUrl} onChange={e => setFeedDocUrl(e.target.value)}
+                  placeholder="https://drive.google.com/… or https://example.com/report.pdf"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-600 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none"
+                />
+                <p className="text-xs text-zinc-600 mt-1">Public PDF, Google Docs (export link), or similar. The agent will read it directly.</p>
+              </div>
+            )}
+
+            {feedType === "text" && (
+              <div>
+                <label className="text-xs text-zinc-400 mb-1 block">Paste Content * (min 50 chars)</label>
+                <textarea
+                  value={feedText} onChange={e => setFeedText(e.target.value)} rows={6}
+                  placeholder="Paste the article text, report excerpt, press release, or any content describing green investment projects in Africa…"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-emerald-600 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none resize-none"
+                />
+                <div className="text-xs text-zinc-600 mt-1 text-right">{feedText.length} / 50,000</div>
+              </div>
+            )}
+
+            {/* Country hints */}
+            <div>
+              <label className="text-xs text-zinc-400 mb-2 block">Countries Referenced (optional — helps agent focus)</label>
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                {AFRICAN_COUNTRIES.slice(0, 20).map(c => (
+                  <button key={c.iso3} type="button"
+                    onClick={() => setFeedCountries(prev => prev.includes(c.iso3) ? prev.filter(x => x !== c.iso3) : [...prev, c.iso3])}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+                      feedCountries.includes(c.iso3)
+                        ? "border-emerald-600 bg-emerald-900/30 text-emerald-300"
+                        : "border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-zinc-600"
+                    }`}
+                  >
+                    {c.flag} {c.name}
+                  </button>
+                ))}
+                <select
+                  onChange={e => { if (e.target.value && !feedCountries.includes(e.target.value)) setFeedCountries(prev => [...prev, e.target.value]); e.target.value = ""; }}
+                  className="text-xs bg-zinc-950 border border-zinc-700 text-zinc-400 rounded-full px-2 py-1 focus:outline-none"
+                >
+                  <option value="">+ More…</option>
+                  {AFRICAN_COUNTRIES.slice(20).map(c => (
+                    <option key={c.iso3} value={c.iso3}>{c.flag} {c.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Sector hints */}
+            <div>
+              <label className="text-xs text-zinc-400 mb-2 block">Sectors Covered (optional)</label>
+              <div className="flex gap-2">
+                {([
+                  { key: "renewable_energy", label: "⚡ Renewable Energy" },
+                  { key: "reit",             label: "🏗️ REITs" },
+                  { key: "agriculture",      label: "🌱 Agriculture" },
+                ] as { key: Sector; label: string }[]).map(s => (
+                  <button key={s.key} type="button"
+                    onClick={() => setFeedSectors(prev => prev.includes(s.key) ? prev.filter(x => x !== s.key) : [...prev, s.key])}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                      feedSectors.includes(s.key)
+                        ? "border-emerald-600 bg-emerald-900/30 text-emerald-300"
+                        : "border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-zinc-600"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit feed */}
+            <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+              <p className="text-xs text-zinc-500 max-w-xs">
+                Submissions are public and will feed the shared GIaaS knowledge base. Do not submit confidential or proprietary data.
+              </p>
+              <button
+                type="button"
+                disabled={
+                  submitFeed.isPending ||
+                  (feedType === "url" && !feedUrl) ||
+                  (feedType === "document_url" && !feedDocUrl) ||
+                  (feedType === "text" && feedText.length < 50)
+                }
+                onClick={() => submitFeed.mutate({
+                  feedType,
+                  url:          feedType === "url"          ? feedUrl    : undefined,
+                  documentUrl:  feedType === "document_url" ? feedDocUrl : undefined,
+                  textContent:  feedType === "text"         ? feedText   : undefined,
+                  title:        feedTitle || undefined,
+                  countryHints: feedCountries.length ? feedCountries : undefined,
+                  sectorHints:  feedSectors.length   ? feedSectors   : undefined,
+                })}
+                className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors flex items-center gap-2"
+              >
+                {submitFeed.isPending ? "Submitting…" : "📡 Feed the Agent"}
+              </button>
+            </div>
+
+            {submitFeed.error && (
+              <div className="text-red-400 text-sm bg-red-900/20 border border-red-800/40 rounded-lg px-4 py-2">
+                {submitFeed.error.message}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
