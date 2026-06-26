@@ -52,11 +52,112 @@ function StabilityBar({ score }: { score: number }) {
   );
 }
 
+// ── Persona gate data ─────────────────────────────────────────────────────────
+
+type PersonaId = "investor" | "analyst" | "ngo" | "journalist" | "researcher" | "enthusiast";
+
+const PERSONAS: Array<{
+  id: PersonaId;
+  icon: React.ElementType;
+  label: string;
+  sub: string;
+  accent: string;
+  cta: string;
+  path: string;
+  steps: Array<{ step: string; title: string; desc: string; tag: string }>;
+}> = [
+  {
+    id: "investor",
+    icon: TrendingUp,
+    label: "Investor",
+    sub: "PE · DFI · VC · infrastructure funds",
+    accent: "#22d3ee",
+    cta: "Open Africa Scanner",
+    path: "/scanner",
+    steps: [
+      { step: "01", title: "Rank all 55 markets", desc: "Africa Scanner scores every AU nation on composite PESTEL+IR. Sort by score, filter by region.", tag: "Africa Scanner" },
+      { step: "02", title: "Run Investor DD", desc: "AI agent produces sovereign risk score, regulatory pipeline, exit scenarios, and entry/exit signals.", tag: "AI Agents Hub" },
+      { step: "03", title: "Export the brief", desc: "Download board-ready output with citation key. Set a signal watchlist for ongoing country monitoring.", tag: "Archive + Watchlist" },
+    ],
+  },
+  {
+    id: "analyst",
+    icon: BarChart3,
+    label: "Policy analyst",
+    sub: "Government · think-tank · multilateral",
+    accent: "#a78bfa",
+    cta: "Open AI Agents Hub",
+    path: "/ai-agents",
+    steps: [
+      { step: "01", title: "Select country + dimension", desc: "Drill into any PESTEL+IR dimension for a live signal feed with severity scoring.", tag: "Country Intel" },
+      { step: "02", title: "Generate policy brief", desc: "Policy Analyst agent tracks the legislative pipeline, maps stakeholders, and flags compliance risk.", tag: "AI Agents Hub" },
+      { step: "03", title: "Deep analysis", desc: "Port the brief to Intelligence Workspace for document-grounded scenario modelling.", tag: "Intelligence Workspace" },
+    ],
+  },
+  {
+    id: "ngo",
+    icon: Shield,
+    label: "NGO / humanitarian",
+    sub: "Field ops · advocacy · reporting",
+    accent: "#34d399",
+    cta: "View live signals",
+    path: "/scanner",
+    steps: [
+      { step: "01", title: "Monitor live signals", desc: "Field contributors submit verified alerts — protests, displacement, policy shifts — classified by PESTEL dimension.", tag: "Field Signals" },
+      { step: "02", title: "Run Crisis SitRep", desc: "AI agent produces a formal citation-ready SitRep with actor positions, alert level, and recommended response.", tag: "AI Agents Hub" },
+      { step: "03", title: "Set alert watchlist", desc: "Pin countries and severity thresholds. Get notified the moment signals cross your threshold.", tag: "Signal Watchlist" },
+    ],
+  },
+  {
+    id: "journalist",
+    icon: Newspaper,
+    label: "Journalist",
+    sub: "Investigative · broadcast · editorial",
+    accent: "#fb923c",
+    cta: "Open Intelligence Workspace",
+    path: "/intelligence",
+    steps: [
+      { step: "01", title: "Track breaking signals", desc: "The live ticker surfaces political events across all 55 nations — sourced, severity-ranked, structured.", tag: "Breaking Signals" },
+      { step: "02", title: "Run the Intel Pipeline", desc: "Click a signal → PESTEL analysis → game theory actor map → choose thread or newsletter format.", tag: "Intelligence Pipeline" },
+      { step: "03", title: "Publish ready-to-use output", desc: "Corroborated thread copy, newsletter lead, or diplomatic cable — each with a confidence tier stated.", tag: "Intelligence Workspace" },
+    ],
+  },
+  {
+    id: "researcher",
+    icon: Brain,
+    label: "Researcher",
+    sub: "Academic · think-tank · policy studies",
+    accent: "#f472b6",
+    cta: "Browse the Archive",
+    path: "/archive",
+    steps: [
+      { step: "01", title: "Browse the archive", desc: "Public report archive — briefs, country profiles, SitReps — each with a citable VB citation key.", tag: "Report Archive" },
+      { step: "02", title: "Upload your document", desc: "Attach your own research to Intelligence Workspace. VB cross-references it against live signals and PESTEL.", tag: "Intelligence Workspace" },
+      { step: "03", title: "Generate a country brief", desc: "Country Intel Brief agent produces a full PESTEL+IR snapshot with Go/No-Go score — exportable.", tag: "AI Agents Hub" },
+    ],
+  },
+  {
+    id: "enthusiast",
+    icon: Globe,
+    label: "Curious citizen",
+    sub: "Africa-watchers · diaspora · general",
+    accent: "#22c55e",
+    cta: "Explore free",
+    path: "/scanner",
+    steps: [
+      { step: "01", title: "See what's moving", desc: "Africa Scanner shows stability scores, breaking alerts, and trending signals across all 55 nations.", tag: "Africa Scanner" },
+      { step: "02", title: "Ask any question", desc: 'Type "What\'s happening in Sudan?" into the AI agent. Get a structured brief in plain language.', tag: "AI Agents Hub" },
+      { step: "03", title: "Follow with signals", desc: "Set a watchlist for any country. Get notified when major signals break — alerts only, no noise.", tag: "Signal Watchlist" },
+    ],
+  },
+];
+
 export default function LandingPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [selectedPersona, setSelectedPersona] = useState<PersonaId | null>(null);
 
   // ── view mode (icon / classic) ──
   const [viewMode, setViewMode] = useState<"icon" | "classic">(() => {
@@ -327,118 +428,202 @@ export default function LandingPage() {
       {/* ── CLASSIC VIEW (hero + all sections + footer) ────────────────────── */}
       {viewMode === "classic" && <>
 
-      {/* ── HERO ────────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
+      {/* ── PERSONA GATE HERO ─────────────────────────────────────────────── */}
+      <section className="relative pt-32 pb-16 px-4 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl" />
-          <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+          <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-cyan-500/8 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-blue-600/8 rounded-full blur-3xl" />
+          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
         </div>
+        <div className="relative max-w-5xl mx-auto">
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-32 w-full">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Headline */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-2 text-sm font-medium text-cyan-400 mb-6">
+              <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+              Africa's Political Intelligence Layer · 55 Nations Live
+            </div>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-5" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+              The Intelligence<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400">
+                Layer for Africa
+              </span>
+            </h1>
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+              Political briefings, sovereign risk scores, crisis alerts, and investor-grade intelligence for every African nation —{" "}
+              <span className="text-white">powered by people on the ground.</span>
+            </p>
+          </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="space-y-8">
-              <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-2 text-sm font-medium text-cyan-400">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                Real-Time African Political Intelligence
-              </div>
-
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
-                The Intelligence<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400">
-                  Layer for Africa
-                </span>
-              </h1>
-
-              <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-lg">
-                Political briefings, civic movement tracking, stability scores, and Investment Readiness intelligence for all <strong className="text-white">55 African nations</strong> — powered by people on the ground, delivered in real time.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button size="lg" className="text-base px-7 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/25" onClick={handleExplore}>
-                  Explore Intelligence <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-                <Button size="lg" variant="outline" className="text-base px-7 py-5 border-white/10 text-gray-300 hover:text-white hover:border-cyan-500/40" onClick={() => scrollTo("api")}>
-                  <Code2 className="mr-2 w-4 h-4" /> View API Docs
-                </Button>
-              </div>
-
-              <div className="flex flex-wrap gap-8 pt-2">
-                {[["55", "Nations monitored"], ["312+", "Signals this week"], ["4", "Entry verdicts"], ["Daily", "Score updates"]].map(([val, label]) => (
-                  <div key={label} className="flex flex-col">
-                    <span className="text-2xl font-black text-cyan-400">{val}</span>
-                    <span className="text-xs text-gray-500">{label}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="relative">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Africa Intelligence Scanner</span>
-              </div>
-              <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
-                {/* Scanner header */}
-                <div className="px-4 pt-3 pb-2 border-b border-[#1e3a5f]">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                      <BarChart3 className="w-3.5 h-3.5 text-cyan-400" />
-                      Composite Score · PESTEL×0.6 + IRS×0.4
+          {/* Persona selector */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}>
+            <p className="text-center text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">
+              Who are you? Get to your goal faster.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+              {PERSONAS.map((p) => {
+                const Icon = p.icon;
+                const active = selectedPersona === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedPersona(active ? null : p.id)}
+                    className={`group relative text-left rounded-2xl border p-4 transition-all duration-200 ${
+                      active
+                        ? "border-cyan-500/60 bg-cyan-500/8 shadow-lg shadow-cyan-500/10"
+                        : "border-[#1e3a5f] bg-[#0a1628] hover:border-[#2a4a7f] hover:bg-[#0d1e3a]"
+                    }`}
+                  >
+                    {active && <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-cyan-400" />}
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
+                      style={{ background: active ? `${p.accent}22` : "rgba(255,255,255,0.05)" }}>
+                      <Icon className="w-4 h-4" style={{ color: active ? p.accent : "#6b7280" }} />
                     </div>
-                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Live</Badge>
+                    <div className="font-semibold text-sm text-white mb-0.5">{p.label}</div>
+                    <div className="text-[11px] text-gray-500 leading-snug">{p.sub}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* Path panel — persona-specific 3-step route */}
+          <AnimatePresence mode="wait">
+            {selectedPersona && (() => {
+              const p = PERSONAS.find(x => x.id === selectedPersona)!;
+              return (
+                <motion.div
+                  key={selectedPersona}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22 }}
+                  className="rounded-2xl border overflow-hidden mb-8"
+                  style={{ borderColor: `${p.accent}40`, background: `${p.accent}08` }}
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${p.accent}20` }}>
+                        <p.icon className="w-4 h-4" style={{ color: p.accent }} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-white text-sm">{p.label} fast path</div>
+                        <div className="text-xs text-gray-500">Your 3-step route to decision-ready intelligence</div>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => user ? setLocation(p.path) : (window.location.href = getLoginUrl())}
+                      size="sm"
+                      className="font-bold text-black shrink-0"
+                      style={{ background: p.accent }}
+                    >
+                      {p.cta} <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
+                    </Button>
                   </div>
-                  {/* Column headers */}
-                  <div className="grid grid-cols-12 gap-1 text-[9px] text-gray-600 uppercase tracking-wider font-medium pt-1">
-                    <span className="col-span-4">Country</span>
-                    <span className="col-span-2 text-center">PESTEL</span>
-                    <span className="col-span-2 text-center">IRS</span>
-                    <span className="col-span-2 text-center">Score</span>
-                    <span className="col-span-2 text-center">Verdict</span>
+                  <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/5">
+                    {p.steps.map((s, i) => (
+                      <div key={i} className="px-5 py-4">
+                        <div className="text-[10px] font-bold mb-2" style={{ color: p.accent }}>Step {s.step}</div>
+                        <div className="font-semibold text-white text-sm mb-1.5">{s.title}</div>
+                        <div className="text-xs text-gray-400 leading-relaxed mb-3">{s.desc}</div>
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border"
+                          style={{ color: p.accent, borderColor: `${p.accent}40`, background: `${p.accent}10` }}>
+                          {s.tag}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                </div>
-                {/* Scanner rows */}
-                <div className="divide-y divide-[#1e3a5f]">
-                  {[
-                    { flag: "🇷🇼", name: "Rwanda",    pestel: 82, irs: 79, score: 81, verdict: "Go-Market", vc: "#22c55e", trend: [55,60,68,75,80,81] },
-                    { flag: "🇰🇪", name: "Kenya",     pestel: 79, irs: 74, score: 77, verdict: "Go-Market", vc: "#22c55e", trend: [60,63,70,74,76,77] },
-                    { flag: "🇬🇭", name: "Ghana",     pestel: 74, irs: 68, score: 72, verdict: "Monitor",   vc: "#84cc16", trend: [68,70,71,72,71,72] },
-                    { flag: "🇸🇳", name: "Senegal",   pestel: 71, irs: 65, score: 69, verdict: "Monitor",   vc: "#84cc16", trend: [60,63,65,67,68,69] },
-                    { flag: "🇳🇬", name: "Nigeria",   pestel: 58, irs: 51, score: 55, verdict: "Caution",   vc: "#f59e0b", trend: [58,56,55,57,54,55] },
-                    { flag: "🇪🇹", name: "Ethiopia",  pestel: 44, irs: 38, score: 42, verdict: "No-Go",     vc: "#ef4444", trend: [50,47,44,43,41,42] },
-                  ].map((c, i) => {
-                    const mini = c.trend;
-                    const minV = Math.min(...mini), maxV = Math.max(...mini);
-                    const pts = mini.map((v, j) => `${(j / (mini.length - 1)) * 44},${12 - ((v - minV) / (maxV - minV + 1)) * 11}`).join(" ");
-                    return (
-                      <motion.div key={c.name} initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 + i * 0.08 }}
-                        className="px-4 py-2.5 hover:bg-white/[0.03] transition-colors cursor-pointer grid grid-cols-12 gap-1 items-center"
-                        onClick={() => user ? setLocation(`/scanner/${c.name.slice(0,3).toUpperCase()}`) : (window.location.href = getLoginUrl())}>
-                        <div className="col-span-4 flex items-center gap-2">
-                          <span className="text-base leading-none">{c.flag}</span>
-                          <span className="text-xs font-semibold text-white truncate">{c.name}</span>
-                        </div>
-                        <span className="col-span-2 text-center text-xs font-mono text-gray-300">{c.pestel}</span>
-                        <span className="col-span-2 text-center text-xs font-mono text-gray-300">{c.irs}</span>
-                        <div className="col-span-2 flex items-center justify-center gap-1">
-                          <span className="text-xs font-black" style={{ color: c.vc }}>{c.score}</span>
-                          <svg width="44" height="14" viewBox="0 0 44 14" className="opacity-70">
-                            <polyline points={pts} fill="none" stroke={c.vc} strokeWidth="1.5" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                        <div className="col-span-2 flex justify-center">
-                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded border truncate" style={{ color: c.vc, borderColor: `${c.vc}40`, background: `${c.vc}12` }}>{c.verdict}</span>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-                <button onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())} className="w-full py-3 text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center justify-center gap-1 border-t border-[#1e3a5f] hover:bg-cyan-500/5 transition-all">
-                  Open Africa Scanner — all 55 nations <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                </motion.div>
+              );
+            })()}
+          </AnimatePresence>
+
+          {/* Default CTAs when no persona selected */}
+          {!selectedPersona && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
+              <Button size="lg" className="text-base px-7 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20" onClick={handleExplore}>
+                Explore Intelligence <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+              <Button size="lg" variant="outline" className="text-base px-7 py-5 border-white/10 text-gray-300 hover:text-white hover:border-cyan-500/40" onClick={() => scrollTo("api")}>
+                <Code2 className="mr-2 w-4 h-4" /> View API Docs
+              </Button>
             </motion.div>
+          )}
+
+          {/* Stats */}
+          <div className="flex flex-wrap justify-center gap-8 pt-2">
+            {[["55", "Nations monitored"], ["312+", "Signals this week"], ["PESTEL+IR", "7-dimension framework"], ["Citable", "VB citation keys"]].map(([val, label]) => (
+              <div key={label} className="flex flex-col items-center">
+                <span className="text-2xl font-black text-cyan-400">{val}</span>
+                <span className="text-xs text-gray-500">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── LIVE SCANNER PREVIEW ─────────────────────────────────────────────── */}
+      <section className="pb-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Africa Intelligence Scanner — live</span>
+          </div>
+          <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
+            <div className="px-4 pt-3 pb-2 border-b border-[#1e3a5f]">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+                  <BarChart3 className="w-3.5 h-3.5 text-cyan-400" />
+                  Composite Score · PESTEL×0.6 + IRS×0.4
+                </div>
+                <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Live</Badge>
+              </div>
+              <div className="grid grid-cols-12 gap-1 text-[9px] text-gray-600 uppercase tracking-wider font-medium pt-1">
+                <span className="col-span-4">Country</span>
+                <span className="col-span-2 text-center">PESTEL</span>
+                <span className="col-span-2 text-center">IRS</span>
+                <span className="col-span-2 text-center">Score</span>
+                <span className="col-span-2 text-center">Verdict</span>
+              </div>
+            </div>
+            <div className="divide-y divide-[#1e3a5f]">
+              {[
+                { flag: "🇷🇼", name: "Rwanda",   pestel: 82, irs: 79, score: 81, verdict: "Go-Market", vc: "#22c55e", trend: [55,60,68,75,80,81] },
+                { flag: "🇰🇪", name: "Kenya",    pestel: 79, irs: 74, score: 77, verdict: "Go-Market", vc: "#22c55e", trend: [60,63,70,74,76,77] },
+                { flag: "🇬🇭", name: "Ghana",    pestel: 74, irs: 68, score: 72, verdict: "Monitor",   vc: "#84cc16", trend: [68,70,71,72,71,72] },
+                { flag: "🇸🇳", name: "Senegal",  pestel: 71, irs: 65, score: 69, verdict: "Monitor",   vc: "#84cc16", trend: [60,63,65,67,68,69] },
+                { flag: "🇳🇬", name: "Nigeria",  pestel: 58, irs: 51, score: 55, verdict: "Caution",   vc: "#f59e0b", trend: [58,56,55,57,54,55] },
+                { flag: "🇪🇹", name: "Ethiopia", pestel: 44, irs: 38, score: 42, verdict: "No-Go",     vc: "#ef4444", trend: [50,47,44,43,41,42] },
+              ].map((c, i) => {
+                const mini = c.trend;
+                const minV = Math.min(...mini), maxV = Math.max(...mini);
+                const pts = mini.map((v, j) => `${(j / (mini.length - 1)) * 44},${12 - ((v - minV) / (maxV - minV + 1)) * 11}`).join(" ");
+                return (
+                  <motion.div key={c.name} initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.07 }}
+                    className="px-4 py-2.5 hover:bg-white/[0.03] transition-colors cursor-pointer grid grid-cols-12 gap-1 items-center"
+                    onClick={() => user ? setLocation(`/scanner/${c.name.slice(0,3).toUpperCase()}`) : (window.location.href = getLoginUrl())}>
+                    <div className="col-span-4 flex items-center gap-2">
+                      <span className="text-base leading-none">{c.flag}</span>
+                      <span className="text-xs font-semibold text-white truncate">{c.name}</span>
+                    </div>
+                    <span className="col-span-2 text-center text-xs font-mono text-gray-300">{c.pestel}</span>
+                    <span className="col-span-2 text-center text-xs font-mono text-gray-300">{c.irs}</span>
+                    <div className="col-span-2 flex items-center justify-center gap-1">
+                      <span className="text-xs font-black" style={{ color: c.vc }}>{c.score}</span>
+                      <svg width="44" height="14" viewBox="0 0 44 14" className="opacity-70">
+                        <polyline points={pts} fill="none" stroke={c.vc} strokeWidth="1.5" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div className="col-span-2 flex justify-center">
+                      <span className="text-[8px] font-bold px-1.5 py-0.5 rounded border truncate" style={{ color: c.vc, borderColor: `${c.vc}40`, background: `${c.vc}12` }}>{c.verdict}</span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+            <button onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())} className="w-full py-3 text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center justify-center gap-1 border-t border-[#1e3a5f] hover:bg-cyan-500/5 transition-all">
+              Open Africa Scanner — all 55 nations <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </section>
