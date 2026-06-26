@@ -59,12 +59,16 @@ export function tieredProcedure(minTier: Tier) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
       }
 
-      const userTier = (ctx.user as any).subscriptionTier ?? "free";
-      if (!tierAtLeast(userTier, minTier)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `This feature requires the ${minTier} plan. Upgrade at /pricing.`,
-        });
+      // admin role bypasses all subscription tier gates
+      const userRole = (ctx.user as any).role ?? "free";
+      if (userRole !== "admin") {
+        const userTier = (ctx.user as any).subscriptionTier ?? "free";
+        if (!tierAtLeast(userTier, minTier)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `This feature requires the ${minTier} plan. Upgrade at /pricing.`,
+          });
+        }
       }
 
       return next({ ctx: { ...ctx, user: ctx.user } });
