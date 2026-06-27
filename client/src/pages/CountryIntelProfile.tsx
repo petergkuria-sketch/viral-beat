@@ -71,7 +71,66 @@ const DIM_SIGNAL_MAP: Partial<Record<string, string>> = {
 
 // ── sub-views ─────────────────────────────────────────────────────────────────
 
-function OverviewTab({ c }: { c: CountryProfile }) {
+function OSSTeaser({ oss, onViewTab }: { oss: OSSFacility | null; onViewTab: () => void }) {
+  if (!oss?.exists) return null;
+  const digitalCount   = oss.services.filter(s => s.available && s.digitalPortal).length;
+  const availableCount = oss.services.filter(s => s.available).length;
+  const fastestDays    = Math.min(...oss.services.filter(s => s.avgDays !== null).map(s => s.avgDays as number));
+
+  return (
+    <div
+      onClick={onViewTab}
+      className="col-span-2 mt-1 group cursor-pointer relative overflow-hidden rounded-xl border border-emerald-500/25 bg-gradient-to-r from-emerald-950/60 via-[#071a12]/80 to-[#0a1628] hover:border-emerald-500/50 transition-all duration-300"
+    >
+      {/* Subtle animated glow strip */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 60% 80% at 10% 50%, rgba(34,197,94,0.07) 0%, transparent 70%)" }} />
+
+      <div className="relative flex items-center gap-4 px-5 py-4">
+        {/* Icon */}
+        <div className="shrink-0 w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
+          <Building2 className="w-5 h-5 text-emerald-400" />
+        </div>
+
+        {/* Main text */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400/70">One-Stop-Shop · Active</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 font-bold">{oss.name}</span>
+          </div>
+          <p className="text-xs text-slate-300 font-medium leading-snug">
+            Beyond IR parameters — <span className="text-emerald-400">OSS is the definitive signal</span> this market is open for business.
+          </p>
+          <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed hidden sm:block">
+            {oss.mandate.length > 120 ? oss.mandate.slice(0, 117) + "…" : oss.mandate}
+          </p>
+        </div>
+
+        {/* Quick stats */}
+        <div className="shrink-0 flex items-center gap-3">
+          <div className="text-center hidden md:block">
+            <div className="text-base font-extrabold text-emerald-400">{availableCount}/{oss.services.length}</div>
+            <div className="text-[9px] text-slate-600 uppercase tracking-wide">Services</div>
+          </div>
+          <div className="text-center hidden md:block">
+            <div className="text-base font-extrabold text-cyan-400">{digitalCount}</div>
+            <div className="text-[9px] text-slate-600 uppercase tracking-wide">Digital</div>
+          </div>
+          <div className="text-center hidden md:block">
+            <div className="text-base font-extrabold text-purple-400">{fastestDays}d</div>
+            <div className="text-[9px] text-slate-600 uppercase tracking-wide">Fastest</div>
+          </div>
+          <div className="flex items-center gap-1 text-emerald-400/60 group-hover:text-emerald-400 transition-colors ml-1">
+            <span className="text-[10px] font-semibold whitespace-nowrap">View detail</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OverviewTab({ c, oss, onInvestmentTab }: { c: CountryProfile; oss: OSSFacility | null; onInvestmentTab: () => void }) {
   const [activeDim, setActiveDim] = useState<string | null>(null);
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -97,6 +156,7 @@ function OverviewTab({ c }: { c: CountryProfile }) {
           </div>
         );
       })}
+      <OSSTeaser oss={oss} onViewTab={onInvestmentTab} />
     </div>
   );
 }
@@ -576,6 +636,7 @@ export default function CountryIntelProfile() {
   const isSubscribed = user?.subscriptionTier === "analyst" || user?.subscriptionTier === "enterprise";
   const oss = OSS_DATA[c.code] ?? null;
   const [showShare, setShowShare] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
   function handleBrief(sector = "") {
     const qs = sector ? `?sector=${encodeURIComponent(sector)}` : "";
@@ -676,7 +737,7 @@ export default function CountryIntelProfile() {
 
         {/* Main content */}
         <div className="flex-1 border-r border-[#0f1e35] overflow-hidden">
-          <Tabs defaultValue="overview" className="h-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
             <TabsList className="w-full rounded-none border-b border-[#0f1e35] bg-[#0a1628] h-auto p-0 justify-start">
               {["overview","signals","sectors","risks","investment","forecast"].map(t => (
                 <TabsTrigger key={t} value={t}
@@ -688,7 +749,9 @@ export default function CountryIntelProfile() {
               ))}
             </TabsList>
             <div className="p-5 overflow-y-auto" style={{ maxHeight: "calc(100vh - 260px)" }}>
-              <TabsContent value="overview"><OverviewTab c={c} /></TabsContent>
+              <TabsContent value="overview">
+                <OverviewTab c={c} oss={oss} onInvestmentTab={() => setActiveTab("investment")} />
+              </TabsContent>
               <TabsContent value="signals"><SignalsTab c={c} /></TabsContent>
               <TabsContent value="sectors"><SectorsTab c={c} onBrief={handleBrief} /></TabsContent>
               <TabsContent value="risks"><RisksTab c={c} /></TabsContent>
