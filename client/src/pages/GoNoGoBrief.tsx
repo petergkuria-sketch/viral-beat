@@ -9,11 +9,11 @@ import {
   ArrowLeft, Download, FileText, Loader2, Check, X,
   AlertTriangle, TrendingUp, Shield, Zap, Clock,
 } from "lucide-react";
-import jsPDF from "jspdf";
 import {
   COUNTRIES, composite, scoreColor, VERDICT_LABELS,
   type CountryProfile, type Verdict,
 } from "@/lib/scannerData";
+import { exportBriefPDF } from "@/lib/printBrief";
 
 // ── brief data generator ──────────────────────────────────────────────────────
 
@@ -54,119 +54,6 @@ function generateBriefContent(c: CountryProfile, sector: string, horizon: string
   };
 }
 
-// ── PDF export ────────────────────────────────────────────────────────────────
-
-function exportPDF(c: CountryProfile, sector: string, horizon: string) {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const { comp } = generateBriefContent(c, sector, horizon);
-  const W = 210, M = 18;
-
-  // Header bar
-  doc.setFillColor(10, 22, 40);
-  doc.rect(0, 0, W, 28, "F");
-  doc.setTextColor(0, 212, 255);
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.text("VIRAL BEAT  ·  AFRICA INTELLIGENCE SCANNER", M, 10);
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(148, 163, 184);
-  doc.text("GO / NO-GO INVESTOR BRIEF  ·  CONFIDENTIAL", M, 17);
-  doc.text(`Generated: ${new Date().toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })}`, M, 23);
-
-  // Country hero
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
-  doc.text(`${c.flag} ${c.name}`, M, 42);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(148, 163, 184);
-  doc.text(`${c.region}  ·  Population ${c.population}  ·  GDP ${c.gdp}  ·  FDI ${c.fdi}`, M, 50);
-
-  // Score row
-  doc.setFillColor(10, 22, 40);
-  doc.rect(M, 54, 170, 16, "F");
-  const scores = [
-    { label: "Composite Index", val: String(comp) },
-    { label: "PESTEL Score", val: String(c.pestel) },
-    { label: "IRS (B-READY)", val: String(c.irs) },
-    { label: "30D Change", val: c.change30d >= 0 ? `+${c.change30d}` : String(c.change30d) },
-    { label: "Verdict", val: VERDICT_LABELS[c.verdict].toUpperCase() },
-  ];
-  scores.forEach((s, i) => {
-    const x = M + i * 34;
-    doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(0, 212, 255);
-    doc.text(s.val, x, 63);
-    doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.setTextColor(100, 116, 139);
-    doc.text(s.label, x, 68);
-  });
-
-  // Divider
-  doc.setDrawColor(26, 45, 74); doc.setLineWidth(0.4); doc.line(M, 74, W - M, 74);
-
-  // Verdict section
-  const bd = generateBriefContent(c, sector, horizon);
-  doc.setFontSize(13); doc.setFont("helvetica", "bold"); doc.setTextColor(34, 197, 94);
-  doc.text(`${bd.verdict.icon}  DECISION: ${bd.verdict.headline}`, M, 82);
-  doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(148, 163, 184);
-  const summaryLines = doc.splitTextToSize(c.macroSummary, 170);
-  doc.text(summaryLines, M, 90);
-
-  let y = 90 + summaryLines.length * 5 + 6;
-
-  // Macro summary
-  doc.setDrawColor(26, 45, 74); doc.line(M, y, W - M, y); y += 8;
-  doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(255, 255, 255);
-  doc.text("SECTOR ENTRY RECOMMENDATION", M, y); y += 7;
-  doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(148, 163, 184);
-  doc.text(`Target Sector: ${sector}`, M, y); y += 5;
-  doc.text(`Investment Horizon: ${horizon}`, M, y); y += 5;
-  doc.text(`Timing: ${bd.timing}`, M, y); y += 10;
-
-  // PESTEL breakdown
-  doc.setDrawColor(26, 45, 74); doc.line(M, y, W - M, y); y += 8;
-  doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(255, 255, 255);
-  doc.text("PESTEL + IR DIMENSION SCORES", M, y); y += 7;
-  const dims: [string, string][] = [["P","Political"],["E","Economic"],["S","Social"],["T","Technology"],["En","Environmental"],["L","Legal"],["IR","Inv. Readiness"]];
-  dims.forEach(([dim, label], i) => {
-    const val = c.pestelBreak[dim as keyof typeof c.pestelBreak];
-    const col = i % 2 === 0 ? M : M + 85;
-    if (i % 2 === 0 && i > 0) y += 7;
-    doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(100, 116, 139);
-    doc.text(`${label}:`, col, y);
-    doc.setFont("helvetica", "bold"); doc.setTextColor(255, 255, 255);
-    doc.text(String(val), col + 38, y);
-    doc.setFillColor(26, 45, 74);
-    doc.rect(col + 44, y - 3.5, 30, 3, "F");
-    const barColor = val >= 75 ? [34,197,94] : val >= 60 ? [132,204,22] : val >= 45 ? [245,158,11] : [239,68,68];
-    doc.setFillColor(barColor[0], barColor[1], barColor[2]);
-    doc.rect(col + 44, y - 3.5, (val / 100) * 30, 3, "F");
-  });
-  y += 12;
-
-  // Top risks
-  doc.setDrawColor(26, 45, 74); doc.line(M, y, W - M, y); y += 8;
-  doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(255, 255, 255);
-  doc.text("TOP RISKS & MITIGATION", M, y); y += 7;
-  c.risks.forEach(r => {
-    doc.setFontSize(8); doc.setFont("helvetica", "bold"); doc.setTextColor(239, 68, 68);
-    doc.text(`${r.category}: ${r.risk}  [Likelihood: ${r.likelihood} | Impact: ${r.impact}]`, M, y); y += 5;
-    doc.setFont("helvetica", "normal"); doc.setTextColor(148, 163, 184);
-    const mLines = doc.splitTextToSize(`Mitigation: ${r.mitigation}`, 170);
-    doc.text(mLines, M, y); y += mLines.length * 4 + 4;
-  });
-
-  // Footer
-  doc.setFillColor(10, 22, 40);
-  doc.rect(0, 277, W, 20, "F");
-  doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.setTextColor(71, 85, 105);
-  doc.text("This brief is generated by Viral Beat Africa Intelligence Scanner. It is an intelligence signal, not financial or investment advice.", M, 284);
-  doc.text("Scores are composite indices derived from PESTEL analysis and World Bank B-READY indicators. © 2026 Viral Beat.", M, 289);
-
-  doc.save(`VB_GoNoGo_${c.name}_${sector.substring(0,12).replace(/\s/g,"_")}_${new Date().getFullYear()}.pdf`);
-}
-
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function GoNoGoBrief() {
@@ -189,6 +76,7 @@ export default function GoNoGoBrief() {
   const [horizon, setHorizon] = useState("12 months");
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const brief = generateBriefContent(c, sector, horizon);
 
@@ -325,8 +213,9 @@ export default function GoNoGoBrief() {
                     <p className="text-xs text-slate-500 mt-0.5">{c.name} · {sector} · Horizon: {horizon} · {new Date().toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })}</p>
                   </div>
                   <Button className="h-8 text-xs bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30 gap-1.5"
-                    onClick={() => exportPDF(c, sector, horizon)}>
-                    <Download className="w-3.5 h-3.5" />Export PDF
+                    disabled={exporting}
+                    onClick={async () => { setExporting(true); await exportBriefPDF(c, sector, horizon); setExporting(false); }}>
+                    {exporting ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Exporting…</> : <><Download className="w-3.5 h-3.5" />Export PDF</>}
                   </Button>
                 </div>
 
@@ -475,8 +364,9 @@ export default function GoNoGoBrief() {
               {/* Export row */}
               <div className="mt-4 flex gap-3">
                 <Button className="flex-1 h-9 text-sm bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30 gap-2"
-                  onClick={() => exportPDF(c, sector, horizon)}>
-                  <Download className="w-4 h-4" />Export PDF Brief
+                  disabled={exporting}
+                  onClick={async () => { setExporting(true); await exportBriefPDF(c, sector, horizon); setExporting(false); }}>
+                  {exporting ? <><Loader2 className="w-4 h-4 animate-spin" />Exporting…</> : <><Download className="w-4 h-4" />Export PDF Brief</>}
                 </Button>
                 <Button variant="outline" className="flex-1 h-9 text-sm border-[#1a2d4a] text-slate-400 hover:bg-slate-800 gap-2"
                   onClick={() => setLocation(`/scanner/${c.code}`)}>
