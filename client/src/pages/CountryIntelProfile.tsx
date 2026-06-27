@@ -76,54 +76,113 @@ function OSSTeaser({ oss, onViewTab }: { oss: OSSFacility | null; onViewTab: () 
   const digitalCount   = oss.services.filter(s => s.available && s.digitalPortal).length;
   const availableCount = oss.services.filter(s => s.available).length;
   const fastestDays    = Math.min(...oss.services.filter(s => s.avgDays !== null).map(s => s.avgDays as number));
+  // Show first 3 services as teaser
+  const previewServices = oss.services.slice(0, 3);
 
   return (
-    <div
-      onClick={onViewTab}
-      className="col-span-2 mt-1 group cursor-pointer relative overflow-hidden rounded-xl border border-emerald-500/25 bg-gradient-to-r from-emerald-950/60 via-[#071a12]/80 to-[#0a1628] hover:border-emerald-500/50 transition-all duration-300"
-    >
-      {/* Subtle animated glow strip */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 60% 80% at 10% 50%, rgba(34,197,94,0.07) 0%, transparent 70%)" }} />
+    <div className="col-span-2 mt-1 relative">
+      {/* Insight banner */}
+      <div className="mb-2 px-4 py-2.5 rounded-lg bg-emerald-500/8 border border-emerald-500/20 flex items-start gap-2.5">
+        <Zap className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+        <p className="text-[11px] text-slate-300 leading-relaxed">
+          Besides all other IR parameters —{" "}
+          <span className="text-emerald-400 font-semibold">OSS is a key indicator that the market is ready and the country is open for business.</span>
+        </p>
+      </div>
 
-      <div className="relative flex items-center gap-4 px-5 py-4">
-        {/* Icon */}
-        <div className="shrink-0 w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
-          <Building2 className="w-5 h-5 text-emerald-400" />
+      {/* Full OSS panel preview — same structure as OSSPanel */}
+      <div className="rounded-xl border border-[#0f2a1e] bg-[#071410] overflow-hidden">
+        {/* Header */}
+        <div className="p-5 border-b border-[#0f2a1e]">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <Building2 className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400/60">One-Stop-Shop</span>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-400">Active</span>
+              </div>
+              <h3 className="text-sm font-bold text-white leading-snug">{oss.name}</h3>
+              {oss.established && (
+                <p className="text-[10px] text-slate-500 mt-0.5">Est. {oss.established} · {oss.legalBasis}</p>
+              )}
+            </div>
+          </div>
+          <p className="text-xs text-slate-400 leading-relaxed mt-4 mb-4">{oss.mandate}</p>
+
+          {/* Quick stats row */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {[
+              { label: "Services",  value: `${availableCount}/${oss.services.length}`, color: "#22c55e" },
+              { label: "Digital",   value: String(digitalCount),                        color: "#22d3ee" },
+              { label: "Fastest",   value: `${fastestDays}d`,                           color: "#a78bfa" },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="bg-[#0a1f18] rounded-lg py-3 text-center border border-[#0f2a1e]">
+                <div className="text-lg font-extrabold" style={{ color }}>{value}</div>
+                <div className="text-[9px] text-slate-600 uppercase tracking-wider mt-0.5">{label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Meta row */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2 text-[11px] text-slate-400">
+              <MapPin className="w-3 h-3 text-slate-600 shrink-0" />
+              <span>{oss.location}</span>
+            </div>
+            {oss.operatingHours && (
+              <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                <Clock className="w-3 h-3 text-slate-600 shrink-0" />
+                <span>{oss.operatingHours}</span>
+              </div>
+            )}
+            {oss.website && (
+              <div className="flex items-center gap-2 text-[11px] text-cyan-400">
+                <Globe className="w-3 h-3 shrink-0" />
+                <span className="truncate">{oss.website.replace("https://", "")}</span>
+                <ExternalLink className="w-3 h-3 shrink-0" />
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Main text */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-            <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400/70">One-Stop-Shop · Active</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 font-bold">{oss.name}</span>
+        {/* Services preview (first 3 only, fades out) */}
+        <div className="relative">
+          <div className="px-4 py-2 border-b border-[#0f2a1e] bg-[#060f0c]">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Services</span>
           </div>
-          <p className="text-xs text-slate-300 font-medium leading-snug">
-            Beyond IR parameters — <span className="text-emerald-400">OSS is the definitive signal</span> this market is open for business.
-          </p>
-          <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed hidden sm:block">
-            {oss.mandate.length > 120 ? oss.mandate.slice(0, 117) + "…" : oss.mandate}
-          </p>
+          <div>
+            {previewServices.map((s, i) => (
+              <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${i < previewServices.length - 1 ? "border-b border-[#0f1e35]" : ""}`}>
+                {s.available
+                  ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  : <XCircle     className="w-4 h-4 text-slate-700 shrink-0" />}
+                <span className={`text-xs flex-1 ${s.available ? "text-slate-300" : "text-slate-600"}`}>{s.name}</span>
+                {s.available && s.digitalPortal && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Online</span>
+                )}
+                {s.available && s.avgDays !== null && (
+                  <span className="text-[10px] text-slate-500 w-6 text-right">{s.avgDays}d</span>
+                )}
+              </div>
+            ))}
+          </div>
+          {/* Fade overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
+            style={{ background: "linear-gradient(to bottom, transparent, #071410)" }} />
         </div>
 
-        {/* Quick stats */}
-        <div className="shrink-0 flex items-center gap-3">
-          <div className="text-center hidden md:block">
-            <div className="text-base font-extrabold text-emerald-400">{availableCount}/{oss.services.length}</div>
-            <div className="text-[9px] text-slate-600 uppercase tracking-wide">Services</div>
-          </div>
-          <div className="text-center hidden md:block">
-            <div className="text-base font-extrabold text-cyan-400">{digitalCount}</div>
-            <div className="text-[9px] text-slate-600 uppercase tracking-wide">Digital</div>
-          </div>
-          <div className="text-center hidden md:block">
-            <div className="text-base font-extrabold text-purple-400">{fastestDays}d</div>
-            <div className="text-[9px] text-slate-600 uppercase tracking-wide">Fastest</div>
-          </div>
-          <div className="flex items-center gap-1 text-emerald-400/60 group-hover:text-emerald-400 transition-colors ml-1">
-            <span className="text-[10px] font-semibold whitespace-nowrap">View detail</span>
+        {/* CTA */}
+        <div className="px-4 pb-4 pt-2 text-center">
+          <button
+            onClick={onViewTab}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/18 border border-emerald-500/25 hover:border-emerald-500/45 text-emerald-400 text-xs font-semibold transition-all"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            View full OSS detail + contacts
             <ArrowUpRight className="w-3.5 h-3.5" />
-          </div>
+          </button>
         </div>
       </div>
     </div>
