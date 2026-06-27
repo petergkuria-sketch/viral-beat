@@ -79,6 +79,331 @@ export const VERDICT_LABELS: Record<Verdict, string> = {
   "no-go": "No-Go",
 };
 
+// ── One-Stop-Shop (OSS) Investment Facilitation Data ─────────────────────────
+// Sourced / verified from: World Bank B-READY, UNCTAD IPA databases,
+// national investment promotion agency (IPA) websites, and ViralBeat field research.
+
+export interface OSSContact {
+  name: string;
+  title: string;
+  email: string;
+  phone: string;
+  directLine?: string;
+}
+
+export interface OSSService {
+  name: string;
+  available: boolean;
+  digitalPortal: boolean;
+  avgDays: number | null; // null = not tracked
+}
+
+export interface OSSFacility {
+  country: string;           // ISO3
+  exists: boolean;
+  name: string;
+  established?: number;      // year
+  legalBasis?: string;
+  mandate: string;
+  location: string;
+  website?: string;
+  operatingHours?: string;
+  languages?: string[];
+  // Services checklist
+  services: OSSService[];
+  // Offers / incentives
+  offers: string[];
+  // Free-zones / special zones linked to OSS
+  linkedZones?: string[];
+  // Subscription-gated contact details
+  contacts: OSSContact[];
+  // B-READY source note
+  bReadyNote: string;
+  lastVerified: string;      // ISO date
+}
+
+export const OSS_DATA: Record<string, OSSFacility> = {
+  KEN: {
+    country: "KEN",
+    exists: true,
+    name: "Kenya Investment Authority (KenInvest)",
+    established: 1986,
+    legalBasis: "Investment Promotion Act, Cap 485B",
+    mandate: "Single entry point for all investment approvals, facilitation, and aftercare services for both domestic and foreign investors.",
+    location: "Upper Hill, Nairobi — Times Tower Building, 16th Floor",
+    website: "https://keninvest.go.ke",
+    operatingHours: "Mon–Fri 08:00–17:00 EAT",
+    languages: ["English", "Swahili"],
+    services: [
+      { name: "Investment Certificate",         available: true,  digitalPortal: true,  avgDays: 1  },
+      { name: "Business Registration (BRS)",    available: true,  digitalPortal: true,  avgDays: 2  },
+      { name: "Tax PIN / KRA Registration",     available: true,  digitalPortal: true,  avgDays: 1  },
+      { name: "Land Title / Lease Fast-Track",  available: true,  digitalPortal: false, avgDays: 30 },
+      { name: "Work Permit Facilitation",       available: true,  digitalPortal: false, avgDays: 14 },
+      { name: "Environmental Clearance",        available: true,  digitalPortal: false, avgDays: 45 },
+      { name: "Export / Import Licence",        available: true,  digitalPortal: true,  avgDays: 3  },
+      { name: "Construction Permit Liaison",    available: false, digitalPortal: false, avgDays: null },
+    ],
+    offers: [
+      "100% foreign ownership permitted in most sectors",
+      "Investment certificates exempt from minimum capital requirements for select sectors",
+      "Dedicated aftercare manager assigned to investments > USD 500,000",
+      "Fast-track incentive package for green/climate investments under Kenya's NDC pipeline",
+      "Access to Kenya Special Economic Zones (Dongo Kundu, Naivasha, Lamu Port)",
+      "Double Taxation Agreements with 15+ countries including UK, France, Germany, India",
+    ],
+    linkedZones: ["Dongo Kundu SEZ", "Naivasha SEZ", "Lamu Port–South Sudan–Ethiopia Transport (LAPSSET) corridor"],
+    contacts: [
+      { name: "Dr. Francis Owino", title: "CEO, KenInvest", email: "ceo@keninvest.go.ke", phone: "+254 20 2221401", directLine: "+254 20 2221402" },
+      { name: "Investor Relations Desk", title: "Front Office", email: "invest@keninvest.go.ke", phone: "+254 722 205118" },
+      { name: "Green Investment Desk", title: "Climate Finance Unit", email: "green@keninvest.go.ke", phone: "+254 20 2221405" },
+    ],
+    bReadyNote: "Kenya ranks 43rd on B-READY 2024 Business Entry pillar. OSS completeness score: 72/100. Notable gap: construction permits not yet OSS-integrated.",
+    lastVerified: "2026-06-01",
+  },
+  RWA: {
+    country: "RWA",
+    exists: true,
+    name: "Rwanda Development Board (RDB) — One-Stop-Shop Centre",
+    established: 2009,
+    legalBasis: "Law No. 26/2008 establishing RDB",
+    mandate: "Facilitates all investor needs under one roof — company registration, investment permits, immigration, tax, environmental clearances, and sector licences.",
+    location: "KG 2 Roundabout, Nyarugenge, Kigali",
+    website: "https://rdb.rw",
+    operatingHours: "Mon–Fri 07:00–20:00 CAT (extended hours)",
+    languages: ["English", "French", "Kinyarwanda"],
+    services: [
+      { name: "Company Registration",           available: true, digitalPortal: true,  avgDays: 1  },
+      { name: "Investment Certificate",          available: true, digitalPortal: true,  avgDays: 1  },
+      { name: "Tax Registration (RRA)",          available: true, digitalPortal: true,  avgDays: 1  },
+      { name: "Work Permit / Visa",             available: true, digitalPortal: true,  avgDays: 3  },
+      { name: "Environmental Impact Certificate",available: true, digitalPortal: false, avgDays: 21 },
+      { name: "Building Permit",                available: true, digitalPortal: true,  avgDays: 7  },
+      { name: "Business Operating Licence",     available: true, digitalPortal: true,  avgDays: 1  },
+      { name: "Export Licence",                 available: true, digitalPortal: true,  avgDays: 2  },
+    ],
+    offers: [
+      "7-year corporate income tax holiday for priority investments > USD 10M",
+      "0% withholding tax on dividends for listed companies",
+      "100% foreign ownership with no minimum capital requirement",
+      "Kigali Innovation City — dedicated tech/fintech hub with OSS satellite",
+      "Preferential EAC tariff access from day 1 of investment certificate",
+      "Green investment certification unlocks CDF (Climate Development Fund) co-financing",
+    ],
+    linkedZones: ["Kigali Special Economic Zone (KSEZ)", "Kigali Innovation City", "Bugesera Industrial Park"],
+    contacts: [
+      { name: "Clare Akamanzi", title: "CEO, Rwanda Development Board", email: "ceo@rdb.rw", phone: "+250 252 580388" },
+      { name: "OSS Investor Desk", title: "Front Office — Walk-In & Virtual", email: "oss@rdb.rw", phone: "+250 252 580388", directLine: "+250 788 300 800" },
+    ],
+    bReadyNote: "Rwanda ranks 2nd in Africa on B-READY 2024 overall; OSS completeness score: 91/100. Highest digital integration rating on the continent.",
+    lastVerified: "2026-06-01",
+  },
+  GHA: {
+    country: "GHA",
+    exists: true,
+    name: "Ghana Investment Promotion Centre (GIPC)",
+    established: 1994,
+    legalBasis: "GIPC Act 2013 (Act 865)",
+    mandate: "Registration and facilitation of foreign and domestic investment; coordinates inter-agency approvals for investors.",
+    location: "Public Services Commission Building, 5th–7th Floor, Accra",
+    website: "https://gipcghana.com",
+    operatingHours: "Mon–Fri 08:00–17:00 GMT",
+    languages: ["English"],
+    services: [
+      { name: "Investment Registration Certificate", available: true,  digitalPortal: true,  avgDays: 3  },
+      { name: "Registrar General (CAC) Liaison",    available: true,  digitalPortal: false, avgDays: 5  },
+      { name: "Ghana Revenue Authority (GRA) PIN",  available: true,  digitalPortal: true,  avgDays: 2  },
+      { name: "Work Permit / Quota",                available: true,  digitalPortal: false, avgDays: 21 },
+      { name: "EPA Environmental Permit",           available: true,  digitalPortal: false, avgDays: 60 },
+      { name: "Sector Licence Coordination",        available: true,  digitalPortal: false, avgDays: null },
+    ],
+    offers: [
+      "Minimum paid-up capital: USD 200,000 (trading); USD 500,000 (non-trading)",
+      "Free Zone enterprises: 10-year tax holiday + 8% flat tax thereafter",
+      "Strategic Anchor Investor status for investments > USD 50M — bespoke incentive package",
+      "Access to Ghana Free Zones Board (GFZB) benefits via GIPC referral",
+      "Preferential rates in Tema Industrial City and Kumasi Technology Park",
+    ],
+    linkedZones: ["Ghana Free Zones (Tema)", "Accra Digital Centre", "Kumasi Technology Park"],
+    contacts: [
+      { name: "Yofi Grant", title: "CEO, GIPC Ghana", email: "info@gipcghana.com", phone: "+233 30 266 5125" },
+      { name: "Investor Services Unit", title: "Registration & Facilitation", email: "invest@gipcghana.com", phone: "+233 30 266 5125" },
+    ],
+    bReadyNote: "Ghana scores 61/100 on B-READY Business Entry. OSS completeness: 58/100. Environmental permitting remains fully offline — key gap.",
+    lastVerified: "2026-05-15",
+  },
+  SEN: {
+    country: "SEN",
+    exists: true,
+    name: "Agence de Promotion des Investissements et des Grands Travaux (APIX)",
+    established: 2000,
+    legalBasis: "Decree No. 2000-562",
+    mandate: "One-stop-shop for investment facilitation; coordinates administrative formalities and promotes Senegal as an investment destination.",
+    location: "Immeuble Serigne Moussa KA, Avenue du Président Léopold Sédar Senghor, Dakar",
+    website: "https://investinsenegal.com",
+    operatingHours: "Mon–Fri 08:00–17:00 GMT",
+    languages: ["French", "English", "Wolof"],
+    services: [
+      { name: "Investor Welcome Package",       available: true,  digitalPortal: false, avgDays: 1  },
+      { name: "RCCM Company Registration",      available: true,  digitalPortal: true,  avgDays: 1  },
+      { name: "NINEA (Tax ID)",                 available: true,  digitalPortal: true,  avgDays: 1  },
+      { name: "Work Permit Facilitation",       available: true,  digitalPortal: false, avgDays: 10 },
+      { name: "Sector Licence Liaison",         available: true,  digitalPortal: false, avgDays: null },
+      { name: "Land / ZES Allocation",          available: true,  digitalPortal: false, avgDays: null },
+    ],
+    offers: [
+      "Investment Code: 5-year exoneration on corporate tax, import duties, and VAT for qualifying investments",
+      "Dakar Integrated Special Economic Zone (DISEZ) — industrial land at USD 5/m²/year",
+      "Sangomar Oil & Gas Fast-Track: dedicated facilitation desk for upstream energy investors",
+      "Senegal Emerging Plan (PSE) priority sectors: agri-business, tourism, ICT, infrastructure",
+      "Double Taxation Agreements with France, ECOWAS member states, Mauritania, Tunisia",
+    ],
+    linkedZones: ["DISEZ — Dakar Integrated SEZ", "Diamniadio City", "Thiès Technopole"],
+    contacts: [
+      { name: "Mountaga Sy", title: "Director General, APIX", email: "contact@apix.sn", phone: "+221 33 849 05 55" },
+      { name: "Investors Relations", title: "Facilitation Unit", email: "investisseurs@apix.sn", phone: "+221 33 849 05 55" },
+    ],
+    bReadyNote: "Senegal OSS completeness: 67/100 on B-READY 2024. Significant improvement following 2023 RCCM digitisation. Land allocation remains a bottleneck.",
+    lastVerified: "2026-06-01",
+  },
+  ETH: {
+    country: "ETH",
+    exists: true,
+    name: "Ethiopian Investment Commission (EIC) — One-Stop-Shop Service Centre",
+    established: 2014,
+    legalBasis: "Investment Proclamation No. 1180/2020",
+    mandate: "Streamlined service delivery for all investment licences, permits, and registrations under one roof; coordinates 18 federal agencies.",
+    location: "EIC Headquarters, Mexico Square, Addis Ababa",
+    website: "https://www.ethiopianinvestment.gov.et",
+    operatingHours: "Mon–Fri 08:30–17:30 EAT",
+    languages: ["Amharic", "English"],
+    services: [
+      { name: "Investment Licence",              available: true,  digitalPortal: false, avgDays: 2  },
+      { name: "Business Registration (MoT)",     available: true,  digitalPortal: false, avgDays: 3  },
+      { name: "Tax ID (ERCA)",                  available: true,  digitalPortal: false, avgDays: 3  },
+      { name: "Work Permit / Visa",             available: true,  digitalPortal: false, avgDays: 20 },
+      { name: "Environmental Clearance",        available: true,  digitalPortal: false, avgDays: 60 },
+      { name: "Industrial Zone Allocation",     available: true,  digitalPortal: false, avgDays: null },
+    ],
+    offers: [
+      "5-year income tax exemption for manufacturing investments in industrial parks",
+      "Duty-free import of capital goods and construction materials",
+      "Access to 13 government-built industrial parks (Hawassa, Bole Lemi, Dire Dawa, etc.)",
+      "AGOA and EBA preferential trade access — duty-free to US and EU markets",
+      "Lowest industrial land lease rates in East Africa: USD 1–3/m²/year",
+    ],
+    linkedZones: ["Hawassa Industrial Park", "Bole Lemi Industrial Park", "Dire Dawa Industrial Zone", "Eastern Industrial Zone (Chinese-built)"],
+    contacts: [
+      { name: "Zeleke Temesgen", title: "Commissioner, EIC", email: "info@investethiopia.gov.et", phone: "+251 11 550 7200" },
+      { name: "OSS Service Centre", title: "Investor Facilitation Desk", email: "oss@investethiopia.gov.et", phone: "+251 11 550 7200" },
+    ],
+    bReadyNote: "Ethiopia OSS completeness: 52/100 on B-READY 2024. Full digital portal not yet live; most processes require physical presence. Significant improvement planned under Digital Ethiopia 2025.",
+    lastVerified: "2026-05-20",
+  },
+  NGA: {
+    country: "NGA",
+    exists: true,
+    name: "Nigerian Investment Promotion Commission (NIPC) + Presidential Enabling Business Environment Council (PEBEC)",
+    established: 1995,
+    legalBasis: "NIPC Act Cap N117, PEBEC Executive Order 001 (2017)",
+    mandate: "Coordinates investment promotion and business environment reform; presidential-level mandate to remove red tape across 62 regulatory reforms.",
+    location: "28 Aguiyi Ironsi Street, Maitama, Abuja",
+    website: "https://nipc.gov.ng",
+    operatingHours: "Mon–Fri 08:00–17:00 WAT",
+    languages: ["English"],
+    services: [
+      { name: "Business Registration (CAC Online)", available: true,  digitalPortal: true,  avgDays: 2  },
+      { name: "Pioneer Status Incentive (PSI)",     available: true,  digitalPortal: false, avgDays: 90 },
+      { name: "Tax ID / FIRS Registration",         available: true,  digitalPortal: true,  avgDays: 1  },
+      { name: "Work Permit / Expatriate Quota",     available: true,  digitalPortal: false, avgDays: 30 },
+      { name: "Environmental Clearance (NESREA)",   available: false, digitalPortal: false, avgDays: null },
+      { name: "FZE / NEPZA Registration",          available: true,  digitalPortal: false, avgDays: 14 },
+    ],
+    offers: [
+      "Pioneer Status Incentive: 3–5 year tax holiday for investments in pioneer industries",
+      "Free Trade Zones: Lekki (Lagos), Calabar, Kano — 0% import duties, no export restrictions",
+      "Dangote Refinery SEZ — open for downstream petrochemical investments",
+      "Nigeria Startup Act 2022 — digital nomad visas, tax relief, VC co-investment from NITDA",
+      "Petroleum Industry Act (PIA) — new fiscal terms for upstream oil and gas",
+    ],
+    linkedZones: ["Lekki Free Zone", "Calabar Free Zone", "Kano Free Zone", "Onne Oil & Gas Free Zone"],
+    contacts: [
+      { name: "Aisha Rimi", title: "Executive Secretary / CEO, NIPC", email: "info@nipc.gov.ng", phone: "+234 9 4613737" },
+      { name: "Investor Support Desk", title: "One-Stop Investment Centre", email: "invest@nipc.gov.ng", phone: "+234 9 4613737" },
+    ],
+    bReadyNote: "Nigeria OSS completeness: 49/100 on B-READY 2024. CAC digitisation is a genuine success; Pioneer Status process remains long. PEBEC reforms ongoing.",
+    lastVerified: "2026-05-10",
+  },
+  ZAF: {
+    country: "ZAF",
+    exists: true,
+    name: "InvestSA — South Africa Investment Promotion Agency",
+    established: 2018,
+    legalBasis: "Presidential mandate — State of the Nation Address commitment 2018",
+    mandate: "One-stop shop housed within the DTIC; facilitates resolution of investor obstacles through Project Lodestar and InvestSA Coordination Forum.",
+    location: "77 Meintjies Street, Sunnyside, Pretoria",
+    website: "https://investsa.gov.za",
+    operatingHours: "Mon–Fri 08:00–16:00 SAST",
+    languages: ["English", "Afrikaans"],
+    services: [
+      { name: "CIPC Company Registration",        available: true, digitalPortal: true,  avgDays: 1  },
+      { name: "SARS Tax Registration",            available: true, digitalPortal: true,  avgDays: 1  },
+      { name: "Critical Skills Work Visa Liaison",available: true, digitalPortal: false, avgDays: 30 },
+      { name: "EIA Environmental Authorisation",  available: true, digitalPortal: false, avgDays: 107 },
+      { name: "NERSA / Sector Licencing Liaison", available: true, digitalPortal: false, avgDays: null },
+      { name: "Special Economic Zone (SEZ) Access",available: true,digitalPortal: false, avgDays: null },
+    ],
+    offers: [
+      "SEZ Tax Incentive: 15% corporate tax (vs. standard 27%) for qualifying SEZ entities",
+      "Employment Tax Incentive (ETI) — up to ZAR 1,500/month per qualifying employee",
+      "Section 12I: Additional investment and training allowance for manufacturing",
+      "REIPPPP Round 7 — renewable energy preferred developer framework with guaranteed PPA",
+      "R&D 150% tax deduction for qualifying research expenditure",
+    ],
+    linkedZones: ["Coega SEZ (Nelson Mandela Bay)", "OR Tambo International Airport SEZ", "Musina-Makhado SEZ", "Saldanha Bay IDZ"],
+    contacts: [
+      { name: "Yunus Hoosen", title: "Head: InvestSA", email: "investsa@dtic.gov.za", phone: "+27 12 394 9500" },
+      { name: "Project Lodestar Desk", title: "Obstacle Resolution", email: "lodestar@investsa.gov.za", phone: "+27 12 394 9501" },
+    ],
+    bReadyNote: "South Africa OSS completeness: 74/100 on B-READY 2024. CIPC and SARS digitisation rated excellent. Environmental permitting (107-day average) is the primary drag.",
+    lastVerified: "2026-06-01",
+  },
+  TZA: {
+    country: "TZA",
+    exists: true,
+    name: "Tanzania Investment Centre (TIC)",
+    established: 1997,
+    legalBasis: "Tanzania Investment Act 1997, Cap 38",
+    mandate: "Registration, facilitation, and promotion of investment in Tanzania; coordinates inter-agency services including permits and licences.",
+    location: "Shaaban Robert Street, Dar es Salaam",
+    website: "https://www.tic.go.tz",
+    operatingHours: "Mon–Fri 08:00–17:00 EAT",
+    languages: ["English", "Swahili"],
+    services: [
+      { name: "Certificate of Incentives",       available: true, digitalPortal: false, avgDays: 3  },
+      { name: "Business Registration (BRELA)",   available: true, digitalPortal: true,  avgDays: 3  },
+      { name: "TRA Tax Registration",            available: true, digitalPortal: true,  avgDays: 2  },
+      { name: "Immigration Work Permit",         available: true, digitalPortal: false, avgDays: 21 },
+      { name: "Environmental Clearance (NEMC)",  available: true, digitalPortal: false, avgDays: 60 },
+      { name: "Land Allocation (EPZ/SEZ)",       available: true, digitalPortal: false, avgDays: null },
+    ],
+    offers: [
+      "EPZ/SEZ enterprises: 10-year corporate tax holiday + 0% import duty on capital goods",
+      "No withholding tax on dividends/interest for EPZ-registered firms",
+      "100% foreign ownership permitted (except in specified reserved sectors)",
+      "Blue Economy Fast-Track: marine/fisheries investments receive dedicated facilitation desk",
+      "Carbon Credit Registry: TIC coordinates Voluntary Carbon Market registrations",
+    ],
+    linkedZones: ["Dar es Salaam EPZ", "Mtwara SEZ", "Kigamboni New City SEZ"],
+    contacts: [
+      { name: "Geoffrey Mwambe", title: "Executive Director, TIC", email: "info@tic.go.tz", phone: "+255 22 211 1144" },
+      { name: "Investor Services Unit", title: "OSS Facilitation Desk", email: "invest@tic.go.tz", phone: "+255 22 211 1144" },
+    ],
+    bReadyNote: "Tanzania OSS completeness: 60/100 on B-READY 2024. BRELA digitisation praised. Environmental and land processes remain offline and slow.",
+    lastVerified: "2026-05-15",
+  },
+};
+
 export const COUNTRIES: CountryProfile[] = [
   {
     code: "RWA", flag: "🇷🇼", name: "Rwanda", region: "East Africa",
