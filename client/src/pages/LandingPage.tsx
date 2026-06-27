@@ -5,6 +5,7 @@ import {
   Zap, Users, Newspaper, AlertTriangle, BarChart3, Coins,
   CheckCircle2, Star, Activity, MapPin, Code2, Calendar,
   Rss, Brain, Database, Clock, FileText, LayoutGrid, Rows, Smartphone, Leaf,
+  Building2, ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -997,6 +998,155 @@ export default function LandingPage() {
               Open Africa Scanner <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* ── OSS INVESTMENT FACILITATION HOOK ───────────────────────────────── */}
+      <section id="investment-facilitation" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}>
+
+            {/* Section header */}
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Investment Facilitation</Badge>
+                <span className="text-xs text-emerald-400/80 border border-emerald-500/20 bg-emerald-500/5 rounded-full px-3 py-1">● 8 countries · live data</span>
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-black mb-4">
+                The Market Is Open.<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">OSS Confirms It.</span>
+              </h2>
+              <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+                Beyond PESTEL scores and IRS rankings — a country's One-Stop-Shop for investment is the single clearest signal that the market is ready and open for business. ViralBeat maps every active OSS across Africa so you know exactly where the door is open.
+              </p>
+            </div>
+
+            {/* Two-column layout: explanation left, Rwanda card right */}
+            <div className="grid lg:grid-cols-2 gap-10 items-start mb-12">
+
+              {/* Left — what OSS means */}
+              <div className="space-y-6">
+                {[
+                  { icon: CheckCircle2, color: "#22c55e", title: "Single-window entry", desc: "Company registration, investment permits, immigration, tax clearances, and sector licences — under one roof, one process." },
+                  { icon: Zap,          color: "#22d3ee", title: "Digital-first processing", desc: "Leading OSS centres offer fully online portals. Rwanda's RDB processes company registration in 1 day." },
+                  { icon: Shield,       color: "#a78bfa", title: "Legal mandate & accountability", desc: "Each OSS is established by law — giving investors a clear counterparty with enforceable service-level obligations." },
+                  { icon: Building2,    color: "#f59e0b", title: "Verified contact access", desc: "Analyst and Enterprise subscribers get direct officer contacts — the people who actually move your application." },
+                ].map(({ icon: Icon, color, title, desc }, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }}
+                    className="flex gap-4">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
+                      <Icon className="w-4 h-4" style={{ color }} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm mb-1">{title}</h4>
+                      <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Right — Rwanda OSS preview card */}
+              <motion.div initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} viewport={{ once: true }}
+                className="rounded-2xl border border-emerald-500/20 bg-[#060f0b] overflow-hidden">
+
+                {/* Card header */}
+                <div className="px-6 pt-6 pb-4 border-b border-[#0f2a1e]">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/12 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                      <Building2 className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400/60">One-Stop-Shop</span>
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 border border-emerald-500/22 text-emerald-400">Active</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🇷🇼</span>
+                        <div>
+                          <div className="text-sm font-bold text-white">Rwanda Development Board (RDB)</div>
+                          <div className="text-[10px] text-slate-500">Est. 2009 · Law No. 26/2008 · Kigali</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed mt-4">
+                    Facilitates all investor needs under one roof — company registration, investment permits, immigration, tax, environmental clearances, and sector licences.
+                  </p>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-0 border-b border-[#0f2a1e]">
+                  {[
+                    { v: "8/8", l: "Services",  c: "#22c55e" },
+                    { v: "7",   l: "Digital",   c: "#22d3ee" },
+                    { v: "1d",  l: "Fastest",   c: "#a78bfa" },
+                  ].map(({ v, l, c }, i) => (
+                    <div key={i} className={`py-4 text-center ${i < 2 ? "border-r border-[#0f2a1e]" : ""}`}>
+                      <div className="text-xl font-extrabold" style={{ color: c }}>{v}</div>
+                      <div className="text-[9px] text-slate-600 uppercase tracking-wider mt-0.5">{l}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 3 services preview */}
+                <div className="border-b border-[#0f2a1e]">
+                  {["Company Registration", "Investment Certificate", "Immigration & Work Permit"].map((svc, i) => (
+                    <div key={i} className={`flex items-center gap-3 px-5 py-2.5 ${i < 2 ? "border-b border-[#0a1a12]" : ""}`}>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span className="text-xs text-slate-300 flex-1">{svc}</span>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/8 border border-cyan-500/18 text-cyan-400">Online</span>
+                    </div>
+                  ))}
+                  <div className="px-5 py-2 text-[10px] text-slate-600 italic">+ 5 more services…</div>
+                </div>
+
+                {/* Locked contacts teaser */}
+                <div className="px-5 py-4 flex items-center gap-3 bg-[#0a1a12]/60">
+                  <Shield className="w-4 h-4 text-slate-600 shrink-0" />
+                  <p className="text-xs text-slate-500 flex-1">Direct OSS officer contacts visible to <span className="text-emerald-400 font-semibold">Analyst</span> and <span className="text-emerald-400 font-semibold">Enterprise</span> subscribers.</p>
+                </div>
+
+                {/* CTA */}
+                <div className="px-5 pb-5 pt-3">
+                  <button
+                    onClick={() => user ? setLocation("/scanner/rwa") : (window.location.href = getLoginUrl())}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/18 border border-emerald-500/25 hover:border-emerald-500/45 text-emerald-400 text-xs font-bold transition-all"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    View Rwanda Investment Facilitation Profile
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Country chips row */}
+            <div className="text-center">
+              <p className="text-xs text-gray-500 mb-4 uppercase tracking-widest">OSS coverage live across</p>
+              <div className="flex flex-wrap justify-center gap-2 mb-8">
+                {[
+                  { flag: "🇰🇪", name: "Kenya",    code: "ken" },
+                  { flag: "🇷🇼", name: "Rwanda",   code: "rwa" },
+                  { flag: "🇬🇭", name: "Ghana",    code: "gha" },
+                  { flag: "🇸🇳", name: "Senegal",  code: "sen" },
+                  { flag: "🇪🇹", name: "Ethiopia", code: "eth" },
+                  { flag: "🇳🇬", name: "Nigeria",  code: "nga" },
+                  { flag: "🇿🇦", name: "S. Africa",code: "zaf" },
+                  { flag: "🇹🇿", name: "Tanzania", code: "tza" },
+                ].map(({ flag, name, code }) => (
+                  <button key={code}
+                    onClick={() => user ? setLocation(`/scanner/${code}`) : (window.location.href = getLoginUrl())}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/8 bg-white/[0.03] hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all text-xs text-gray-400 hover:text-emerald-400">
+                    {flag} {name}
+                  </button>
+                ))}
+              </div>
+              <Button size="lg" onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())}
+                className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold shadow-xl shadow-emerald-500/20">
+                Explore Investment Facilitation <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </section>
 
