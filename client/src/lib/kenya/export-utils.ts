@@ -33,101 +33,10 @@ export function exportToCSV<T extends Record<string, any>>(
   downloadBlob(blob, `${filename}.csv`);
 }
 
-// PDF Export (simplified HTML-to-print approach)
-export function exportToPDF(
-  title: string,
-  content: string,
-  filename: string
-): void {
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) {
-    alert("Please allow popups to export PDF");
-    return;
-  }
+import { exportKenyaReportPDF } from "@/lib/printBrief";
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>${title}</title>
-      <style>
-        body {
-          font-family: 'Courier New', monospace;
-          padding: 40px;
-          max-width: 800px;
-          margin: 0 auto;
-        }
-        h1 {
-          font-size: 24px;
-          border-bottom: 2px solid #000;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
-        }
-        h2 {
-          font-size: 18px;
-          margin-top: 30px;
-          margin-bottom: 15px;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 20px 0;
-        }
-        th, td {
-          border: 1px solid #000;
-          padding: 8px;
-          text-align: left;
-          font-size: 12px;
-        }
-        th {
-          background: #f0f0f0;
-          font-weight: bold;
-        }
-        .metric {
-          display: inline-block;
-          margin: 10px 20px 10px 0;
-          padding: 10px;
-          border: 2px solid #000;
-        }
-        .metric-label {
-          font-size: 10px;
-          text-transform: uppercase;
-        }
-        .metric-value {
-          font-size: 24px;
-          font-weight: bold;
-        }
-        .risk-critical { color: #dc2626; }
-        .risk-high { color: #ea580c; }
-        .risk-moderate { color: #ca8a04; }
-        .risk-low { color: #16a34a; }
-        .timestamp {
-          font-size: 10px;
-          color: #666;
-          margin-top: 30px;
-        }
-        @media print {
-          body { padding: 20px; }
-        }
-      </style>
-    </head>
-    <body>
-      <h1>${title}</h1>
-      ${content}
-      <div class="timestamp">
-        Generated: ${new Date().toLocaleString()} | Kenya Political Sentiment Tracker
-      </div>
-    </body>
-    </html>
-  `;
-
-  printWindow.document.write(html);
-  printWindow.document.close();
-  
-  // Wait for content to load then print
-  printWindow.onload = () => {
-    printWindow.print();
-  };
+async function exportToPDF(title: string, content: string, filename: string): Promise<void> {
+  await exportKenyaReportPDF(title, content, filename);
 }
 
 // Helper to download blob
@@ -143,7 +52,7 @@ function downloadBlob(blob: Blob, filename: string): void {
 }
 
 // Balkanization Report Export
-export function exportBalkanizationReport(regionData: any[]): void {
+export async function exportBalkanizationReport(regionData: any[]): Promise<void> {
   const content = `
     <div class="metrics">
       <div class="metric">
@@ -192,11 +101,11 @@ export function exportBalkanizationReport(regionData: any[]): void {
     </p>
   `;
 
-  exportToPDF("Support Balkanization Report", content, "balkanization-report");
+  await exportToPDF("Support Balkanization Report", content, "balkanization-report");
 }
 
 // Election Phase Report Export
-export function exportElectionPhaseReport(phaseData: any): void {
+export async function exportElectionPhaseReport(phaseData: any): Promise<void> {
   const content = `
     <h2>Current Phase: ${phaseData.currentPhase}</h2>
     
@@ -257,7 +166,7 @@ export function exportElectionPhaseReport(phaseData: any): void {
     </table>
   `;
 
-  exportToPDF("Election Phase Report", content, "election-phase-report");
+  await exportToPDF("Election Phase Report", content, "election-phase-report");
 }
 
 // Sentiment History CSV Export

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
+import { exportIntelligencePDF } from "@/lib/printBrief";
 import { AnimatePresence, motion } from "framer-motion";
 
 // ── types ───────────────────────────────────────────────────────────────────
@@ -852,70 +853,7 @@ export default function IntelligencePage() {
 
   const handleDownloadPdf = async (content: string, basename: string) => {
     try {
-      const { jsPDF } = await import("jspdf");
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const margin = 20;
-      const maxW = pageW - margin * 2;
-
-      // Dark header bar
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, pageW, 22, "F");
-      doc.setTextColor(56, 189, 248);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text("VIRAL BEAT  ·  AFRICA POLITICAL INTELLIGENCE", margin, 14);
-      doc.setTextColor(100, 116, 139);
-      doc.setFontSize(8);
-      doc.text(
-        new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
-        pageW - margin, 14, { align: "right" }
-      );
-
-      // Body — strip markdown, wrap lines, paginate
-      doc.setTextColor(30, 30, 30);
-      let y = 32;
-      for (const raw of content.split("\n")) {
-        const line = raw
-          .replace(/^#{1,4}\s*/, "")
-          .replace(/\*\*(.*?)\*\*/g, "$1")
-          .replace(/\*(.*?)\*/g, "$1")
-          .replace(/`(.*?)`/g, "$1")
-          .trim();
-        if (!line) { y += 3; continue; }
-        const isH = /^#{1,4}\s/.test(raw);
-        const fontSize = isH ? 12 : 9;
-        doc.setFontSize(fontSize);
-        doc.setFont("helvetica", isH ? "bold" : "normal");
-        const wrapped = doc.splitTextToSize(line, maxW);
-        const lineH = isH ? 6 : 4.5;
-        if (y + wrapped.length * lineH > pageH - 16) {
-          doc.addPage();
-          y = 20;
-        }
-        doc.text(wrapped, margin, y);
-        y += wrapped.length * lineH + (isH ? 2 : 0);
-      }
-
-      // Footer on every page
-      const totalPages = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        doc.setTextColor(180, 180, 180);
-        doc.setFontSize(7);
-        doc.text(
-          `viralbeat.io  ·  Page ${i} of ${totalPages}  ·  Confidential`,
-          pageW / 2, pageH - 6, { align: "center" }
-        );
-      }
-
-      // Use blob + anchor instead of doc.save() to avoid CSP issues
-      const pdfBlob = doc.output("blob");
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement("a");
-      a.href = url; a.download = `${basename}.pdf`; a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await exportIntelligencePDF(content, basename);
     } catch (e) {
       console.error("PDF generation error:", e);
       toast.error("PDF generation failed — downloading as Markdown instead.");

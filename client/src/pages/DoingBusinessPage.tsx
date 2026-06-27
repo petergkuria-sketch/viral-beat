@@ -20,7 +20,7 @@ import {
   TrendingUp, Shield, Globe, TrendingDown, Minus,
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Cell, Legend } from "recharts";
-import jsPDF from "jspdf";
+import { exportComparisonPDF, type ComparisonCountry } from "@/lib/printBrief";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -566,39 +566,7 @@ function CompareTab() {
   });
 
   function downloadPDF() {
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-    doc.setFontSize(18);
-    doc.setTextColor(30, 30, 50);
-    doc.text("ViralBeat Africa — Investment Comparison Brief", 14, 22);
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 120);
-    doc.text(`Generated ${new Date().toLocaleDateString()}`, 14, 30);
-    doc.line(14, 33, 196, 33);
-
-    let y = 40;
-    selectedCountries.forEach((c, idx) => {
-      const irs = calcIRS(c);
-      doc.setFontSize(13);
-      doc.setTextColor(30, 30, 50);
-      doc.text(`${idx + 1}. ${c.flag} ${c.name} — IRS: ${irs}`, 14, y);
-      y += 7;
-      doc.setFontSize(9);
-      doc.setTextColor(60, 60, 80);
-      INDICATOR_KEYS.forEach(key => {
-        doc.text(`  ${INDICATOR_LABELS[key]}: ${c.indicators[key]}`, 14, y);
-        y += 5;
-      });
-      doc.text(`  Stability: ${c.stabilityScore} | AfCFTA: ${c.aafctaStatus} | Capital: ${c.capitalControls}`, 14, y);
-      y += 9;
-    });
-
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "viralbeat-investment-comparison.pdf";
-    a.click();
-    URL.revokeObjectURL(url);
+    exportComparisonPDF(selectedCountries as ComparisonCountry[]);
   }
 
   return (

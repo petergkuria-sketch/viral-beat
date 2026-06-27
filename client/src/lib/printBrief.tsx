@@ -430,7 +430,445 @@ function SectionLabel({ tag, title, small = false }: { tag: string; title: strin
   );
 }
 
-// ── export function ───────────────────────────────────────────────────────────
+// ── shared render helper ──────────────────────────────────────────────────────
+
+async function renderToPDF(
+  element: React.ReactElement,
+  filename: string,
+  onProgress?: (msg: string) => void,
+) {
+  onProgress?.("Preparing report…");
+  const container = document.createElement("div");
+  container.style.cssText = "position:absolute;left:-9999px;top:0;width:794px;";
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  await new Promise<void>(resolve => {
+    root.render(element);
+    setTimeout(resolve, 600);
+  });
+  onProgress?.("Rendering pages…");
+  const canvas = await html2canvas(container.firstElementChild as HTMLElement, {
+    scale: 2, useCORS: true, allowTaint: false,
+    backgroundColor: "#ffffff", logging: false, windowWidth: 794,
+  });
+  onProgress?.("Building PDF…");
+  const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+  const pdfW = pdf.internal.pageSize.getWidth();
+  const pdfH = pdf.internal.pageSize.getHeight();
+  const imgW = canvas.width;
+  const imgH = canvas.height;
+  const pageHeightPx = Math.round((pdfH / pdfW) * imgW);
+  let yOffset = 0, pageIndex = 0;
+  while (yOffset < imgH) {
+    if (pageIndex > 0) pdf.addPage();
+    const sliceCanvas = document.createElement("canvas");
+    sliceCanvas.width = imgW;
+    sliceCanvas.height = Math.min(pageHeightPx, imgH - yOffset);
+    const ctx = sliceCanvas.getContext("2d")!;
+    ctx.drawImage(canvas, 0, yOffset, imgW, sliceCanvas.height, 0, 0, imgW, sliceCanvas.height);
+    const sliceH = (sliceCanvas.height / imgW) * pdfW;
+    pdf.addImage(sliceCanvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, sliceH);
+    yOffset += pageHeightPx; pageIndex++;
+  }
+  root.unmount();
+  document.body.removeChild(container);
+  pdf.save(filename);
+  onProgress?.("Done");
+}
+
+// ── shared report header / footer (light pages) ───────────────────────────────
+
+function LightPageHeader({ title, subtitle, date }: { title: string; subtitle?: string; date: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "12px", marginBottom: "4px", borderBottom: "1px solid #e2e8f0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <img src="/logo.png" alt="ViralBeat" style={{ height: "20px", objectFit: "contain" }} />
+        <span style={{ fontSize: "10px", fontWeight: 700, color: "#080d1a" }}>Viral<span style={{ color: "#22d3ee" }}>Beat</span> Intelligence</span>
+      </div>
+      <div style={{ fontSize: "9px", color: "#94a3b8", textAlign: "center" }}>{subtitle ?? title} · {date}</div>
+      <div style={{ fontSize: "9px", color: "#94a3b8" }}>viralbeat.io</div>
+    </div>
+  );
+}
+
+function LightPageFooter({ page, totalPages, date }: { page: number; totalPages: number; date: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "24px", paddingTop: "10px", borderTop: "0.5px solid #e2e8f0" }}>
+      <div style={{ fontSize: "9px", color: "#94a3b8" }}>viralbeat.io · intelligence@viralbeat.io</div>
+      <div style={{ fontSize: "9px", color: "#94a3b8" }}>{date}</div>
+      <div style={{ fontSize: "9px", fontWeight: 700, color: "#64748b" }}>Page {page} of {totalPages}</div>
+    </div>
+  );
+}
+
+function Disclaimer() {
+  return (
+    <div style={{ marginTop: "20px", padding: "10px 14px", background: "#fafafa", border: "0.5px solid #f1f5f9", borderRadius: "6px" }}>
+      <div style={{ fontSize: "9px", color: "#94a3b8", lineHeight: 1.55 }}>
+        This report is an intelligence signal and analytical aid, not financial, legal, or investment advice.
+        Data sourced from verified contributors and automated aggregation. Scores reflect media coverage
+        and composite indicators — always conduct independent due diligence before committing capital.
+        Methodology: viralbeat.io/about#methodology · © 2026 ViralBeat Intelligence.
+      </div>
+    </div>
+  );
+}
+
+// ── TEMPLATE: Intelligence Brief (PublicBrief / ShareBriefButton) ─────────────
+
+export interface IntelBriefData {
+  countryName: string;
+  countryCode: string;
+  title?: string;
+  overview: string;
+  sentimentScore: number;
+  stabilityScore: number;
+  riskLevel: string;
+  keyThemes?: string[];
+  contributor?: string;
+  affiliation?: string;
+  shareUrl?: string;
+  generatedAt?: string;
+}
+
+const RISK_COLORS_MAP: Record<string, string> = {
+  low: "#22c55e", medium: "#f59e0b", high: "#f97316", critical: "#ef4444",
+};
+
+function PrintIntelBrief({ brief }: { brief: IntelBriefData }) {
+  const date = brief.generatedAt
+    ? new Date(brief.generatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+    : new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const rc = RISK_COLORS_MAP[brief.riskLevel] ?? RISK_COLORS_MAP.medium;
+  const themes: string[] = brief.keyThemes ?? [];
+
+  return (
+    <div style={{ width: "794px", fontFamily: "system-ui, Arial, sans-serif", background: "#fff", color: "#1e293b" }}>
+      {/* Cover strip */}
+      <div style={{ background: "#080d1a", padding: "20px 32px 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <img src="/logo.png" alt="ViralBeat" style={{ height: "26px", objectFit: "contain" }} />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: `${rc}22`, border: `1px solid ${rc}44`, borderRadius: "6px", padding: "4px 12px" }}>
+            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: rc }} />
+            <span style={{ fontSize: "10px", fontWeight: 800, color: rc, textTransform: "uppercase", letterSpacing: "0.1em" }}>{brief.riskLevel} RISK</span>
+          </div>
+        </div>
+        <div style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "#22d3ee", marginBottom: "6px" }}>
+          Africa Intelligence Brief · {brief.countryName}
+        </div>
+        <div style={{ fontSize: "32px", fontWeight: 900, color: "#fff", lineHeight: 1.1, marginBottom: "6px" }}>
+          {brief.title ?? `${brief.countryName} Intelligence Brief`}
+        </div>
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,.4)" }}>Generated {date} · viralbeat.io</div>
+
+        {/* KPI chips */}
+        <div style={{ display: "flex", gap: "16px", marginTop: "20px" }}>
+          {[
+            { l: "Sentiment", v: `${brief.sentimentScore}/100`, c: brief.sentimentScore >= 65 ? "#22c55e" : brief.sentimentScore >= 45 ? "#f59e0b" : "#ef4444" },
+            { l: "Stability", v: `${brief.stabilityScore}/100`, c: brief.stabilityScore >= 65 ? "#22c55e" : brief.stabilityScore >= 45 ? "#f59e0b" : "#ef4444" },
+            { l: "Risk Level", v: brief.riskLevel.toUpperCase(), c: rc },
+          ].map(({ l, v, c: fc }) => (
+            <div key={l} style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.08)", borderRadius: "8px", padding: "10px 16px", minWidth: "110px" }}>
+              <div style={{ fontSize: "8px", textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,.35)", marginBottom: "4px" }}>{l}</div>
+              <div style={{ fontSize: "18px", fontWeight: 900, color: fc }}>{v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ padding: "28px 32px" }}>
+        <LightPageHeader title="Intelligence Brief" subtitle={brief.countryName} date={date} />
+
+        <div style={{ marginTop: "20px" }}>
+          <div style={{ fontSize: "8px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", color: "#22d3ee", marginBottom: "4px" }}>Intelligence Overview</div>
+          <div style={{ height: "1px", background: "#e2e8f0", marginBottom: "14px" }} />
+          <p style={{ fontSize: "12px", color: "#334155", lineHeight: 1.7 }}>{brief.overview}</p>
+        </div>
+
+        {themes.length > 0 && (
+          <div style={{ marginTop: "24px" }}>
+            <div style={{ fontSize: "8px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", color: "#22d3ee", marginBottom: "4px" }}>Key Themes</div>
+            <div style={{ height: "1px", background: "#e2e8f0", marginBottom: "12px" }} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {themes.map((t, i) => (
+                <span key={i} style={{ fontSize: "10px", fontWeight: 600, padding: "4px 10px", borderRadius: "4px", background: "#f1f5f9", color: "#334155", border: "0.5px solid #e2e8f0" }}>
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {brief.contributor && (
+          <div style={{ marginTop: "24px", background: "#f8fafc", border: "0.5px solid #e2e8f0", borderRadius: "8px", padding: "14px 16px" }}>
+            <div style={{ fontSize: "8px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", marginBottom: "4px" }}>Prepared by</div>
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#1e293b" }}>{brief.contributor}</div>
+            {brief.affiliation && <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>{brief.affiliation}</div>}
+          </div>
+        )}
+
+        {brief.shareUrl && (
+          <div style={{ marginTop: "12px", fontSize: "10px", color: "#22d3ee" }}>
+            Shareable link: viralbeat.io{brief.shareUrl}
+          </div>
+        )}
+
+        <Disclaimer />
+        <LightPageFooter page={1} totalPages={1} date={date} />
+      </div>
+    </div>
+  );
+}
+
+export async function exportIntelBriefPDF(brief: IntelBriefData, onProgress?: (msg: string) => void) {
+  await renderToPDF(
+    <PrintIntelBrief brief={brief} />,
+    `VB_Brief_${brief.countryCode.toUpperCase()}_${Date.now()}.pdf`,
+    onProgress,
+  );
+}
+
+// ── TEMPLATE: Intelligence Page markdown export ────────────────────────────────
+
+function PrintIntelligence({ content, basename, date }: { content: string; basename: string; date: string }) {
+  const lines = content.split("\n");
+
+  return (
+    <div style={{ width: "794px", fontFamily: "system-ui, Arial, sans-serif", background: "#fff", color: "#1e293b" }}>
+      {/* Cover strip */}
+      <div style={{ background: "#080d1a", padding: "20px 32px 24px", marginBottom: "0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <img src="/logo.png" alt="ViralBeat" style={{ height: "26px", objectFit: "contain" }} />
+        </div>
+        <div style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "#22d3ee", marginBottom: "6px" }}>
+          Africa Political Intelligence
+        </div>
+        <div style={{ fontSize: "26px", fontWeight: 900, color: "#fff", lineHeight: 1.15, marginBottom: "6px" }}>
+          {basename.replace(/_/g, " ")}
+        </div>
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,.4)" }}>{date} · viralbeat.io · Confidential</div>
+      </div>
+
+      {/* Body — render markdown lines */}
+      <div style={{ padding: "28px 32px" }}>
+        <LightPageHeader title={basename} date={date} />
+        <div style={{ marginTop: "20px" }}>
+          {lines.map((raw, i) => {
+            const isH1 = /^# /.test(raw);
+            const isH2 = /^## /.test(raw);
+            const isH3 = /^#{3,4} /.test(raw);
+            const text = raw.replace(/^#{1,4}\s*/, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").replace(/`(.*?)`/g, "$1").trim();
+            if (!text) return <div key={i} style={{ height: "8px" }} />;
+            if (isH1) return <div key={i} style={{ fontSize: "18px", fontWeight: 900, color: "#080d1a", marginTop: "24px", marginBottom: "6px", paddingBottom: "6px", borderBottom: "1px solid #e2e8f0" }}>{text}</div>;
+            if (isH2) return <div key={i} style={{ fontSize: "14px", fontWeight: 800, color: "#22d3ee", marginTop: "20px", marginBottom: "4px" }}>{text}</div>;
+            if (isH3) return <div key={i} style={{ fontSize: "12px", fontWeight: 700, color: "#334155", marginTop: "14px", marginBottom: "3px" }}>{text}</div>;
+            return <p key={i} style={{ fontSize: "11px", color: "#475569", lineHeight: 1.65, margin: "0 0 6px" }}>{text}</p>;
+          })}
+        </div>
+        <Disclaimer />
+        <LightPageFooter page={1} totalPages={1} date={date} />
+      </div>
+    </div>
+  );
+}
+
+export async function exportIntelligencePDF(content: string, basename: string, onProgress?: (msg: string) => void) {
+  const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  await renderToPDF(
+    <PrintIntelligence content={content} basename={basename} date={date} />,
+    `${basename}.pdf`,
+    onProgress,
+  );
+}
+
+// ── TEMPLATE: Investment Comparison (DoingBusinessPage) ───────────────────────
+
+export interface ComparisonCountry {
+  code: string;
+  name: string;
+  flag: string;
+  region: string;
+  stabilityScore: number;
+  aafctaStatus: string;
+  bitCount: number;
+  capitalControls: string;
+  topSectors: string[];
+  indicators: Record<string, number>;
+}
+
+const INDICATOR_DISPLAY: Record<string, string> = {
+  businessEntry: "Business Entry",
+  constructionPermits: "Construction Permits",
+  electricity: "Electricity Access",
+  propertyRegistration: "Property Registration",
+  creditAccess: "Credit Access",
+  investorProtection: "Investor Protection",
+  taxCompliance: "Tax Compliance",
+  tradeFacilitation: "Trade Facilitation",
+  contractEnforcement: "Contract Enforcement",
+  insolvencyResolution: "Insolvency Resolution",
+};
+
+function calcIRSLocal(c: ComparisonCountry) {
+  const vals = Object.values(c.indicators);
+  return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+}
+
+function ScoreBar({ val, color }: { val: number; color: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div style={{ flex: 1, height: "4px", background: "#e2e8f0", borderRadius: "99px", overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${val}%`, background: color, borderRadius: "99px" }} />
+      </div>
+      <span style={{ fontSize: "11px", fontWeight: 700, color, width: "28px", textAlign: "right" }}>{val}</span>
+    </div>
+  );
+}
+
+const COMPARISON_COLORS = ["#22d3ee", "#a855f7", "#f59e0b"];
+
+function PrintComparison({ countries, date }: { countries: ComparisonCountry[]; date: string }) {
+  return (
+    <div style={{ width: "794px", fontFamily: "system-ui, Arial, sans-serif", background: "#fff", color: "#1e293b" }}>
+      {/* Header */}
+      <div style={{ background: "#080d1a", padding: "20px 32px 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <img src="/logo.png" alt="ViralBeat" style={{ height: "26px", objectFit: "contain" }} />
+        </div>
+        <div style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "#22d3ee", marginBottom: "6px" }}>
+          Africa Investment Comparison
+        </div>
+        <div style={{ fontSize: "28px", fontWeight: 900, color: "#fff", lineHeight: 1.15, marginBottom: "6px" }}>
+          {countries.map(c => `${c.flag} ${c.name}`).join(" vs ")}
+        </div>
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,.4)" }}>{date} · B-READY Investment Readiness Comparison · viralbeat.io</div>
+
+        {/* IRS summary row */}
+        <div style={{ display: "flex", gap: "16px", marginTop: "20px" }}>
+          {countries.map((c, idx) => (
+            <div key={c.code} style={{ background: "rgba(255,255,255,.05)", border: `1px solid ${COMPARISON_COLORS[idx]}44`, borderRadius: "8px", padding: "10px 16px", flex: 1 }}>
+              <div style={{ fontSize: "8px", textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,.35)", marginBottom: "4px" }}>{c.name} IRS</div>
+              <div style={{ fontSize: "22px", fontWeight: 900, color: COMPARISON_COLORS[idx] }}>{calcIRSLocal(c)}</div>
+              <div style={{ fontSize: "9px", color: "rgba(255,255,255,.3)", marginTop: "2px" }}>Stability {c.stabilityScore} · {c.aafctaStatus}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ padding: "28px 32px" }}>
+        <LightPageHeader title="Investment Comparison" date={date} />
+
+        <div style={{ marginTop: "20px" }}>
+          <div style={{ fontSize: "8px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", color: "#22d3ee", marginBottom: "4px" }}>Indicator Breakdown</div>
+          <div style={{ height: "1px", background: "#e2e8f0", marginBottom: "14px" }} />
+
+          {/* Indicator table */}
+          <div style={{ border: "0.5px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+            <div style={{ display: "grid", gridTemplateColumns: `2fr ${countries.map(() => "1fr").join(" ")}`, background: "#f8fafc", padding: "8px 14px", borderBottom: "0.5px solid #e2e8f0" }}>
+              <div style={{ fontSize: "8px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8" }}>Indicator</div>
+              {countries.map((c, idx) => (
+                <div key={c.code} style={{ fontSize: "8px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: COMPARISON_COLORS[idx] }}>{c.flag} {c.name}</div>
+              ))}
+            </div>
+            {Object.entries(INDICATOR_DISPLAY).map(([key, label], i) => (
+              <div key={key} style={{ display: "grid", gridTemplateColumns: `2fr ${countries.map(() => "1fr").join(" ")}`, padding: "9px 14px", borderBottom: i < Object.keys(INDICATOR_DISPLAY).length - 1 ? "0.5px solid #f1f5f9" : "none", alignItems: "center" }}>
+                <div style={{ fontSize: "10px", color: "#475569" }}>{label}</div>
+                {countries.map((c, idx) => (
+                  <ScoreBar key={c.code} val={c.indicators[key] ?? 0} color={COMPARISON_COLORS[idx]} />
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Country profiles */}
+          <div style={{ marginTop: "20px" }}>
+            <div style={{ fontSize: "8px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", color: "#22d3ee", marginBottom: "4px" }}>Country Profiles</div>
+            <div style={{ height: "1px", background: "#e2e8f0", marginBottom: "14px" }} />
+            <div style={{ display: "grid", gridTemplateColumns: `repeat(${countries.length},1fr)`, gap: "12px" }}>
+              {countries.map((c, idx) => (
+                <div key={c.code} style={{ background: "#f8fafc", border: `1px solid ${COMPARISON_COLORS[idx]}33`, borderRadius: "8px", padding: "12px" }}>
+                  <div style={{ fontSize: "16px", fontWeight: 900, color: COMPARISON_COLORS[idx], marginBottom: "4px" }}>{c.flag} {c.name}</div>
+                  <div style={{ fontSize: "9px", color: "#64748b", marginBottom: "8px" }}>{c.region}</div>
+                  {[
+                    ["IRS Score", calcIRSLocal(c)],
+                    ["Stability", c.stabilityScore],
+                    ["AfCFTA", c.aafctaStatus],
+                    ["Capital Controls", c.capitalControls],
+                    ["BIT Treaties", c.bitCount],
+                  ].map(([l, v]) => (
+                    <div key={String(l)} style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                      <span style={{ fontSize: "9px", color: "#94a3b8" }}>{l}</span>
+                      <span style={{ fontSize: "9px", fontWeight: 700, color: "#334155" }}>{v}</span>
+                    </div>
+                  ))}
+                  <div style={{ marginTop: "6px", fontSize: "9px", color: "#64748b" }}>
+                    Top sectors: {c.topSectors.join(", ")}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <Disclaimer />
+        <LightPageFooter page={1} totalPages={1} date={date} />
+      </div>
+    </div>
+  );
+}
+
+export async function exportComparisonPDF(countries: ComparisonCountry[], onProgress?: (msg: string) => void) {
+  const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const names = countries.map(c => c.name.substring(0, 4)).join("-");
+  await renderToPDF(
+    <PrintComparison countries={countries} date={date} />,
+    `VB_Comparison_${names}_${new Date().getFullYear()}.pdf`,
+    onProgress,
+  );
+}
+
+// ── TEMPLATE: Kenya political report ─────────────────────────────────────────
+
+function PrintKenyaReport({ title, content, date }: { title: string; content: string; date: string }) {
+  return (
+    <div style={{ width: "794px", fontFamily: "system-ui, Arial, sans-serif", background: "#fff", color: "#1e293b" }}>
+      <div style={{ background: "#080d1a", padding: "20px 32px 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <img src="/logo.png" alt="ViralBeat" style={{ height: "26px", objectFit: "contain" }} />
+        </div>
+        <div style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "#22d3ee", marginBottom: "6px" }}>
+          Kenya Political Intelligence
+        </div>
+        <div style={{ fontSize: "26px", fontWeight: 900, color: "#fff", lineHeight: 1.15, marginBottom: "6px" }}>{title}</div>
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,.4)" }}>{date} · Kenya Sentiment Tracker · viralbeat.io</div>
+      </div>
+      <div style={{ padding: "28px 32px" }}>
+        <LightPageHeader title={title} date={date} />
+        <div style={{ marginTop: "20px" }}>
+          {/* Render the HTML content in an iframe-like div — strip HTML tags for clean text */}
+          <div dangerouslySetInnerHTML={{ __html: content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "") }} />
+        </div>
+        <Disclaimer />
+        <LightPageFooter page={1} totalPages={1} date={date} />
+      </div>
+    </div>
+  );
+}
+
+export async function exportKenyaReportPDF(title: string, htmlContent: string, filename: string, onProgress?: (msg: string) => void) {
+  const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  await renderToPDF(
+    <PrintKenyaReport title={title} content={htmlContent} date={date} />,
+    `${filename}.pdf`,
+    onProgress,
+  );
+}
+
+// ── Go/No-Go Brief export function ───────────────────────────────────────────
 
 export async function exportBriefPDF(
   c: CountryProfile,
@@ -438,69 +876,7 @@ export async function exportBriefPDF(
   horizon: string,
   onProgress?: (msg: string) => void,
 ) {
-  onProgress?.("Preparing report…");
-
-  // Mount the print template off-screen
-  const container = document.createElement("div");
-  container.style.cssText = "position:absolute;left:-9999px;top:0;width:794px;";
-  document.body.appendChild(container);
-
-  const root = createRoot(container);
-  await new Promise<void>(resolve => {
-    root.render(<PrintBrief c={c} sector={sector} horizon={horizon} />);
-    // Give React + fonts a moment to settle
-    setTimeout(resolve, 600);
-  });
-
-  onProgress?.("Rendering pages…");
-
-  const canvas = await html2canvas(container.firstElementChild as HTMLElement, {
-    scale: 2,
-    useCORS: true,
-    allowTaint: false,
-    backgroundColor: "#ffffff",
-    logging: false,
-    windowWidth: 794,
-  });
-
-  onProgress?.("Building PDF…");
-
-  const imgData = canvas.toDataURL("image/jpeg", 0.95);
-  const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
-
-  const pdfW = pdf.internal.pageSize.getWidth();
-  const pdfH = pdf.internal.pageSize.getHeight();
-  const imgW = canvas.width;
-  const imgH = canvas.height;
-
-  // Each A4 page in canvas-pixel terms
-  const pageHeightPx = Math.round((pdfH / pdfW) * imgW);
-  let yOffset = 0;
-  let pageIndex = 0;
-
-  while (yOffset < imgH) {
-    if (pageIndex > 0) pdf.addPage();
-
-    // Crop the canvas slice for this page
-    const sliceCanvas = document.createElement("canvas");
-    sliceCanvas.width = imgW;
-    sliceCanvas.height = Math.min(pageHeightPx, imgH - yOffset);
-    const ctx = sliceCanvas.getContext("2d")!;
-    ctx.drawImage(canvas, 0, yOffset, imgW, sliceCanvas.height, 0, 0, imgW, sliceCanvas.height);
-
-    const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.95);
-    const sliceH = (sliceCanvas.height / imgW) * pdfW;
-    pdf.addImage(sliceData, "JPEG", 0, 0, pdfW, sliceH);
-
-    yOffset += pageHeightPx;
-    pageIndex++;
-  }
-
-  // Cleanup
-  root.unmount();
-  document.body.removeChild(container);
-
   const filename = `VB_${c.name.replace(/\s+/g, "_")}_${sector.replace(/\s+/g, "_").substring(0, 12)}_${new Date().getFullYear()}.pdf`;
-  pdf.save(filename);
+  await renderToPDF(<PrintBrief c={c} sector={sector} horizon={horizon} />, filename, onProgress);
   onProgress?.("Done");
 }
