@@ -11,6 +11,7 @@ import {
   TrendingUp, TrendingDown, ArrowUpRight, ChevronRight,
   Building2, CheckCircle2, XCircle, Globe, Phone, Mail,
   Clock, Shield, Zap, MapPin, ExternalLink,
+  Share2, Copy, Check, Twitter, Linkedin,
 } from "lucide-react";
 import {
   COUNTRIES, OSS_DATA, composite, scoreColor, VERDICT_LABELS,
@@ -175,6 +176,169 @@ function RisksTab({ c }: { c: CountryProfile }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ── Share Sheet ───────────────────────────────────────────────────────────────
+function ShareSheet({ c, comp, color, oss, onClose }: {
+  c: CountryProfile; comp: number; color: string;
+  oss: OSSFacility | null; onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const url = typeof window !== "undefined"
+    ? `${window.location.origin}/scanner/${c.code}`
+    : `https://viralbeat.io/scanner/${c.code}`;
+
+  const verdictColor: Record<Verdict, string> = {
+    "go-market": "#22c55e", monitor: "#84cc16", caution: "#f59e0b", "no-go": "#ef4444",
+  };
+  const vc = verdictColor[c.verdict];
+
+  const shareText = `${c.flag} ${c.name} — ViralBeat Africa Intelligence Scanner\n\nComposite: ${comp}/100 · Verdict: ${VERDICT_LABELS[c.verdict]}\nPESTEL: ${c.pestel} · IRS (B-READY): ${c.irs}${oss?.exists ? ` · OSS: ${oss.name}` : ""}\n\n${url}`;
+
+  function copyLink() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function nativeShare() {
+    if (navigator.share) {
+      navigator.share({
+        title: `${c.name} — ViralBeat Intelligence Profile`,
+        text: `${c.flag} ${c.name} · Composite ${comp}/100 · ${VERDICT_LABELS[c.verdict]}`,
+        url,
+      }).catch(() => {});
+    } else {
+      copyLink();
+    }
+  }
+
+  const xUrl = `https://x.com/intent/post?text=${encodeURIComponent(
+    `${c.flag} ${c.name} Investment Intelligence — Composite ${comp}/100 · ${VERDICT_LABELS[c.verdict]}\n\nPESTEL ${c.pestel} · B-READY IRS ${c.irs}${oss?.exists ? " · OSS Active" : ""}\n\nFull profile via @ViralBeatHQ\n${url}`
+  )}`;
+
+  const liUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-sm bg-[#080d1a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Close */}
+        <button onClick={onClose} className="absolute top-3 right-3 text-white/30 hover:text-white p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors">
+          <Check className="w-4 h-4 opacity-0" />{/* spacer */}
+          <span className="sr-only">Close</span>
+          <svg className="w-4 h-4 absolute top-1.5 right-1.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+        </button>
+
+        {/* Preview card */}
+        <div className="p-5">
+          <div className="text-[9px] font-black tracking-[2px] text-white/30 uppercase mb-3">Share preview</div>
+          <div className="bg-[#030712] border border-white/8 rounded-xl p-4 mb-5">
+            {/* Card header */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-md bg-[#0a1628] border border-white/10 flex items-center justify-center">
+                <span className="text-xs font-black text-cyan-400">VB</span>
+              </div>
+              <div>
+                <div className="text-[9px] font-bold text-white/30 uppercase tracking-wide">ViralBeat · Africa Scanner</div>
+              </div>
+            </div>
+            {/* Country hero */}
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl leading-none">{c.flag}</span>
+              <div>
+                <div className="font-black text-base text-white leading-tight">{c.name}</div>
+                <div className="text-[10px] text-white/40">{c.region} · {c.capital} · {c.currency}</div>
+              </div>
+              <div className="ml-auto text-right">
+                <div className="text-lg font-black" style={{ color: vc }}>{VERDICT_LABELS[c.verdict]}</div>
+                <div className="text-[9px] text-white/30 uppercase">Verdict</div>
+              </div>
+            </div>
+            {/* Stat row */}
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {[
+                { label: "PESTEL", value: c.pestel, c: scoreColor(c.pestel) },
+                { label: "B-READY", value: c.irs,    c: scoreColor(c.irs)    },
+                { label: "Composite", value: comp,   c: color                },
+                { label: "OSS",    value: oss?.exists ? "✓" : "—", c: oss?.exists ? "#22c55e" : "#374151" },
+              ].map(s => (
+                <div key={s.label} className="bg-white/[0.04] rounded-lg p-2 text-center">
+                  <div className="text-sm font-black" style={{ color: s.c }}>{s.value}</div>
+                  <div className="text-[8px] text-white/25 uppercase tracking-wide mt-0.5">{s.label}</div>
+                </div>
+              ))}
+            </div>
+            {/* Top signals preview */}
+            {c.signals.slice(0, 2).map((s, i) => (
+              <div key={i} className="flex items-start gap-2 mb-1.5 last:mb-0">
+                <div className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-white/[0.06] text-white/40 shrink-0 mt-0.5">{s.dim}</div>
+                <p className="text-[9px] text-white/50 leading-snug line-clamp-1">{s.text}</p>
+              </div>
+            ))}
+            {/* Footer */}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+              <span className="text-[9px] text-white/20">viralbeat.io/scanner/{c.code.toLowerCase()}</span>
+              <span className="text-[8px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Africa Intelligence</span>
+            </div>
+          </div>
+
+          {/* Share actions */}
+          <div className="space-y-2">
+            {/* Copy link */}
+            <button
+              onClick={copyLink}
+              className="w-full flex items-center gap-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 rounded-xl px-4 py-3 transition-colors group"
+            >
+              {copied
+                ? <Check className="w-4 h-4 text-green-400 shrink-0" />
+                : <Copy className="w-4 h-4 text-white/40 group-hover:text-white/70 shrink-0" />
+              }
+              <span className="text-sm text-white/70 group-hover:text-white flex-1 text-left transition-colors">
+                {copied ? "Copied!" : "Copy link"}
+              </span>
+              <span className="text-[10px] text-white/20 font-mono truncate max-w-[140px]">{url.replace("https://", "")}</span>
+            </button>
+
+            {/* X / Twitter */}
+            <a
+              href={xUrl} target="_blank" rel="noopener noreferrer"
+              className="w-full flex items-center gap-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 rounded-xl px-4 py-3 transition-colors group"
+            >
+              <svg className="w-4 h-4 text-white/50 group-hover:text-white shrink-0 transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.74l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <span className="text-sm text-white/70 group-hover:text-white flex-1 text-left transition-colors">Share on X</span>
+              <ExternalLink className="w-3.5 h-3.5 text-white/20" />
+            </a>
+
+            {/* LinkedIn */}
+            <a
+              href={liUrl} target="_blank" rel="noopener noreferrer"
+              className="w-full flex items-center gap-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 rounded-xl px-4 py-3 transition-colors group"
+            >
+              <svg className="w-4 h-4 text-[#0a66c2] group-hover:text-[#2d8ac2] shrink-0 transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              <span className="text-sm text-white/70 group-hover:text-white flex-1 text-left transition-colors">Share on LinkedIn</span>
+              <ExternalLink className="w-3.5 h-3.5 text-white/20" />
+            </a>
+
+            {/* Native share (mobile) */}
+            {typeof navigator !== "undefined" && "share" in navigator && (
+              <button
+                onClick={nativeShare}
+                className="w-full flex items-center gap-3 bg-cyan-500/[0.08] hover:bg-cyan-500/[0.14] border border-cyan-500/20 rounded-xl px-4 py-3 transition-colors"
+              >
+                <Share2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span className="text-sm text-cyan-300 flex-1 text-left">More options…</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -411,6 +575,7 @@ export default function CountryIntelProfile() {
   const color = scoreColor(comp);
   const isSubscribed = user?.subscriptionTier === "analyst" || user?.subscriptionTier === "enterprise";
   const oss = OSS_DATA[c.code] ?? null;
+  const [showShare, setShowShare] = useState(false);
 
   function handleBrief(sector = "") {
     const qs = sector ? `?sector=${encodeURIComponent(sector)}` : "";
@@ -419,6 +584,9 @@ export default function CountryIntelProfile() {
 
   return (
     <div className="min-h-screen bg-[#050b1a] text-slate-200">
+      {showShare && (
+        <ShareSheet c={c} comp={comp} color={color} oss={oss} onClose={() => setShowShare(false)} />
+      )}
 
       {/* Nav */}
       <div className="bg-[#0a1628] border-b border-[#1a2d4a] px-6 py-2.5 flex items-center gap-3">
@@ -441,6 +609,10 @@ export default function CountryIntelProfile() {
           <Button size="sm" variant="outline" className="h-7 text-[10px] border-[#1a2d4a] text-slate-400 hover:border-cyan-500/40 hover:text-cyan-400 gap-1.5"
             onClick={() => setLocation(`/scanner`)}>
             <GitCompare className="w-3 h-3" />Compare
+          </Button>
+          <Button size="sm" variant="outline" className="h-7 text-[10px] border-[#1a2d4a] text-slate-400 hover:border-cyan-500/40 hover:text-cyan-400 gap-1.5"
+            onClick={() => setShowShare(true)}>
+            <Share2 className="w-3 h-3" />Share
           </Button>
           <Button size="sm" className="h-7 text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30 gap-1.5"
             onClick={() => handleBrief()}>
