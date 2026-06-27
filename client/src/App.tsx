@@ -59,6 +59,7 @@ const GoNoGoBrief = lazy(() => import("./pages/GoNoGoBrief"));
 const BulletinArchive = lazy(() => import("./pages/BulletinArchive"));
 const BulletinIssue   = lazy(() => import("./pages/BulletinIssue"));
 const BulletinAdmin   = lazy(() => import("./pages/BulletinAdmin"));
+const MemoryAdmin     = lazy(() => import("./pages/MemoryAdmin"));
 
 // GIaaS — Green Investment as a Service
 const GIaaSHub      = lazy(() => import("./pages/GIaaSHub"));
@@ -144,6 +145,7 @@ function Router() {
     { path: "/admin", component: AdminDashboard },
     { path: "/admin/users", component: AdminUsers },
     { path: "/admin/bulletins", component: BulletinAdmin },
+    { path: "/admin/memory",   component: MemoryAdmin },
     { path: "/developer-hub", component: DeveloperHub },
     { path: "/developer-hub/agent", component: () => <RedirectTo path="/developer-hub" /> },
     { path: "/developer-hub/thread/:threadId", component: ThreadDetail },

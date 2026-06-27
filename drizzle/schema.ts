@@ -1630,3 +1630,25 @@ export const intelligenceBulletins = mysqlTable("intelligenceBulletins", {
 }));
 export type IntelligenceBulletin = typeof intelligenceBulletins.$inferSelect;
 export type InsertIntelligenceBulletin = typeof intelligenceBulletins.$inferInsert;
+
+/**
+ * Agent Memory — persistent key/value store for Claude agent context.
+ * Stores facts, summaries, decisions, and session context across runs.
+ */
+export const agentMemory = mysqlTable("agentMemory", {
+  id:         int("id").autoincrement().primaryKey(),
+  key:        varchar("key", { length: 255 }).notNull().unique(),
+  value:      longtext("value").notNull(),
+  category:   varchar("category", { length: 64 }).notNull().default("general"),
+  tags:       json("tags"),                          // string[] for flexible search
+  metadata:   json("metadata"),                      // arbitrary extra context
+  source:     varchar("source", { length: 128 }),    // which agent/session wrote it
+  expiresAt:  timestamp("expiresAt"),                // null = permanent
+  createdAt:  timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:  timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, t => ({
+  categoryIdx: index("agentMemory_category_idx").on(t.category),
+  expiresIdx:  index("agentMemory_expires_idx").on(t.expiresAt),
+}));
+export type AgentMemory = typeof agentMemory.$inferSelect;
+export type InsertAgentMemory = typeof agentMemory.$inferInsert;

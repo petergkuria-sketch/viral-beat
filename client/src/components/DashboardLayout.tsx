@@ -147,6 +147,7 @@ const SECTIONS: Section[] = [
       { icon: Users,       label: "User Management",         path: "/admin/users" },
       { icon: Leaf,        label: "GIaaS Admin",             path: "/green/admin" },
       { icon: BookOpen,    label: "Bulletin Admin",          path: "/admin/bulletins" },
+      { icon: Brain,       label: "Agent Memory",            path: "/admin/memory" },
     ],
   },
   // ── 8. ACCOUNT ────────────────────────────────────────────────────────────
