@@ -516,9 +516,9 @@ export default function LandingPage() {
               55 African nations · Updated by people on the ground · Live now
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-6" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
-              Your feet on the ground<br />
+              You are the Investor.<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400">
-                before you book the ticket.
+                Get your feet on the ground before you book the ticket.
               </span>
             </h1>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
@@ -682,7 +682,7 @@ export default function LandingPage() {
                   </div>
                 ))}
                 <div className="mt-5 rounded-xl bg-cyan-500/8 border border-cyan-500/20 px-4 py-3 text-sm text-cyan-300 font-medium">
-                  Your feet on the ground — before you book the ticket.
+                  You are the Investor. Get your feet on the ground before you book the ticket.
                 </div>
               </div>
             </div>
