@@ -791,6 +791,33 @@ export default function CountryIntelProfile() {
         </div>
       </div>
 
+      {/* OSS teaser — always visible below hero */}
+      {oss?.exists && (
+        <div className="px-6 py-3 border-b border-[#0f1e35] bg-[#050e08]">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
+                <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400/70">One-Stop-Shop · Active</span>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 border border-emerald-500/22 text-emerald-400">{oss.name}</span>
+            </div>
+            <span className="text-slate-700">·</span>
+            <p className="text-[11px] text-slate-400 flex-1 min-w-0">
+              <span className="text-emerald-400 font-semibold">OSS is a key indicator</span> this market is ready and open for business — beyond all other IR parameters.
+            </p>
+            <button
+              onClick={() => setActiveTab("investment")}
+              className="shrink-0 flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 border border-emerald-500/25 hover:border-emerald-500/45 px-3 py-1.5 rounded-lg bg-emerald-500/8 hover:bg-emerald-500/14 transition-all"
+            >
+              <Zap className="w-3 h-3" />
+              View Investment Facilitation
+              <ArrowUpRight className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Body */}
       <div className="flex" style={{ minHeight: "calc(100vh - 200px)" }}>
 
