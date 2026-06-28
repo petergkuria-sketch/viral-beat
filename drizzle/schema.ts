@@ -1722,6 +1722,9 @@ export const smeListings = mysqlTable("smeListings", {
   contactEmail: varchar("contactEmail", { length: 200 }),
   contactPhone: varchar("contactPhone", { length: 60 }),
   contributorId: varchar("contributorId", { length: 128 }),
+  // attribution — who lodged the listing
+  listedByType: mysqlEnum("listedByType", ["self", "incubator", "accelerator"]).notNull().default("self"),
+  listedByOrg:  varchar("listedByOrg", { length: 200 }),   // incubator/accelerator name
   status:       mysqlEnum("status", ["pending", "approved", "rejected"]).notNull().default("pending"),
   reviewNote:   text("reviewNote"),
   createdAt:    timestamp("createdAt").defaultNow().notNull(),

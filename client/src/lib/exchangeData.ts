@@ -31,6 +31,7 @@ export interface ExchangeSME {
   certifications?: string[];
   exportMarkets?: string[];
   awards?: string[];
+  listedBy?: { type: "incubator" | "accelerator"; org: string };  // set when lodged on behalf
   sample: boolean;           // true = illustrative, not yet consented/published
 }
 

@@ -84,9 +84,11 @@ export const moderationRouter = router({
           type: "sme" as const,
           id: r.id,
           title: `${r.name} — ERS ${r.ers ?? 0}`,
-          subtitle: `${r.sector} · ${r.countryName}${(r.ers ?? 0) >= 61 ? " · Capital-Ready" : " · Open board"}`,
+          subtitle: `${r.sector} · ${r.countryName}${(r.ers ?? 0) >= 61 ? " · Capital-Ready" : " · Open board"}${r.listedByType !== "self" ? ` · via ${r.listedByType}` : ""}`,
           body: r.summary ?? r.products ?? undefined,
-          submittedBy: r.contactName || r.contributorId || "Anonymous",
+          submittedBy: r.listedByType !== "self" && r.listedByOrg
+            ? `${r.listedByOrg} (${r.listedByType})`
+            : (r.contactName || r.contributorId || "Owner"),
           link: r.website || undefined,
           createdAt: r.createdAt,
         }));

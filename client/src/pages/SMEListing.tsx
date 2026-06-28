@@ -1,16 +1,18 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import { COUNTRIES } from "@/lib/scannerData";
 import { ERS_GATE, ersBand } from "@/lib/exchangeData";
 import {
-  Building2, ArrowLeft, Check, Loader2, Plus, X, TrendingUp,
+  Building2, ArrowLeft, Check, Loader2, Plus, X, TrendingUp, Lock, AlertTriangle,
 } from "lucide-react";
 
 const STATUS_OPTIONS = ["Seeking capital", "Open to collaboration", "Open to exit", "Seeking partners", "Export bound"];
+type ListedByType = "self" | "incubator" | "accelerator";
 
 interface FormState {
   name: string; sector: string; countryCode: string; location: string;
@@ -19,6 +21,7 @@ interface FormState {
   governance: number; financial: number; innovation: number; market: number;
   statusTags: string[]; certifications: string[]; exportMarkets: string[]; awards: string[];
   contactName: string; contactEmail: string; contactPhone: string;
+  listedByType: ListedByType; listedByOrg: string;
 }
 
 const EMPTY: FormState = {
@@ -28,6 +31,7 @@ const EMPTY: FormState = {
   governance: 50, financial: 50, innovation: 50, market: 50,
   statusTags: [], certifications: [], exportMarkets: [], awards: [],
   contactName: "", contactEmail: "", contactPhone: "",
+  listedByType: "self", listedByOrg: "",
 };
 
 function Field({ label, value, onChange, placeholder, type = "text" }: {
@@ -79,22 +83,54 @@ function Pillar({ label, value, onChange }: { label: string; value: number; onCh
         <span className="text-slate-400">{label}</span>
         <span className="text-slate-200 font-semibold">{value}</span>
       </div>
-      <input type="range" min={0} max={100} value={value} onChange={e => onChange(Number(e.target.value))}
-        className="w-full accent-cyan-400" />
+      <input type="range" min={0} max={100} value={value} onChange={e => onChange(Number(e.target.value))} className="w-full accent-cyan-400" />
     </div>
   );
 }
 
 export default function SMEListing() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const params = useParams<{ id?: string }>();
+  const editId = params.id ? Number(params.id) : undefined;
+  const isEdit = editId != null && !Number.isNaN(editId);
+  const { user, loading } = useAuth();
+
   const [form, setForm] = useState<FormState>(EMPTY);
   const [done, setDone] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
+
+  const existing = trpc.exchange.getOne.useQuery({ id: editId! }, { enabled: isEdit && !!user });
   const submit = trpc.exchange.submit.useMutation({ onSuccess: () => setDone(true) });
+  const update = trpc.exchange.update.useMutation({ onSuccess: () => setDone(true) });
+  const busy = submit.isPending || update.isPending;
+  const err = submit.error || update.error;
+
+  // Prefill the form once when editing
+  useEffect(() => {
+    if (isEdit && existing.data && !prefilled) {
+      const r = existing.data;
+      setForm({
+        name: r.name, sector: r.sector, countryCode: r.countryCode, location: r.location ?? "",
+        website: r.website ?? "", foundedYear: r.foundedYear ? String(r.foundedYear) : "",
+        ownership: r.ownership ?? "", employees: r.employees ?? "",
+        summary: r.summary ?? "", products: r.products ?? "",
+        governance: r.governance ?? 50, financial: r.financial ?? 50,
+        innovation: r.innovation ?? 50, market: r.market ?? 50,
+        statusTags: (r.statusTags as string[]) ?? [],
+        certifications: (r.certifications as string[]) ?? [],
+        exportMarkets: (r.exportMarkets as string[]) ?? [],
+        awards: (r.awards as string[]) ?? [],
+        contactName: r.contactName ?? "", contactEmail: r.contactEmail ?? "", contactPhone: r.contactPhone ?? "",
+        listedByType: (r.listedByType as ListedByType) ?? "self", listedByOrg: r.listedByOrg ?? "",
+      });
+      setPrefilled(true);
+    }
+  }, [isEdit, existing.data, prefilled]);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm(f => ({ ...f, [k]: v }));
   const ers = Math.round((form.governance + form.financial + form.innovation + form.market) / 4);
   const band = ersBand(ers);
+  const wasApproved = isEdit && existing.data?.status === "approved";
 
   function toggleStatus(s: string) {
     set("statusTags", form.statusTags.includes(s) ? form.statusTags.filter(x => x !== s) : [...form.statusTags, s]);
@@ -102,30 +138,40 @@ export default function SMEListing() {
 
   function handleSubmit() {
     const country = COUNTRIES.find(c => c.code === form.countryCode);
-    submit.mutate({
-      name: form.name,
-      sector: form.sector,
-      countryCode: form.countryCode,
+    const payload = {
+      name: form.name, sector: form.sector, countryCode: form.countryCode,
       countryName: country?.name ?? form.countryCode,
-      location: form.location || undefined,
-      website: form.website || undefined,
+      location: form.location || undefined, website: form.website || undefined,
       foundedYear: form.foundedYear ? Number(form.foundedYear) : undefined,
-      ownership: form.ownership || undefined,
-      employees: form.employees || undefined,
-      summary: form.summary || undefined,
-      products: form.products || undefined,
-      governance: form.governance,
-      financial: form.financial,
-      innovation: form.innovation,
-      market: form.market,
+      ownership: form.ownership || undefined, employees: form.employees || undefined,
+      summary: form.summary || undefined, products: form.products || undefined,
+      governance: form.governance, financial: form.financial, innovation: form.innovation, market: form.market,
       statusTags: form.statusTags.length ? form.statusTags : undefined,
       certifications: form.certifications.length ? form.certifications : undefined,
       exportMarkets: form.exportMarkets.length ? form.exportMarkets : undefined,
       awards: form.awards.length ? form.awards : undefined,
-      contactName: form.contactName || undefined,
-      contactEmail: form.contactEmail || undefined,
-      contactPhone: form.contactPhone || undefined,
-    });
+      contactName: form.contactName || undefined, contactEmail: form.contactEmail || undefined, contactPhone: form.contactPhone || undefined,
+      listedByType: form.listedByType,
+      listedByOrg: form.listedByType === "self" ? undefined : (form.listedByOrg || undefined),
+    };
+    if (isEdit) update.mutate({ id: editId!, ...payload });
+    else submit.mutate(payload);
+  }
+
+  // ── Gates ──────────────────────────────────────────────────────────────────
+  if (loading) {
+    return <div className="min-h-screen bg-[#050b1a] flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-cyan-400" /></div>;
+  }
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#050b1a] flex flex-col items-center justify-center gap-4 text-center px-4">
+        <Lock className="w-10 h-10 text-slate-600" />
+        <h2 className="text-xl font-black text-white">Sign in to list your SME</h2>
+        <p className="text-sm text-slate-400 max-w-sm">Listings require an account so you can manage and update them later.</p>
+        <Button className="bg-cyan-500 text-[#04222b] font-bold" onClick={() => { window.location.href = getLoginUrl(); }}>Sign in</Button>
+        <button onClick={() => setLocation("/exchange")} className="text-xs text-slate-500 hover:text-cyan-400">Back to the Exchange</button>
+      </div>
+    );
   }
 
   if (done) {
@@ -134,18 +180,14 @@ export default function SMEListing() {
         <div className="w-14 h-14 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
           <Check className="w-7 h-7 text-emerald-400" />
         </div>
-        <h2 className="text-xl font-black text-white">Listing submitted</h2>
+        <h2 className="text-xl font-black text-white">{isEdit ? "Listing updated" : "Listing submitted"}</h2>
         <p className="text-sm text-slate-400 max-w-sm">
-          Your SME is in the review queue. Once verified it appears on the {ers >= ERS_GATE ? "Capital-Ready" : "Open Innovation"} board
-          (self-assessed ERS {ers}). Our team verifies scores before publishing.
+          {isEdit ? "Your changes are pending re-review before they go live again." : "Your SME is in the review queue."}{" "}
+          Once verified it appears on the {ers >= ERS_GATE ? "Capital-Ready" : "Open Innovation"} board (self-assessed ERS {ers}).
         </p>
         <div className="flex gap-2">
-          <Button variant="outline" className="border-[#1a2d4a] text-slate-300" onClick={() => { setForm(EMPTY); setDone(false); }}>
-            List another
-          </Button>
-          <Button className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" onClick={() => setLocation("/exchange")}>
-            Back to the Exchange
-          </Button>
+          <Button variant="outline" className="border-[#1a2d4a] text-slate-300" onClick={() => setLocation("/exchange/mine")}>My listings</Button>
+          <Button className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" onClick={() => setLocation("/exchange")}>Back to the Exchange</Button>
         </div>
       </div>
     );
@@ -154,8 +196,8 @@ export default function SMEListing() {
   return (
     <div className="min-h-screen bg-[#050b1a] text-white">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <button onClick={() => setLocation("/exchange")} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-cyan-400 mb-6">
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to the Exchange
+        <button onClick={() => setLocation(isEdit ? "/exchange/mine" : "/exchange")} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-cyan-400 mb-6">
+          <ArrowLeft className="w-3.5 h-3.5" /> {isEdit ? "My listings" : "Back to the Exchange"}
         </button>
 
         <div className="flex items-center gap-3 mb-1">
@@ -163,9 +205,37 @@ export default function SMEListing() {
             <Building2 className="w-5 h-5 text-cyan-400" />
           </div>
           <div>
-            <h1 className="text-xl font-black leading-tight">List your SME</h1>
+            <h1 className="text-xl font-black leading-tight">{isEdit ? "Edit listing" : "List your SME"}</h1>
             <p className="text-xs text-slate-500">SME Exchange · Phase 1 — discovery only, no capital handled</p>
           </div>
+        </div>
+
+        {wasApproved && (
+          <div className="flex items-start gap-2 text-[12px] text-amber-300 bg-amber-500/8 border border-amber-500/25 rounded-lg p-3 mt-5">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <p>This listing is currently published. Saving changes returns it to review, and it will be temporarily hidden from the exchange until re-approved.</p>
+          </div>
+        )}
+
+        {/* Who is listing */}
+        <div className="mt-5">
+          <label className="text-[11px] uppercase tracking-wider text-slate-500 mb-1.5 block">Listing on behalf of</label>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {([["self", "My own SME"], ["incubator", "An incubator"], ["accelerator", "An accelerator"]] as [ListedByType, string][]).map(([t, lbl]) => (
+              <button key={t} type="button" onClick={() => set("listedByType", t)}
+                className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                  form.listedByType === t ? "bg-cyan-500/15 border-cyan-500/40 text-cyan-300" : "bg-white/[0.03] border-white/10 text-slate-400 hover:border-slate-600"}`}>
+                {lbl}
+              </button>
+            ))}
+          </div>
+          {form.listedByType !== "self" && (
+            <Field label={`${form.listedByType === "incubator" ? "Incubator" : "Accelerator"} name *`} value={form.listedByOrg}
+              onChange={v => set("listedByOrg", v)} placeholder="e.g. NSE Ibuka, MEST" />
+          )}
+          {form.listedByType !== "self" && (
+            <p className="text-[11px] text-slate-500 mt-1.5">The listing will be publicly attributed to this {form.listedByType} as the lodging party.</p>
+          )}
         </div>
 
         {/* Live ERS preview */}
@@ -217,9 +287,7 @@ export default function SMEListing() {
               {STATUS_OPTIONS.map(s => (
                 <button key={s} type="button" onClick={() => toggleStatus(s)}
                   className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
-                    form.statusTags.includes(s)
-                      ? "bg-cyan-500/15 border-cyan-500/40 text-cyan-300"
-                      : "bg-white/[0.03] border-white/10 text-slate-400 hover:border-slate-600"}`}>
+                    form.statusTags.includes(s) ? "bg-cyan-500/15 border-cyan-500/40 text-cyan-300" : "bg-white/[0.03] border-white/10 text-slate-400 hover:border-slate-600"}`}>
                   {s}
                 </button>
               ))}
@@ -251,16 +319,14 @@ export default function SMEListing() {
             <Field label="Contact phone" value={form.contactPhone} onChange={v => set("contactPhone", v)} placeholder="+256…" />
           </div>
 
-          {submit.error && <p className="text-xs text-red-400">{submit.error.message}</p>}
+          {err && <p className="text-xs text-red-400">{err.message}</p>}
 
           <Button onClick={handleSubmit}
-            disabled={form.name.trim().length < 2 || form.sector.trim().length < 2 || !form.countryCode || submit.isPending}
+            disabled={form.name.trim().length < 2 || form.sector.trim().length < 2 || !form.countryCode
+              || (form.listedByType !== "self" && form.listedByOrg.trim().length < 2) || busy}
             className="w-full h-11 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 gap-2">
-            {submit.isPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</> : <><Check className="w-4 h-4" /> Submit listing for review</>}
+            {busy ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</> : <><Check className="w-4 h-4" /> {isEdit ? "Save changes (re-review)" : "Submit listing for review"}</>}
           </Button>
-          <p className="text-center text-[11px] text-slate-600">
-            {user ? "Submitted as a verified contributor." : "You can submit anonymously, or sign in to manage your listing."}
-          </p>
         </div>
       </div>
     </div>

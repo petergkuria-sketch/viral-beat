@@ -73,6 +73,14 @@ function SMECard({ sme }: { sme: ExchangeSME }) {
         )}
       </div>
 
+      {sme.listedBy && (
+        <div className="mt-4 flex items-center gap-1.5 text-[11px] text-slate-400 border-t border-white/[0.06] pt-3">
+          <BadgeCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+          Listed by <span className="text-slate-200 font-semibold">{sme.listedBy.org}</span>
+          <span className="text-slate-600">·</span>
+          <span className="capitalize">{sme.listedBy.type}</span>
+        </div>
+      )}
       {sme.sample && (
         <div className="mt-4 text-[10px] text-slate-600 border-t border-white/[0.06] pt-3">Sample listing · pending consent before public publication</div>
       )}
@@ -103,6 +111,9 @@ export default function ExchangeHub() {
     certifications: (r.certifications as string[]) ?? undefined,
     exportMarkets: (r.exportMarkets as string[]) ?? undefined,
     awards: (r.awards as string[]) ?? undefined,
+    listedBy: r.listedByType && r.listedByType !== "self" && r.listedByOrg
+      ? { type: r.listedByType as "incubator" | "accelerator", org: r.listedByOrg }
+      : undefined,
     sample: false,
   }));
 
@@ -126,6 +137,14 @@ export default function ExchangeHub() {
             A stock-market-style ladder for African enterprise. SMEs build a verified Enterprise Readiness Score
             and graduate from the open floor to the capital-ready board at ERS {ERS_GATE}.
           </p>
+          <div className="flex items-center justify-center gap-2 mt-5">
+            <Button className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 gap-1.5" onClick={() => setLocation("/exchange/list")}>
+              <Plus className="w-4 h-4" /> List your SME
+            </Button>
+            <Button variant="outline" className="border-white/15 text-slate-300 hover:bg-white/5" onClick={() => setLocation("/exchange/mine")}>
+              My listings
+            </Button>
+          </div>
         </div>
 
         {/* Two boards */}
