@@ -68,7 +68,19 @@ const SECTIONS: Section[] = [
       { icon: Users,      label: "Field Signals",          path: "/haa" },
     ],
   },
-  // ── 2. ANALYSE — deep-dive intelligence ────────────────────────────────────
+  // ── 2. SME EXCHANGE — discovery & listing ──────────────────────────────────
+  {
+    id: "exchange",
+    label: "SME Exchange",
+    icon: Briefcase,
+    accent: "#22d3ee",
+    items: [
+      { icon: Building2,  label: "Browse Exchange",        path: "/exchange" },
+      { icon: FileText,   label: "SME Listing",            path: "/exchange/list", badge: "New" },
+      { icon: TrendingUp, label: "My Listings",            path: "/exchange/mine" },
+    ],
+  },
+  // ── 3. ANALYSE — deep-dive intelligence ────────────────────────────────────
   {
     id: "analyse",
     label: "Analyse",
