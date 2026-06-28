@@ -280,25 +280,31 @@ export default function AdminDashboard() {
               <p className="text-gray-400">System monitoring and analytics</p>
             </div>
           </div>
-          {activeTab === "overview" && (
-            <div className="flex items-center gap-3">
-              <div className="text-sm text-gray-400">
-                Last updated: {lastRefresh.toLocaleTimeString()}
-              </div>
-              <Button variant="outline" size="sm" onClick={() => refetch()} className="border-[#1e3a5f]">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
-              </Button>
-              <Button
-                variant={autoRefresh ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAutoRefresh(!autoRefresh)}
-                className={autoRefresh ? "bg-green-600" : "border-[#1e3a5f]"}
-              >
-                {autoRefresh ? "Auto-refresh ON" : "Auto-refresh OFF"}
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => setLocation("/admin/moderation")}
+              className="border-[#1e3a5f] gap-2">
+              <Shield className="w-4 h-4" /> Moderation
+            </Button>
+            {activeTab === "overview" && (
+              <>
+                <div className="text-sm text-gray-400">
+                  Last updated: {lastRefresh.toLocaleTimeString()}
+                </div>
+                <Button variant="outline" size="sm" onClick={() => refetch()} className="border-[#1e3a5f]">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh
+                </Button>
+                <Button
+                  variant={autoRefresh ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setAutoRefresh(!autoRefresh)}
+                  className={autoRefresh ? "bg-green-600" : "border-[#1e3a5f]"}
+                >
+                  {autoRefresh ? "Auto-refresh ON" : "Auto-refresh OFF"}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Tab Bar */}
