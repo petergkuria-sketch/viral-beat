@@ -1759,3 +1759,40 @@ export const listingTransfers = mysqlTable("listingTransfers", {
 }));
 export type ListingTransfer = typeof listingTransfers.$inferSelect;
 export type InsertListingTransfer = typeof listingTransfers.$inferInsert;
+
+/**
+ * SME Exchange — investor↔SME safe contact. An investor/DFI expresses interest
+ * in a listing (exchangeIntros); the SME owner accepts/declines. On accept, a
+ * platform-mediated message thread (exchangeMessages) opens. No raw contact
+ * details (email/phone) are exchanged — communication stays on-platform.
+ */
+export const exchangeIntros = mysqlTable("exchangeIntros", {
+  id:           int("id").autoincrement().primaryKey(),
+  listingId:    int("listingId").notNull(),
+  investorId:   varchar("investorId", { length: 128 }).notNull(),
+  investorName: varchar("investorName", { length: 160 }),
+  investorOrg:  varchar("investorOrg", { length: 200 }),
+  investorType: mysqlEnum("investorType", ["dfi", "pe_vc", "angel", "strategic", "other"]).notNull().default("other"),
+  intent:       mysqlEnum("intent", ["collaboration", "supply_chain", "capital"]).notNull(),
+  status:       mysqlEnum("status", ["pending", "accepted", "declined"]).notNull().default("pending"),
+  createdAt:    timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:    timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, t => ({
+  listingIdx:  index("exchangeIntros_listing_idx").on(t.listingId),
+  investorIdx: index("exchangeIntros_investor_idx").on(t.investorId),
+}));
+export type ExchangeIntro = typeof exchangeIntros.$inferSelect;
+export type InsertExchangeIntro = typeof exchangeIntros.$inferInsert;
+
+export const exchangeMessages = mysqlTable("exchangeMessages", {
+  id:         int("id").autoincrement().primaryKey(),
+  introId:    int("introId").notNull(),
+  senderId:   varchar("senderId", { length: 128 }).notNull(),
+  senderRole: mysqlEnum("senderRole", ["investor", "sme"]).notNull(),
+  body:       text("body").notNull(),
+  createdAt:  timestamp("createdAt").defaultNow().notNull(),
+}, t => ({
+  introIdx: index("exchangeMessages_intro_idx").on(t.introId),
+}));
+export type ExchangeMessage = typeof exchangeMessages.$inferSelect;
+export type InsertExchangeMessage = typeof exchangeMessages.$inferInsert;

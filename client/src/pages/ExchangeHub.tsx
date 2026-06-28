@@ -155,6 +155,9 @@ export default function ExchangeHub() {
             <Button variant="outline" className="border-white/15 text-slate-300 hover:bg-white/5" onClick={() => setLocation("/exchange/mine")}>
               My listings
             </Button>
+            <Button variant="outline" className="border-white/15 text-slate-300 hover:bg-white/5" onClick={() => setLocation("/exchange/messages")}>
+              Messages
+            </Button>
           </div>
         </div>
 

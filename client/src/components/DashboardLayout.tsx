@@ -22,7 +22,7 @@ import {
   Home,
   // New for restructured nav
   ScanLine, Brain, Target, Bell, Flag, Map, BookOpen, Activity,
-  Crosshair, Briefcase, Star, Leaf,
+  Crosshair, Briefcase, Star, Leaf, MessageSquare,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -78,6 +78,7 @@ const SECTIONS: Section[] = [
       { icon: Building2,  label: "Browse Exchange",        path: "/exchange" },
       { icon: FileText,   label: "SME Listing",            path: "/exchange/list", badge: "New" },
       { icon: TrendingUp, label: "My Listings",            path: "/exchange/mine" },
+      { icon: MessageSquare, label: "Conversations",       path: "/exchange/messages" },
     ],
   },
   // ── 3. ANALYSE — deep-dive intelligence ────────────────────────────────────

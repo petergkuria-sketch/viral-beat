@@ -61,6 +61,8 @@ const SMEListing = lazy(() => import("./pages/SMEListing"));
 const MyListings = lazy(() => import("./pages/MyListings"));
 const ClaimListing = lazy(() => import("./pages/ClaimListing"));
 const ExchangeListing = lazy(() => import("./pages/ExchangeListing"));
+const ExchangeMessages = lazy(() => import("./pages/ExchangeMessages"));
+const ExchangeThread = lazy(() => import("./pages/ExchangeThread"));
 
 // Intelligence Bulletins — newsletter archive + admin
 const BulletinArchive = lazy(() => import("./pages/BulletinArchive"));
@@ -136,6 +138,8 @@ function Router() {
     { path: "/exchange/list/:id", component: SMEListing },
     { path: "/exchange/claim/:token", component: ClaimListing },
     { path: "/exchange/sme/:id", component: ExchangeListing },
+    { path: "/exchange/messages", component: ExchangeMessages },
+    { path: "/exchange/thread/:id", component: ExchangeThread },
     { path: "/archive", component: ReportArchivePage },
     { path: "/bulletins", component: BulletinArchive },
     { path: "/bulletins/:slug", component: BulletinIssue },
