@@ -10,7 +10,9 @@ import { invokeLLM } from "../_core/llm";
 /**
  * Middleware to check if user has premium analytics access
  */
-async function checkPremiumAccess(userId: number): Promise<boolean> {
+async function checkPremiumAccess(user: { id: number; role?: string | null }): Promise<boolean> {
+  if (user?.role === "admin") return true; // admin bypasses all paywalls
+  const userId = user.id;
   const db = await getDb();
   if (!db) return false;
 
@@ -43,7 +45,7 @@ export const premiumAnalyticsRouter = router({
    * Check if user has premium access
    */
   checkAccess: protectedProcedure.query(async ({ ctx }) => {
-    const hasAccess = await checkPremiumAccess(ctx.user.id);
+    const hasAccess = await checkPremiumAccess(ctx.user);
     return { hasAccess };
   }),
 
@@ -58,7 +60,7 @@ export const premiumAnalyticsRouter = router({
       })).min(2).max(5),
     }))
     .query(async ({ ctx, input }) => {
-      const hasAccess = await checkPremiumAccess(ctx.user.id);
+      const hasAccess = await checkPremiumAccess(ctx.user);
       if (!hasAccess) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -111,7 +113,7 @@ export const premiumAnalyticsRouter = router({
       platform: z.enum(["youtube", "tiktok", "twitter", "instagram", "all"]).optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const hasAccess = await checkPremiumAccess(ctx.user.id);
+      const hasAccess = await checkPremiumAccess(ctx.user);
       if (!hasAccess) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -165,7 +167,7 @@ export const premiumAnalyticsRouter = router({
       timeframe: z.enum(["7days", "30days"]),
     }))
     .query(async ({ ctx, input }) => {
-      const hasAccess = await checkPremiumAccess(ctx.user.id);
+      const hasAccess = await checkPremiumAccess(ctx.user);
       if (!hasAccess) {
         throw new TRPCError({
           code: "FORBIDDEN",

@@ -140,7 +140,8 @@ export const reportArchiveRouter = router({
       if (!row) return null;
 
       const isOwner = ctx.user?.id != null && row.authorId === ctx.user.id;
-      const readable = isOwner || canRead(row.visibility, input.userTier);
+      const isAdminUser = (ctx.user as any)?.role === "admin";
+      const readable = isOwner || isAdminUser || canRead(row.visibility, input.userTier);
       if (!readable) return { locked: true, title: row.title, summaryText: row.summaryText, visibility: row.visibility };
 
       // Increment view count asynchronously

@@ -250,9 +250,11 @@ export default function ReportArchivePage() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
   const { data: me } = trpc.auth.me.useQuery();
-  const userTier: "guest" | "free" | "premium" | "analyst" = me
-    ? ((me as any).tier ?? "free")
-    : "guest";
+  const userTier: "guest" | "free" | "premium" | "analyst" = !me
+    ? "guest"
+    : ((me as any).role === "admin" || (me as any).subscriptionTier === "enterprise")
+      ? "analyst"
+      : ((me as any).tier ?? (me as any).subscriptionTier ?? "free");
 
   // ── queries ──
   const { data: browseData, isLoading: browseLoading } = trpc.reportArchive.list.useQuery(

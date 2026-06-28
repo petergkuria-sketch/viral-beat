@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScannerAlertPanel } from "@/components/ScannerAlertPanel";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { hasAnalystAccess } from "@/lib/access";
 import {
   ArrowLeft, Bell, Download, GitCompare, Lock,
   TrendingUp, TrendingDown, ArrowUpRight, ChevronRight,
@@ -692,7 +693,7 @@ export default function CountryIntelProfile() {
   const c = found;
   const comp = composite(c);
   const color = scoreColor(comp);
-  const isSubscribed = user?.subscriptionTier === "analyst" || user?.subscriptionTier === "enterprise";
+  const isSubscribed = hasAnalystAccess(user);
   const oss = OSS_DATA[c.code] ?? null;
   const [showShare, setShowShare] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
