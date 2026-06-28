@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
 import {
   EXCHANGE_SMES, boardOf, ersBand, ERS_GATE,
   type ExchangeSME,
@@ -81,8 +82,33 @@ function SMECard({ sme }: { sme: ExchangeSME }) {
 
 export default function ExchangeHub() {
   const [, setLocation] = useLocation();
-  const openBoard = EXCHANGE_SMES.filter(s => boardOf(s) === "open");
-  const capitalBoard = EXCHANGE_SMES.filter(s => boardOf(s) === "capital_ready");
+  const approved = trpc.exchange.listApproved.useQuery();
+
+  // Approved DB listings (live) merged with the seed sample.
+  const dbListings: ExchangeSME[] = (approved.data ?? []).map(r => ({
+    id: `db-${r.id}`,
+    name: r.name,
+    sector: r.sector,
+    country: r.countryName,
+    countryCode: r.countryCode,
+    location: r.location ?? r.countryName,
+    ers: r.ers ?? 0,
+    pillars: {
+      governance: r.governance ?? 0, financial: r.financial ?? 0,
+      innovation: r.innovation ?? 0, market: r.market ?? 0,
+    },
+    status: (r.statusTags as string[]) ?? [],
+    summary: r.summary ?? "",
+    products: r.products ?? undefined,
+    certifications: (r.certifications as string[]) ?? undefined,
+    exportMarkets: (r.exportMarkets as string[]) ?? undefined,
+    awards: (r.awards as string[]) ?? undefined,
+    sample: false,
+  }));
+
+  const all = [...dbListings, ...EXCHANGE_SMES];
+  const openBoard = all.filter(s => boardOf(s) === "open");
+  const capitalBoard = all.filter(s => boardOf(s) === "capital_ready");
 
   return (
     <div className="min-h-screen bg-[#050b1a] text-white">
@@ -120,7 +146,7 @@ export default function ExchangeHub() {
                 <div className="text-sm font-semibold text-slate-400 mb-1">Be the first on the floor</div>
                 <p className="text-xs text-slate-500 mb-4">List your SME, complete the governance checklist, and build your ERS toward graduation.</p>
                 <Button size="sm" className="bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 gap-1.5"
-                  onClick={() => setLocation("/onboarding")}>
+                  onClick={() => setLocation("/exchange/list")}>
                   <Plus className="w-3.5 h-3.5" /> List your SME
                 </Button>
               </div>

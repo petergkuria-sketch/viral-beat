@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import {
   ShieldCheck, Building2, Leaf, Flame, BadgeCheck, Check, X,
-  ExternalLink, Loader2, Inbox, RefreshCw, Lock,
+  ExternalLink, Loader2, Inbox, RefreshCw, Lock, TrendingUp,
 } from "lucide-react";
 
-type ModType = "oss" | "green" | "viral" | "creator";
+type ModType = "oss" | "sme" | "green" | "viral" | "creator";
 
 const TYPES: { key: ModType; label: string; icon: typeof Building2; hint: string }[] = [
   { key: "oss",     label: "OSS data",            icon: Building2,  hint: "One-Stop-Shop records" },
+  { key: "sme",     label: "SME listings",        icon: TrendingUp, hint: "Exchange IPO onboarding" },
   { key: "green",   label: "Green reports",       icon: Leaf,       hint: "Field observations" },
   { key: "viral",   label: "Viral content",       icon: Flame,      hint: "HAA submissions" },
   { key: "creator", label: "Creator verification", icon: BadgeCheck, hint: "Identity / portfolio" },
@@ -78,7 +79,7 @@ export default function ModerationDashboard() {
       </div>
 
       {/* Type selector */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 my-5">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 my-5">
         {TYPES.map(({ key, label, icon: Icon, hint }) => {
           const n = counts?.[key] ?? 0;
           const isActive = active === key;

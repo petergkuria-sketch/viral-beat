@@ -1187,7 +1187,7 @@ export default function LandingPage() {
                   <div className="text-sm font-semibold text-gray-300 mb-1">Be the first on the floor</div>
                   <p className="text-xs text-gray-500 mb-4">List your SME, complete the governance checklist, and build your ERS toward graduation.</p>
                   <Button size="sm" className="bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 gap-1.5"
-                    onClick={() => setLocation("/exchange")}>
+                    onClick={() => setLocation("/exchange/list")}>
                     List your SME <ArrowRight className="w-3.5 h-3.5" />
                   </Button>
                 </div>

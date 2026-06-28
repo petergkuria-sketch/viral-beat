@@ -65,6 +65,7 @@ import { bulletinsRouter } from "./routers/bulletins";
 import { memoryRouter } from "./routers/memory";
 import { ossRouter } from "./routers/oss";
 import { moderationRouter } from "./routers/moderation";
+import { exchangeRouter } from "./routers/exchange";
 import { generateCitationKey, extractEntities } from "./services/reportMemory";
 import { reportArchive as reportArchiveTable } from "../drizzle/schema";
 
@@ -3212,6 +3213,7 @@ Be concise, technical, and actionable. When discussing features, consider:
   memory: memoryRouter,
   oss: ossRouter,
   moderation: moderationRouter,
+  exchange: exchangeRouter,
 
   briefs: router({
     // Save a brief and return a shareable ID

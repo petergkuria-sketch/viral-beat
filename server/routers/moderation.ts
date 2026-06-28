@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, adminProcedure } from "../_core/trpc";
 import { getDb } from "../db";
-import { ossSubmissions, greenSubmissions, viralSubmissions, creatorProfiles } from "../../drizzle/schema";
+import { ossSubmissions, greenSubmissions, viralSubmissions, creatorProfiles, smeListings } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
@@ -14,7 +14,7 @@ import { TRPCError } from "@trpc/server";
  * table and normalizes results into a common shape.
  */
 
-export type ModerationType = "oss" | "green" | "viral" | "creator";
+export type ModerationType = "oss" | "sme" | "green" | "viral" | "creator";
 
 interface QueueItem {
   type: ModerationType;
@@ -37,24 +37,26 @@ export const moderationRouter = router({
   /** Pending counts for every submission type — drives the dashboard badges. */
   summary: adminProcedure.query(async () => {
     const d = await db();
-    const [oss, green, viral, creator] = await Promise.all([
+    const [oss, sme, green, viral, creator] = await Promise.all([
       d.select().from(ossSubmissions).where(eq(ossSubmissions.status, "pending")),
+      d.select().from(smeListings).where(eq(smeListings.status, "pending")),
       d.select().from(greenSubmissions).where(eq(greenSubmissions.status, "pending")),
       d.select().from(viralSubmissions).where(eq(viralSubmissions.status, "pending")),
       d.select().from(creatorProfiles).where(eq(creatorProfiles.verificationStatus, "pending")),
     ]);
     return {
       oss: oss.length,
+      sme: sme.length,
       green: green.length,
       viral: viral.length,
       creator: creator.length,
-      total: oss.length + green.length + viral.length + creator.length,
+      total: oss.length + sme.length + green.length + viral.length + creator.length,
     };
   }),
 
   /** Normalized pending queue for one submission type. */
   queue: adminProcedure
-    .input(z.object({ type: z.enum(["oss", "green", "viral", "creator"]) }))
+    .input(z.object({ type: z.enum(["oss", "sme", "green", "viral", "creator"]) }))
     .query(async ({ input }): Promise<QueueItem[]> => {
       const d = await db();
 
@@ -70,6 +72,22 @@ export const moderationRouter = router({
           body: r.mandate ?? r.location ?? undefined,
           submittedBy: r.contributorName || r.contributorId || "Anonymous",
           link: r.sourceUrl || r.website || undefined,
+          createdAt: r.createdAt,
+        }));
+      }
+
+      if (input.type === "sme") {
+        const rows = await d.select().from(smeListings)
+          .where(eq(smeListings.status, "pending"))
+          .orderBy(desc(smeListings.createdAt));
+        return rows.map(r => ({
+          type: "sme" as const,
+          id: r.id,
+          title: `${r.name} — ERS ${r.ers ?? 0}`,
+          subtitle: `${r.sector} · ${r.countryName}${(r.ers ?? 0) >= 61 ? " · Capital-Ready" : " · Open board"}`,
+          body: r.summary ?? r.products ?? undefined,
+          submittedBy: r.contactName || r.contributorId || "Anonymous",
+          link: r.website || undefined,
           createdAt: r.createdAt,
         }));
       }
@@ -125,7 +143,7 @@ export const moderationRouter = router({
   /** Approve or reject a single item; dispatches to the right table. */
   act: adminProcedure
     .input(z.object({
-      type: z.enum(["oss", "green", "viral", "creator"]),
+      type: z.enum(["oss", "sme", "green", "viral", "creator"]),
       id: z.number().int(),
       action: z.enum(["approve", "reject"]),
       note: z.string().max(1000).optional(),
@@ -139,6 +157,11 @@ export const moderationRouter = router({
           await d.update(ossSubmissions)
             .set({ status: approve ? "approved" : "rejected", reviewNote: input.note })
             .where(eq(ossSubmissions.id, input.id));
+          break;
+        case "sme":
+          await d.update(smeListings)
+            .set({ status: approve ? "approved" : "rejected", reviewNote: input.note })
+            .where(eq(smeListings.id, input.id));
           break;
         case "green":
           await d.update(greenSubmissions)

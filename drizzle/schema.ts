@@ -1689,3 +1689,46 @@ export const ossSubmissions = mysqlTable("ossSubmissions", {
 }));
 export type OssSubmission = typeof ossSubmissions.$inferSelect;
 export type InsertOssSubmission = typeof ossSubmissions.$inferInsert;
+
+/**
+ * SME Exchange listings — Phase 1 "IPO" onboarding. SMEs submit a business
+ * profile and self-assessed readiness; reviewed before appearing on the
+ * Open Innovation / Capital-Ready boards. ERS gate = 61.
+ */
+export const smeListings = mysqlTable("smeListings", {
+  id:           int("id").autoincrement().primaryKey(),
+  name:         varchar("name", { length: 200 }).notNull(),
+  sector:       varchar("sector", { length: 100 }).notNull(),
+  countryCode:  varchar("countryCode", { length: 3 }).notNull(),
+  countryName:  varchar("countryName", { length: 100 }).notNull(),
+  location:     varchar("location", { length: 255 }),
+  website:      varchar("website", { length: 255 }),
+  foundedYear:  int("foundedYear"),
+  ownership:    varchar("ownership", { length: 120 }),
+  employees:    varchar("employees", { length: 60 }),
+  summary:      text("summary"),
+  products:     text("products"),
+  // self-assessed ERS pillars (0–100), composite stored in `ers`
+  governance:   int("governance").default(0),
+  financial:    int("financial").default(0),
+  innovation:   int("innovation").default(0),
+  market:       int("market").default(0),
+  ers:          int("ers").default(0),
+  statusTags:   json("statusTags"),       // string[] — Seeking capital, Open to collaboration, Open to exit
+  certifications: json("certifications"),  // string[]
+  exportMarkets:  json("exportMarkets"),   // string[]
+  awards:         json("awards"),          // string[]
+  contactName:  varchar("contactName", { length: 160 }),
+  contactEmail: varchar("contactEmail", { length: 200 }),
+  contactPhone: varchar("contactPhone", { length: 60 }),
+  contributorId: varchar("contributorId", { length: 128 }),
+  status:       mysqlEnum("status", ["pending", "approved", "rejected"]).notNull().default("pending"),
+  reviewNote:   text("reviewNote"),
+  createdAt:    timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:    timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, t => ({
+  countryIdx: index("smeListings_country_idx").on(t.countryCode),
+  statusIdx:  index("smeListings_status_idx").on(t.status),
+}));
+export type SmeListing = typeof smeListings.$inferSelect;
+export type InsertSmeListing = typeof smeListings.$inferInsert;
