@@ -14,7 +14,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import IntelligenceTicker from "@/components/IntelligenceTicker";
-import { EXCHANGE_SMES, boardOf, ersBand, ERS_GATE } from "@/lib/exchangeData";
+import { EXCHANGE_SMES, boardOf, ersBand, ERS_GATE, type ExchangeSME } from "@/lib/exchangeData";
+import { trpc } from "@/lib/trpc";
 
 const RISK: Record<string, { label: string; cls: string }> = {
   low:      { label: "Low Risk",      cls: "bg-green-500/20 text-green-400 border-green-500/30" },
@@ -156,6 +157,18 @@ const PERSONAS: Array<{
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
+
+  // Live approved SME Exchange listings for the teaser (falls back to seed sample).
+  const approvedListings = trpc.exchange.listApproved.useQuery();
+  const liveSMEs: ExchangeSME[] = (approvedListings.data ?? []).map(r => ({
+    id: `db-${r.id}`, listingId: r.id, name: r.name, sector: r.sector,
+    country: r.countryName, countryCode: r.countryCode, location: r.location ?? r.countryName,
+    ers: r.ers ?? 0,
+    pillars: { governance: r.governance ?? 0, financial: r.financial ?? 0, innovation: r.innovation ?? 0, market: r.market ?? 0 },
+    status: (r.statusTags as string[]) ?? [], summary: r.summary ?? "", sample: false,
+  }));
+  const teaserSMEs = liveSMEs.length ? liveSMEs : EXCHANGE_SMES;
+  const teaserCapital = teaserSMEs.find(s => boardOf(s) === "capital_ready") ?? teaserSMEs[0];
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [carouselIdx, setCarouselIdx]   = useState(0);
@@ -1211,11 +1224,13 @@ export default function LandingPage() {
                 </div>
                 <div className="text-xs text-gray-500 mb-5">Investor screening · partner matchmaking</div>
                 {(() => {
-                  const sme = EXCHANGE_SMES.find(s => boardOf(s) === "capital_ready");
+                  const sme = teaserCapital;
                   if (!sme) return null;
                   const band = ersBand(sme.ers);
+                  const clickable = sme.listingId != null;
                   return (
-                    <div className="rounded-2xl bg-white/[0.03] border border-white/[0.08] p-4">
+                    <div onClick={() => { if (clickable) setLocation(`/exchange/sme/${sme.listingId}`); }}
+                      className={`rounded-2xl bg-white/[0.03] border border-white/[0.08] p-4 ${clickable ? "cursor-pointer hover:border-cyan-500/40 hover:bg-white/[0.05] transition-colors" : ""}`}>
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="min-w-0">
                           <div className="text-base font-black text-white truncate">{sme.name}</div>
@@ -1236,6 +1251,11 @@ export default function LandingPage() {
                           <span key={s} className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-gray-300">{s}</span>
                         ))}
                       </div>
+                      {clickable && (
+                        <div className="mt-3 flex items-center justify-end gap-1 text-[11px] text-cyan-400 font-semibold">
+                          View profile <ArrowRight className="w-3.5 h-3.5" />
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -1246,7 +1266,9 @@ export default function LandingPage() {
               <Button onClick={() => setLocation("/exchange")} className="bg-cyan-500 hover:bg-cyan-400 text-[#04222b] font-bold gap-2">
                 Explore the SME Exchange <ArrowRight className="w-4 h-4" />
               </Button>
-              <p className="text-[11px] text-gray-600 mt-3">Phase 1 discovery only · sample listing shown</p>
+              <p className="text-[11px] text-gray-600 mt-3">
+                Phase 1 discovery only · {liveSMEs.length ? `${liveSMEs.length} listing${liveSMEs.length === 1 ? "" : "s"} live` : "sample listing shown"}
+              </p>
             </div>
 
           </motion.div>
