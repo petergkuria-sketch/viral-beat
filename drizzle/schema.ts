@@ -1735,3 +1735,27 @@ export const smeListings = mysqlTable("smeListings", {
 }));
 export type SmeListing = typeof smeListings.$inferSelect;
 export type InsertSmeListing = typeof smeListings.$inferInsert;
+
+/**
+ * SME listing ownership transfers — an incubator/accelerator that listed on
+ * behalf of a client can hand management to the SME owner. The owner is invited
+ * by email and must sign in to accept; on accept, the listing's contributorId
+ * is reassigned to the accepting account.
+ */
+export const listingTransfers = mysqlTable("listingTransfers", {
+  id:            int("id").autoincrement().primaryKey(),
+  listingId:     int("listingId").notNull(),
+  fromContributorId: varchar("fromContributorId", { length: 128 }).notNull(),
+  toEmail:       varchar("toEmail", { length: 200 }).notNull(),
+  token:         varchar("token", { length: 64 }).notNull().unique(),
+  status:        mysqlEnum("status", ["pending", "accepted", "cancelled", "expired"]).notNull().default("pending"),
+  acceptedByContributorId: varchar("acceptedByContributorId", { length: 128 }),
+  acceptedAt:    timestamp("acceptedAt"),
+  expiresAt:     timestamp("expiresAt").notNull(),
+  createdAt:     timestamp("createdAt").defaultNow().notNull(),
+}, t => ({
+  listingIdx: index("listingTransfers_listing_idx").on(t.listingId),
+  tokenIdx:   index("listingTransfers_token_idx").on(t.token),
+}));
+export type ListingTransfer = typeof listingTransfers.$inferSelect;
+export type InsertListingTransfer = typeof listingTransfers.$inferInsert;

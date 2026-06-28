@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { ersBand, ERS_GATE } from "@/lib/exchangeData";
 import {
   Building2, Plus, Pencil, Loader2, Lock, Inbox, ArrowLeft, Clock, CheckCircle2, XCircle,
+  Send, Copy, Check, X, UserCheck,
 } from "lucide-react";
 
 const STATUS_STYLE: Record<string, { label: string; cls: string; icon: typeof Clock }> = {
@@ -18,6 +21,25 @@ export default function MyListings() {
   const [, setLocation] = useLocation();
   const { user, loading } = useAuth();
   const mine = trpc.exchange.listMine.useQuery(undefined, { enabled: !!user });
+  const transfers = trpc.exchange.myTransfers.useQuery(undefined, { enabled: !!user });
+
+  const [openFor, setOpenFor] = useState<number | null>(null);
+  const [email, setEmail] = useState("");
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const initiate = trpc.exchange.initiateTransfer.useMutation({
+    onSuccess: () => { transfers.refetch(); setOpenFor(null); setEmail(""); },
+  });
+  const cancel = trpc.exchange.cancelTransfer.useMutation({ onSuccess: () => transfers.refetch() });
+
+  const transferByListing = new Map<number, NonNullable<typeof transfers.data>[number]>();
+  (transfers.data ?? []).forEach(t => transferByListing.set(t.listingId, t));
+
+  function copy(url: string) {
+    navigator.clipboard.writeText(url);
+    setCopied(url);
+    setTimeout(() => setCopied(null), 2000);
+  }
 
   if (loading) {
     return <div className="min-h-screen bg-[#050b1a] flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-cyan-400" /></div>;
@@ -46,7 +68,7 @@ export default function MyListings() {
             </div>
             <div>
               <h1 className="text-xl font-black leading-tight">My listings</h1>
-              <p className="text-xs text-slate-500">Manage and update your SME Exchange listings</p>
+              <p className="text-xs text-slate-500">Manage, update, and transfer your SME Exchange listings</p>
             </div>
           </div>
           <Button className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 gap-1.5" onClick={() => setLocation("/exchange/list")}>
@@ -71,6 +93,9 @@ export default function MyListings() {
               const st = STATUS_STYLE[l.status] ?? STATUS_STYLE.pending;
               const StIcon = st.icon;
               const band = ersBand(l.ers ?? 0);
+              const onBehalf = l.listedByType !== "self";
+              const pending = transferByListing.get(l.id);
+              const claimUrl = pending ? `${window.location.origin}/exchange/claim/${pending.token}` : null;
               return (
                 <div key={l.id} className="bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -83,7 +108,7 @@ export default function MyListings() {
                       </div>
                       <div className="text-[11px] text-slate-500">
                         {l.sector} · {l.countryName} · {(l.ers ?? 0) >= ERS_GATE ? "Capital-Ready board" : "Open Innovation board"}
-                        {l.listedByType !== "self" && l.listedByOrg ? ` · via ${l.listedByOrg}` : ""}
+                        {onBehalf && l.listedByOrg ? ` · via ${l.listedByOrg} (${l.listedByType})` : ""}
                       </div>
                       {l.status === "rejected" && l.reviewNote && (
                         <p className="text-[11px] text-red-400/90 mt-1.5">Reviewer note: {l.reviewNote}</p>
@@ -94,13 +119,64 @@ export default function MyListings() {
                         <div className="text-2xl font-black leading-none" style={{ color: band.color }}>{l.ers ?? 0}</div>
                         <div className="text-[9px] uppercase tracking-widest text-slate-500">ERS</div>
                       </div>
-                      <Button size="sm" variant="outline" className="h-8 border-[#1a2d4a] text-slate-300 gap-1.5"
-                        onClick={() => setLocation(`/exchange/list/${l.id}`)}>
-                        <Pencil className="w-3.5 h-3.5" /> Edit
-                      </Button>
+                      <div className="flex gap-2">
+                        {onBehalf && !pending && (
+                          <Button size="sm" variant="outline" className="h-8 border-cyan-500/30 text-cyan-300 gap-1.5"
+                            onClick={() => { setOpenFor(openFor === l.id ? null : l.id); setEmail(""); }}>
+                            <UserCheck className="w-3.5 h-3.5" /> Transfer to owner
+                          </Button>
+                        )}
+                        <Button size="sm" variant="outline" className="h-8 border-[#1a2d4a] text-slate-300 gap-1.5"
+                          onClick={() => setLocation(`/exchange/list/${l.id}`)}>
+                          <Pencil className="w-3.5 h-3.5" /> Edit
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  {l.status === "approved" && (
+
+                  {/* Transfer initiation form */}
+                  {onBehalf && openFor === l.id && !pending && (
+                    <div className="mt-3 border-t border-white/[0.06] pt-3">
+                      <label className="text-[11px] uppercase tracking-wider text-slate-500 mb-1.5 block">SME owner's email</label>
+                      <div className="flex gap-2">
+                        <Input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="owner@company.com"
+                          className="bg-[#050e1c] border-[#1a2d4a] text-sm h-9" />
+                        <Button size="sm" disabled={!/.+@.+\..+/.test(email) || initiate.isPending}
+                          className="h-9 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 gap-1.5 shrink-0"
+                          onClick={() => initiate.mutate({ listingId: l.id, ownerEmail: email })}>
+                          {initiate.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />} Send invite
+                        </Button>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1.5">The owner is emailed an invite and must sign in to take over management.</p>
+                      {initiate.error && <p className="text-[11px] text-red-400 mt-1">{initiate.error.message}</p>}
+                    </div>
+                  )}
+
+                  {/* Pending transfer state */}
+                  {pending && (
+                    <div className="mt-3 border-t border-white/[0.06] pt-3">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="text-[12px] text-cyan-300 flex items-center gap-1.5">
+                          <UserCheck className="w-3.5 h-3.5" /> Transfer invited to <span className="font-semibold">{pending.toEmail}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          {claimUrl && (
+                            <Button size="sm" variant="outline" className="h-7 border-[#1a2d4a] text-slate-300 gap-1.5"
+                              onClick={() => copy(claimUrl)}>
+                              {copied === claimUrl ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />} Copy link
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" className="h-7 border-red-500/30 text-red-400 gap-1.5"
+                            onClick={() => cancel.mutate({ transferId: pending.id })} disabled={cancel.isPending}>
+                            <X className="w-3 h-3" /> Cancel
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-slate-600 mt-1.5">Awaiting acceptance · link expires {new Date(pending.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}. Share the link if the email doesn't arrive.</p>
+                    </div>
+                  )}
+
+                  {l.status === "approved" && !pending && openFor !== l.id && (
                     <p className="text-[10px] text-slate-600 mt-3 border-t border-white/[0.06] pt-2">
                       Editing a published listing returns it to review and hides it until re-approved.
                     </p>
