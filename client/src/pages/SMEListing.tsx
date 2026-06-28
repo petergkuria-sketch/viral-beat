@@ -7,8 +7,10 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { COUNTRIES } from "@/lib/scannerData";
 import { ERS_GATE, ersBand } from "@/lib/exchangeData";
+import { parseListingDocx } from "@/lib/docxImport";
 import {
   Building2, ArrowLeft, Check, Loader2, Plus, X, TrendingUp, Lock, AlertTriangle,
+  Download, Upload, FileText,
 } from "lucide-react";
 
 const STATUS_OPTIONS = ["Seeking capital", "Open to collaboration", "Open to exit", "Seeking partners", "Export bound"];
@@ -128,6 +130,51 @@ export default function SMEListing() {
   }, [isEdit, existing.data, prefilled]);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm(f => ({ ...f, [k]: v }));
+
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [importErr, setImportErr] = useState<string | null>(null);
+  async function handleImport(file: File) {
+    setImportErr(null); setImportMsg(null);
+    try {
+      const buf = await file.arrayBuffer();
+      const { data, filledCount } = parseListingDocx(buf);
+      if (filledCount === 0) {
+        setImportErr("No answers found. Make sure you typed into the 'Your answer' column and saved as .docx.");
+        return;
+      }
+      setForm(f => ({
+        ...f,
+        name: data.name ?? f.name,
+        sector: data.sector ?? f.sector,
+        countryCode: data.countryCode ?? f.countryCode,
+        location: data.location ?? f.location,
+        website: data.website ?? f.website,
+        foundedYear: data.foundedYear ?? f.foundedYear,
+        ownership: data.ownership ?? f.ownership,
+        employees: data.employees ?? f.employees,
+        summary: data.summary ?? f.summary,
+        products: data.products ?? f.products,
+        governance: data.governance ?? f.governance,
+        financial: data.financial ?? f.financial,
+        innovation: data.innovation ?? f.innovation,
+        market: data.market ?? f.market,
+        statusTags: data.statusTags ?? f.statusTags,
+        certifications: data.certifications ?? f.certifications,
+        exportMarkets: data.exportMarkets ?? f.exportMarkets,
+        awards: data.awards ?? f.awards,
+        contactName: data.contactName ?? f.contactName,
+        contactEmail: data.contactEmail ?? f.contactEmail,
+        contactPhone: data.contactPhone ?? f.contactPhone,
+        listedByType: data.listedByType ?? f.listedByType,
+        listedByOrg: data.listedByOrg ?? f.listedByOrg,
+      }));
+      const countryNote = !data.countryCode ? " Pick your country from the dropdown if it's blank." : "";
+      setImportMsg(`Imported ${filledCount} field${filledCount === 1 ? "" : "s"} — review everything below, then submit.${countryNote}`);
+    } catch (e: any) {
+      setImportErr(e?.message ?? "Could not read that file. Please upload the completed .docx template.");
+    }
+  }
+
   const ers = Math.round((form.governance + form.financial + form.innovation + form.market) / 4);
   const band = ersBand(ers);
   const wasApproved = isEdit && existing.data?.status === "approved";
@@ -214,6 +261,32 @@ export default function SMEListing() {
           <div className="flex items-start gap-2 text-[12px] text-amber-300 bg-amber-500/8 border border-amber-500/25 rounded-lg p-3 mt-5">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <p>This listing is currently published. Saving changes returns it to review, and it will be temporarily hidden from the exchange until re-approved.</p>
+          </div>
+        )}
+
+        {/* Offline template — download / upload */}
+        {!isEdit && (
+          <div className="mt-5 rounded-xl border border-cyan-500/20 bg-cyan-500/[0.04] p-4">
+            <div className="flex items-start gap-2 mb-3">
+              <FileText className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-sm font-semibold text-white">Prefer to prepare offline?</div>
+                <p className="text-[12px] text-slate-400">Download the Word template, complete it, then upload it here — we'll fill the form for you to review and submit.</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a href="/VB_SME_Listing_Template.docx" download
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-slate-200 hover:bg-white/[0.08]">
+                <Download className="w-3.5 h-3.5" /> Download template (.docx)
+              </a>
+              <label className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25 cursor-pointer">
+                <Upload className="w-3.5 h-3.5" /> Upload completed document
+                <input type="file" accept=".docx" className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleImport(f); e.currentTarget.value = ""; }} />
+              </label>
+            </div>
+            {importMsg && <p className="text-[12px] text-emerald-400 mt-2 flex items-center gap-1.5"><Check className="w-3.5 h-3.5" /> {importMsg}</p>}
+            {importErr && <p className="text-[12px] text-red-400 mt-2 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> {importErr}</p>}
           </div>
         )}
 
