@@ -11,7 +11,7 @@ import {
   TrendingUp, TrendingDown, ArrowUpRight, ChevronRight,
   Building2, CheckCircle2, XCircle, Globe, Phone, Mail,
   Clock, Shield, Zap, MapPin, ExternalLink,
-  Share2, Copy, Check, Twitter, Linkedin,
+  Share2, Copy, Check, Twitter, Linkedin, Plus, Pencil,
 } from "lucide-react";
 import {
   COUNTRIES, OSS_DATA, composite, scoreColor, VERDICT_LABELS,
@@ -843,14 +843,30 @@ export default function CountryIntelProfile() {
               <TabsContent value="risks"><RisksTab c={c} /></TabsContent>
               <TabsContent value="investment">
                 {oss ? (
-                  <OSSPanel oss={oss} isSubscribed={isSubscribed} />
+                  <>
+                    <OSSPanel oss={oss} isSubscribed={isSubscribed} />
+                    <div className="mt-4 flex items-center justify-center">
+                      <button
+                        onClick={() => setLocation(`/scanner/${c.code}/oss/contribute`)}
+                        className="inline-flex items-center gap-1.5 text-[11px] text-slate-500 hover:text-cyan-400 transition-colors">
+                        <Pencil className="w-3 h-3" /> Spot something out of date? Suggest an edit
+                      </button>
+                    </div>
+                  </>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <Building2 className="w-10 h-10 text-slate-700 mb-3" />
                     <p className="font-semibold text-slate-400 mb-1">No OSS data for {c.name}</p>
-                    <p className="text-xs text-slate-500 max-w-xs">
-                      One-Stop-Shop coverage is being expanded. Data for this country is not yet in the ViralBeat database.
+                    <p className="text-xs text-slate-500 max-w-xs mb-5">
+                      One-Stop-Shop coverage is being expanded. Data for this country is not yet in the ViralBeat database —
+                      help the community map it (e.g. Uganda's UFZEPA).
                     </p>
+                    <button
+                      onClick={() => setLocation(`/scanner/${c.code}/oss/contribute`)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/25 transition-colors">
+                      <Plus className="w-4 h-4" /> Add OSS data
+                    </button>
+                    <p className="text-[10px] text-slate-600 mt-2">Contributors can add and update this — reviewed before publishing.</p>
                   </div>
                 )}
               </TabsContent>

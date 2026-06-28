@@ -54,6 +54,7 @@ const AfricaScanner = lazy(() => import("./pages/AfricaScanner"));
 const ReportArchivePage = lazy(() => import("./pages/ReportArchivePage"));
 const CountryIntelProfile = lazy(() => import("./pages/CountryIntelProfile"));
 const GoNoGoBrief = lazy(() => import("./pages/GoNoGoBrief"));
+const OSSContribute = lazy(() => import("./pages/OSSContribute"));
 
 // Intelligence Bulletins — newsletter archive + admin
 const BulletinArchive = lazy(() => import("./pages/BulletinArchive"));
@@ -203,6 +204,7 @@ function Router() {
     { path: "/scanner", component: AfricaScanner },
     { path: "/scanner/:code", component: CountryIntelProfile },
     { path: "/scanner/:code/brief", component: GoNoGoBrief },
+    { path: "/scanner/:code/oss/contribute", component: OSSContribute },
     // GIaaS — Green Investment as a Service
     { path: "/green",             component: GIaaSHub },
     { path: "/green/register",    component: GIaaSRegister },

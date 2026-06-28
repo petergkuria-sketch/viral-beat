@@ -1652,3 +1652,40 @@ export const agentMemory = mysqlTable("agentMemory", {
 }));
 export type AgentMemory = typeof agentMemory.$inferSelect;
 export type InsertAgentMemory = typeof agentMemory.$inferInsert;
+
+/**
+ * OSS (One-Stop-Shop) contributions — community-sourced investment-facilitation
+ * data submitted by contributors for countries missing or needing updated OSS
+ * records (e.g. Uganda's UFZEPA). Reviewed before promotion into OSS_DATA.
+ */
+export const ossSubmissions = mysqlTable("ossSubmissions", {
+  id:           int("id").autoincrement().primaryKey(),
+  countryCode:  varchar("countryCode", { length: 3 }).notNull(),   // ISO3
+  countryName:  varchar("countryName", { length: 100 }).notNull(),
+  kind:         mysqlEnum("kind", ["new", "update"]).notNull().default("new"),
+  name:         varchar("name", { length: 200 }).notNull(),        // OSS / agency name
+  acronym:      varchar("acronym", { length: 40 }),
+  mandate:      text("mandate"),
+  location:     varchar("location", { length: 255 }),
+  website:      varchar("website", { length: 255 }),
+  operatingHours: varchar("operatingHours", { length: 120 }),
+  legalBasis:   varchar("legalBasis", { length: 255 }),
+  established:   int("established"),
+  services:     json("services"),                                  // string[] of offered services
+  offers:       json("offers"),                                    // string[] of incentives
+  linkedZones:  json("linkedZones"),                               // string[] of free zones / SEZs
+  sourceUrl:    varchar("sourceUrl", { length: 500 }),             // evidence link
+  notes:        text("notes"),
+  contributorId:   varchar("contributorId", { length: 128 }),      // user id (nullable for anon)
+  contributorName: varchar("contributorName", { length: 160 }),
+  contributorEmail: varchar("contributorEmail", { length: 200 }),
+  status:       mysqlEnum("status", ["pending", "approved", "rejected"]).notNull().default("pending"),
+  reviewNote:   text("reviewNote"),
+  createdAt:    timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:    timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, t => ({
+  countryIdx: index("ossSubmissions_country_idx").on(t.countryCode),
+  statusIdx:  index("ossSubmissions_status_idx").on(t.status),
+}));
+export type OssSubmission = typeof ossSubmissions.$inferSelect;
+export type InsertOssSubmission = typeof ossSubmissions.$inferInsert;
