@@ -662,17 +662,94 @@ function OSSPanel({ oss, isSubscribed }: { oss: OSSFacility; isSubscribed: boole
   );
 }
 
-function ForecastTab() {
+function ForecastTab({ c, isSubscribed }: { c: CountryProfile; isSubscribed: boolean }) {
+  if (!isSubscribed) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <Lock className="w-10 h-10 text-slate-600 mb-3" />
+        <p className="font-semibold text-slate-300 mb-1">12-Month Forecast — Analyst Plan Required</p>
+        <p className="text-xs text-slate-500 mb-4 max-w-xs">
+          Access 12-month composite score trajectory, election risk windows, and sector timing recommendations.
+        </p>
+        <Button size="sm" className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30">
+          Upgrade to Analyst →
+        </Button>
+      </div>
+    );
+  }
+
+  const comp = composite(c);
+  const projected = Math.max(0, Math.min(100, Math.round(comp + c.change30d * 2)));
+  const trend = c.trend ?? [];
+  const maxT = Math.max(...trend, projected, 1);
+  const up = c.change30d >= 0;
+  const riskEvents = c.timeline.filter(e => e.type === "warning" || e.type === "critical");
+  const goSectors = [...c.sectors].sort((a, b) => b.score - a.score);
+
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <Lock className="w-10 h-10 text-slate-600 mb-3" />
-      <p className="font-semibold text-slate-300 mb-1">12-Month Forecast — Analyst Plan Required</p>
-      <p className="text-xs text-slate-500 mb-4 max-w-xs">
-        Access 12-month composite score trajectory, election risk windows, and sector timing recommendations.
-      </p>
-      <Button size="sm" className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30">
-        Upgrade to Analyst →
-      </Button>
+    <div className="space-y-6">
+      {/* Trajectory */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-white">12-Month Composite Trajectory</h3>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${up ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/25" : "text-red-400 bg-red-500/10 border border-red-500/25"}`}>
+            {up ? "▲" : "▼"} {up ? "+" : ""}{c.change30d} / 30d · projected {projected}
+          </span>
+        </div>
+        <div className="flex items-end gap-1.5 h-32 bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-4">
+          {trend.map((v, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1">
+              <div className="w-full rounded-t" style={{ height: `${(v / maxT) * 100}%`, background: i === trend.length - 1 ? "#22d3ee" : "#1d9e75" }} />
+              <span className="text-[8px] text-slate-600">{i === trend.length - 1 ? "now" : `M${i + 1}`}</span>
+            </div>
+          ))}
+          <div className="flex-1 flex flex-col items-center justify-end gap-1">
+            <div className="w-full rounded-t border border-dashed border-cyan-400/50" style={{ height: `${(projected / maxT) * 100}%`, background: "rgba(34,211,238,0.15)" }} />
+            <span className="text-[8px] text-cyan-400">+12m</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Risk windows */}
+      <div>
+        <h3 className="text-sm font-bold text-white mb-3">Risk Windows</h3>
+        {riskEvents.length ? (
+          <div className="space-y-2">
+            {riskEvents.map((e, i) => (
+              <div key={i} className="flex items-start gap-3 bg-[#0a1628] border border-[#1a2d4a] rounded-lg p-3">
+                <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${e.type === "critical" ? "bg-red-500" : "bg-amber-500"}`} />
+                <div>
+                  <div className="text-[10px] text-slate-500">{e.date} · {e.type === "critical" ? "Critical" : "Watch"}</div>
+                  <div className="text-sm text-slate-300">{e.text}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : <p className="text-xs text-slate-500">No elevated risk windows in the forecast horizon.</p>}
+      </div>
+
+      {/* Sector timing */}
+      <div>
+        <h3 className="text-sm font-bold text-white mb-3">Sector Timing Recommendations</h3>
+        <div className="grid sm:grid-cols-2 gap-2">
+          {goSectors.map((s, i) => {
+            const col = s.verdict === "go" ? "#22c55e" : s.verdict === "caution" ? "#f59e0b" : "#ef4444";
+            return (
+              <div key={i} className="flex items-center justify-between bg-[#0a1628] border border-[#1a2d4a] rounded-lg px-3 py-2.5">
+                <span className="text-sm text-slate-300">{s.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold" style={{ color: col }}>{s.score}</span>
+                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded" style={{ color: col, background: `${col}14`, border: `1px solid ${col}33` }}>
+                    {s.verdict === "go" ? "Enter now" : s.verdict === "caution" ? "Stage entry" : "Hold"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="text-[11px] text-slate-600">Projection derived from composite trend, 30-day momentum, scheduled events, and sector readiness. Intelligence signal, not investment advice.</p>
     </div>
   );
 }
@@ -871,7 +948,7 @@ export default function CountryIntelProfile() {
                   </div>
                 )}
               </TabsContent>
-              <TabsContent value="forecast"><ForecastTab /></TabsContent>
+              <TabsContent value="forecast"><ForecastTab c={c} isSubscribed={isSubscribed} /></TabsContent>
             </div>
           </Tabs>
         </div>
