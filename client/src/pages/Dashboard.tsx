@@ -218,6 +218,10 @@ export default function Dashboard() {
 
           {/* Quick signals */}
           <div className="flex flex-wrap gap-2 mt-3">
+            <button onClick={() => setLocation("/exchange/list")}
+              className="text-xs px-3 py-1.5 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/40 transition-all text-cyan-300 font-semibold">
+              SME Listing
+            </button>
             {["Kenya Elections", "Nigeria Economy", "Sudan Conflict", "Ethiopia Politics", "AU Summit"].map((s) => (
               <button key={s} onClick={() => { setSearchInput(s); setTopic(s); setLocation(`/dashboard?topic=${encodeURIComponent(s)}`); }}
                 className="text-xs px-3 py-1.5 rounded-full bg-muted/50 hover:bg-primary/10 hover:text-primary border border-border/50 hover:border-primary/30 transition-all text-muted-foreground">
@@ -512,7 +516,7 @@ export default function Dashboard() {
 
             {/* Widget view — icon tiles for quick navigation */}
             {dashView === "widget" && (
-              <div id="dashboard-quick-access" className="grid grid-cols-4 sm:grid-cols-7 gap-3 pb-2">
+              <div id="dashboard-quick-access" className="grid grid-cols-4 sm:grid-cols-8 gap-3 pb-2">
                 {[
                   { icon: "🌍", label: "Africa Hub", href: "/africa", color: "#22d3ee" },
                   { icon: "🧠", label: "Intelligence", href: "/intelligence", color: "#a78bfa" },
@@ -521,6 +525,7 @@ export default function Dashboard() {
                   { icon: "🏗️", label: "IRS Score", href: "/doing-business", color: "#fb923c" },
                   { icon: "🧑‍💻", label: "Field Intel", href: "/haa", color: "#34d399" },
                   { icon: "🌿", label: "Green Intel", href: "/green", color: "#4ade80" },
+                  { icon: "🏢", label: "SME Listing", href: "/exchange/list", color: "#22d3ee" },
                 ].map((item) => (
                   <button
                     key={item.href}
