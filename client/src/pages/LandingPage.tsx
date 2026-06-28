@@ -14,6 +14,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import IntelligenceTicker from "@/components/IntelligenceTicker";
+import { EXCHANGE_SMES, boardOf, ersBand, ERS_GATE } from "@/lib/exchangeData";
 
 const RISK: Record<string, { label: string; cls: string }> = {
   low:      { label: "Low Risk",      cls: "bg-green-500/20 text-green-400 border-green-500/30" },
@@ -1146,6 +1147,104 @@ export default function LandingPage() {
                 Explore Investment Facilitation <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── SME EXCHANGE SECTION ────────────────────────────────────────────── */}
+      <section id="sme-exchange" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-6xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}>
+
+            {/* Header */}
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20">SME Exchange</Badge>
+                <span className="text-xs text-cyan-400/80 border border-cyan-500/20 bg-cyan-500/5 rounded-full px-3 py-1">● Phase 1 · discovery only</span>
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-black mb-4" style={{ fontFamily: "Georgia, serif" }}>
+                List small. Prove it.<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">Graduate up.</span>
+              </h2>
+              <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+                A stock-market-style ladder for African enterprise. SMEs build a verified Enterprise Readiness Score
+                and graduate from the open floor to the capital-ready board at ERS {ERS_GATE}.
+              </p>
+            </div>
+
+            {/* Two boards */}
+            <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-5 items-stretch mb-10">
+
+              {/* Open board */}
+              <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.04] p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-sm font-bold text-emerald-300">Open Innovation board</div>
+                  <span className="text-[11px] text-emerald-300/80 bg-emerald-500/10 rounded-full px-2.5 py-0.5">ERS &lt; {ERS_GATE}</span>
+                </div>
+                <div className="text-xs text-gray-500 mb-5">Discovery &amp; collaboration · capacity building</div>
+                <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center">
+                  <Building2 className="w-7 h-7 text-slate-700 mx-auto mb-2" />
+                  <div className="text-sm font-semibold text-gray-300 mb-1">Be the first on the floor</div>
+                  <p className="text-xs text-gray-500 mb-4">List your SME, complete the governance checklist, and build your ERS toward graduation.</p>
+                  <Button size="sm" className="bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 gap-1.5"
+                    onClick={() => setLocation("/exchange")}>
+                    List your SME <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Graduation gate */}
+              <div className="hidden lg:flex flex-col items-center justify-center gap-2">
+                <div className="text-[11px] text-amber-400 text-center leading-tight">graduate<br />ERS {ERS_GATE}</div>
+                <ArrowRight className="w-7 h-7 text-amber-400" />
+              </div>
+
+              {/* Capital-ready board */}
+              <div className="rounded-2xl border border-purple-500/30 bg-purple-500/[0.05] p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-sm font-bold text-purple-300">Capital-Ready board</div>
+                  <span className="text-[11px] text-purple-300/80 bg-purple-500/12 rounded-full px-2.5 py-0.5">ERS {ERS_GATE}+</span>
+                </div>
+                <div className="text-xs text-gray-500 mb-5">Investor screening · partner matchmaking</div>
+                {(() => {
+                  const sme = EXCHANGE_SMES.find(s => boardOf(s) === "capital_ready");
+                  if (!sme) return null;
+                  const band = ersBand(sme.ers);
+                  return (
+                    <div className="rounded-2xl bg-white/[0.03] border border-white/[0.08] p-4">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="min-w-0">
+                          <div className="text-base font-black text-white truncate">{sme.name}</div>
+                          <div className="text-xs text-gray-500">{sme.sector} · {sme.country}</div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-2xl font-black" style={{ color: band.color }}>{sme.ers}</div>
+                          <div className="text-[9px] uppercase tracking-widest text-gray-500">ERS</div>
+                        </div>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden mb-3">
+                        <div className="h-full rounded-full" style={{ width: `${sme.ers}%`, background: band.color }} />
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold border"
+                          style={{ color: band.color, background: `${band.color}14`, borderColor: `${band.color}33` }}>{band.label}</span>
+                        {sme.status.slice(0, 2).map(s => (
+                          <span key={s} className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-gray-300">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Button onClick={() => setLocation("/exchange")} className="bg-cyan-500 hover:bg-cyan-400 text-[#04222b] font-bold gap-2">
+                Explore the SME Exchange <ArrowRight className="w-4 h-4" />
+              </Button>
+              <p className="text-[11px] text-gray-600 mt-3">Phase 1 discovery only · sample listing shown</p>
+            </div>
+
           </motion.div>
         </div>
       </section>

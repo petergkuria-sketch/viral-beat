@@ -56,6 +56,7 @@ const ReportArchivePage = lazy(() => import("./pages/ReportArchivePage"));
 const CountryIntelProfile = lazy(() => import("./pages/CountryIntelProfile"));
 const GoNoGoBrief = lazy(() => import("./pages/GoNoGoBrief"));
 const OSSContribute = lazy(() => import("./pages/OSSContribute"));
+const ExchangeHub = lazy(() => import("./pages/ExchangeHub"));
 
 // Intelligence Bulletins — newsletter archive + admin
 const BulletinArchive = lazy(() => import("./pages/BulletinArchive"));
@@ -125,6 +126,7 @@ function Router() {
     { path: "/contributor", component: ContributorProfile },
     { path: "/embed/widget", component: EmbedWidget },
     { path: "/onboarding", component: OnboardingPage },
+    { path: "/exchange", component: ExchangeHub },
     { path: "/archive", component: ReportArchivePage },
     { path: "/bulletins", component: BulletinArchive },
     { path: "/bulletins/:slug", component: BulletinIssue },
