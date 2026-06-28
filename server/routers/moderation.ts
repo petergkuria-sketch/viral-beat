@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { randomBytes } from "crypto";
 import { router, adminProcedure } from "../_core/trpc";
 import { getDb } from "../db";
-import { ossSubmissions, greenSubmissions, viralSubmissions, creatorProfiles, smeListings } from "../../drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { ossSubmissions, greenSubmissions, viralSubmissions, creatorProfiles, smeListings, listingTransfers } from "../../drizzle/schema";
+import { eq, desc, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { sendEmail, appBaseUrl } from "../services/email";
 
 /**
  * Unified moderation surface — one place to review every kind of
@@ -182,6 +184,84 @@ export const moderationRouter = router({
           break;
       }
 
+      return { ok: true };
+    }),
+
+  // ── SME listing management (all statuses) + owner-claim invites ──────────────
+
+  /** All SME listings with any pending claim-invite attached. */
+  smeAll: adminProcedure.query(async () => {
+    const d = await db();
+    const [listings, pendingTransfers] = await Promise.all([
+      d.select().from(smeListings).orderBy(desc(smeListings.createdAt)),
+      d.select().from(listingTransfers).where(eq(listingTransfers.status, "pending")),
+    ]);
+    const tByListing = new Map<number, typeof pendingTransfers[number]>();
+    pendingTransfers.forEach(t => tByListing.set(t.listingId, t));
+    return listings.map(l => {
+      const t = tByListing.get(l.id);
+      return {
+        id: l.id,
+        name: l.name,
+        sector: l.sector,
+        countryName: l.countryName,
+        ers: l.ers ?? 0,
+        status: l.status,
+        contactEmail: l.contactEmail,
+        contributorId: l.contributorId,
+        listedByType: l.listedByType,
+        listedByOrg: l.listedByOrg,
+        transfer: t ? { id: t.id, toEmail: t.toEmail, token: t.token, expiresAt: t.expiresAt } : null,
+      };
+    });
+  }),
+
+  /** Admin invites the SME owner to claim management of a listing. */
+  inviteToClaim: adminProcedure
+    .input(z.object({ listingId: z.number().int(), ownerEmail: z.string().email().max(200) }))
+    .mutation(async ({ ctx, input }) => {
+      const d = await db();
+      const [listing] = await d.select().from(smeListings).where(eq(smeListings.id, input.listingId));
+      if (!listing) throw new TRPCError({ code: "NOT_FOUND", message: "Listing not found" });
+
+      await d.update(listingTransfers)
+        .set({ status: "cancelled" })
+        .where(and(eq(listingTransfers.listingId, input.listingId), eq(listingTransfers.status, "pending")));
+
+      const token = randomBytes(24).toString("hex");
+      const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+      await d.insert(listingTransfers).values({
+        listingId: input.listingId,
+        fromContributorId: String(ctx.user.id),
+        toEmail: input.ownerEmail,
+        token,
+        status: "pending",
+        expiresAt,
+      });
+
+      const claimUrl = `${appBaseUrl()}/exchange/claim/${token}`;
+      const email = await sendEmail({
+        to: input.ownerEmail,
+        subject: `Claim management of ${listing.name} on ViralBeat`,
+        html: `
+          <p>Hello,</p>
+          <p><strong>${listing.name}</strong> is listed on the ViralBeat SME Exchange, and our team is inviting you, the owner, to take over its management.</p>
+          <p>To accept, sign in to ViralBeat using this email address and confirm:</p>
+          <p><a href="${claimUrl}">${claimUrl}</a></p>
+          <p>This link expires in 14 days and only works when you sign in as ${input.ownerEmail}. If you weren't expecting this, you can ignore it.</p>
+          <p>— ViralBeat</p>`,
+        text: `You're invited to claim management of ${listing.name} on ViralBeat. Sign in as ${input.ownerEmail} and accept: ${claimUrl} (expires in 14 days).`,
+      });
+
+      return { ok: true, claimUrl, emailSent: email.sent };
+    }),
+
+  /** Admin cancels a pending claim-invite. */
+  cancelClaim: adminProcedure
+    .input(z.object({ transferId: z.number().int() }))
+    .mutation(async ({ input }) => {
+      const d = await db();
+      await d.update(listingTransfers).set({ status: "cancelled" }).where(eq(listingTransfers.id, input.transferId));
       return { ok: true };
     }),
 });

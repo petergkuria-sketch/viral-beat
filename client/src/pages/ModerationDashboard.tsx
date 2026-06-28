@@ -3,9 +3,11 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { Input } from "@/components/ui/input";
 import {
   ShieldCheck, Building2, Leaf, Flame, BadgeCheck, Check, X,
   ExternalLink, Loader2, Inbox, RefreshCw, Lock, TrendingUp,
+  UserCheck, Send, Copy,
 } from "lucide-react";
 
 type ModType = "oss" | "sme" | "green" | "viral" | "creator";
@@ -37,6 +39,17 @@ export default function ModerationDashboard() {
   const act = trpc.moderation.act.useMutation({
     onSuccess: () => { summary.refetch(); queue.refetch(); setNoteFor(null); setNote(""); },
   });
+
+  // SME owner-claim invites
+  const smeAll = trpc.moderation.smeAll.useQuery(undefined, { enabled: isAdmin && active === "sme" });
+  const [inviteFor, setInviteFor] = useState<number | null>(null);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [copied, setCopied] = useState<string | null>(null);
+  const invite = trpc.moderation.inviteToClaim.useMutation({
+    onSuccess: () => { smeAll.refetch(); setInviteFor(null); setInviteEmail(""); },
+  });
+  const cancelClaim = trpc.moderation.cancelClaim.useMutation({ onSuccess: () => smeAll.refetch() });
+  function copyLink(url: string) { navigator.clipboard.writeText(url); setCopied(url); setTimeout(() => setCopied(null), 2000); }
 
   if (!user) {
     return (
@@ -160,6 +173,100 @@ export default function ModerationDashboard() {
           ))
         )}
       </div>
+
+      {/* SME listing management — owner-claim invites (all statuses) */}
+      {active === "sme" && (
+        <div className="mt-8">
+          <div className="flex items-center gap-2 mb-1">
+            <UserCheck className="w-4 h-4 text-cyan-400" />
+            <h2 className="text-sm font-bold text-white">All SME listings · invite owner to claim</h2>
+          </div>
+          <p className="text-xs text-slate-500 mb-4">Send the SME owner a secure link to take over management. They must sign in with the invited email to accept.</p>
+
+          {smeAll.isLoading ? (
+            <div className="flex justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-slate-500" /></div>
+          ) : !smeAll.data || smeAll.data.length === 0 ? (
+            <p className="text-xs text-slate-600">No SME listings yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {smeAll.data.map(l => {
+                const claimUrl = l.transfer ? `${window.location.origin}/exchange/claim/${l.transfer.token}` : null;
+                const claimed = !!l.contributorId && l.listedByType === "self";
+                return (
+                  <div key={l.id} className="bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-white truncate">{l.name}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/10 text-slate-400 capitalize">{l.status}</span>
+                          <span className="text-[10px] text-slate-500">ERS {l.ers}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          {l.sector} · {l.countryName}
+                          {l.listedByType !== "self" && l.listedByOrg ? ` · via ${l.listedByOrg}` : ""}
+                          {l.contributorId ? " · owned" : " · unclaimed"}
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        {!l.transfer && (
+                          <Button size="sm" variant="outline" className="h-8 border-cyan-500/30 text-cyan-300 gap-1.5"
+                            onClick={() => { setInviteFor(inviteFor === l.id ? null : l.id); setInviteEmail(l.contactEmail ?? ""); }}>
+                            <UserCheck className="w-3.5 h-3.5" /> Invite to claim
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {inviteFor === l.id && !l.transfer && (
+                      <div className="mt-3 border-t border-white/[0.06] pt-3">
+                        <label className="text-[11px] uppercase tracking-wider text-slate-500 mb-1.5 block">SME owner's email</label>
+                        <div className="flex gap-2">
+                          <Input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} type="email" placeholder="owner@company.com"
+                            className="bg-[#050e1c] border-[#1a2d4a] text-sm h-9" />
+                          <Button size="sm" disabled={!/.+@.+\..+/.test(inviteEmail) || invite.isPending}
+                            className="h-9 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 gap-1.5 shrink-0"
+                            onClick={() => invite.mutate({ listingId: l.id, ownerEmail: inviteEmail })}>
+                            {invite.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />} Send invite
+                          </Button>
+                        </div>
+                        {invite.data && invite.data.emailSent === false && (
+                          <p className="text-[11px] text-amber-400 mt-1.5">Email provider not configured — share the claim link manually (appears after sending).</p>
+                        )}
+                        {invite.error && <p className="text-[11px] text-red-400 mt-1">{invite.error.message}</p>}
+                      </div>
+                    )}
+
+                    {l.transfer && (
+                      <div className="mt-3 border-t border-white/[0.06] pt-3">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="text-[12px] text-cyan-300 flex items-center gap-1.5">
+                            <UserCheck className="w-3.5 h-3.5" /> Invited <span className="font-semibold">{l.transfer.toEmail}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            {claimUrl && (
+                              <Button size="sm" variant="outline" className="h-7 border-[#1a2d4a] text-slate-300 gap-1.5" onClick={() => copyLink(claimUrl)}>
+                                {copied === claimUrl ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />} Copy link
+                              </Button>
+                            )}
+                            <Button size="sm" variant="outline" className="h-7 border-red-500/30 text-red-400 gap-1.5"
+                              onClick={() => cancelClaim.mutate({ transferId: l.transfer!.id })} disabled={cancelClaim.isPending}>
+                              <X className="w-3 h-3" /> Cancel
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-slate-600 mt-1.5">Awaiting acceptance · expires {fmtDate(l.transfer.expiresAt)}. Share the link if the email doesn't arrive.</p>
+                      </div>
+                    )}
+                    {claimed && !l.transfer && (
+                      <p className="text-[10px] text-emerald-500/80 mt-3 border-t border-white/[0.06] pt-2">Owner-managed.</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

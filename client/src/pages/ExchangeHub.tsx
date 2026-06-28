@@ -117,7 +117,8 @@ export default function ExchangeHub() {
     sample: false,
   }));
 
-  const all = [...dbListings, ...EXCHANGE_SMES];
+  // Real listings take over once they exist; the seed sample only fills an empty board.
+  const all = dbListings.length ? dbListings : EXCHANGE_SMES;
   const openBoard = all.filter(s => boardOf(s) === "open");
   const capitalBoard = all.filter(s => boardOf(s) === "capital_ready");
 
