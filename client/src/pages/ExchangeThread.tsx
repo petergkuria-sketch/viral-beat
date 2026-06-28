@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation, useParams } from "wouter";
+import { TopNav } from "@/components/TopNav";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ export default function ExchangeThread() {
 
   return (
     <div className="min-h-screen bg-[#050b1a] text-white">
+      <TopNav />
       <div className="max-w-2xl mx-auto px-4 py-6">
         <button onClick={() => setLocation("/exchange/messages")} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-cyan-400 mb-4">
           <ArrowLeft className="w-3.5 h-3.5" /> Conversations

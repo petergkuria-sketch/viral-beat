@@ -1,4 +1,5 @@
 import { useLocation } from "wouter";
+import { TopNav } from "@/components/TopNav";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import {
@@ -134,6 +135,7 @@ export default function ExchangeHub() {
 
   return (
     <div className="min-h-screen bg-[#050b1a] text-white">
+      <TopNav />
       <div className="max-w-6xl mx-auto px-4 py-10">
 
         {/* Header */}
