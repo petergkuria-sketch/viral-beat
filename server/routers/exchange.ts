@@ -124,6 +124,41 @@ export const exchangeRouter = router({
       .orderBy(desc(smeListings.ers));
   }),
 
+  /** A single approved listing for the public detail page. */
+  getPublic: publicProcedure
+    .input(z.object({ id: z.number().int() }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      const [row] = await db.select().from(smeListings).where(eq(smeListings.id, input.id));
+      if (!row || row.status !== "approved") throw new TRPCError({ code: "NOT_FOUND", message: "Listing not found" });
+      // Public projection — omit private contact details (email/phone).
+      return {
+        id: row.id,
+        name: row.name,
+        sector: row.sector,
+        countryName: row.countryName,
+        location: row.location,
+        website: row.website,
+        foundedYear: row.foundedYear,
+        ownership: row.ownership,
+        employees: row.employees,
+        summary: row.summary,
+        products: row.products,
+        governance: row.governance ?? 0,
+        financial: row.financial ?? 0,
+        innovation: row.innovation ?? 0,
+        market: row.market ?? 0,
+        ers: row.ers ?? 0,
+        statusTags: (row.statusTags as string[]) ?? [],
+        certifications: (row.certifications as string[]) ?? [],
+        exportMarkets: (row.exportMarkets as string[]) ?? [],
+        awards: (row.awards as string[]) ?? [],
+        listedByType: row.listedByType,
+        listedByOrg: row.listedByOrg,
+      };
+    }),
+
   /** The current user's own listings. */
   listMine: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();

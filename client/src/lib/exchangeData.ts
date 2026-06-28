@@ -18,6 +18,7 @@ export interface ERSPillars {
 
 export interface ExchangeSME {
   id: string;
+  listingId?: number;        // DB id for the public detail page (real listings only)
   name: string;
   sector: string;
   country: string;

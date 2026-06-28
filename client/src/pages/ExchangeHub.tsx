@@ -25,9 +25,13 @@ function PillarBar({ label, value, color }: { label: string; value: number; colo
 }
 
 function SMECard({ sme }: { sme: ExchangeSME }) {
+  const [, setLocation] = useLocation();
   const band = ersBand(sme.ers);
+  const clickable = sme.listingId != null;
+  const open = () => { if (clickable) setLocation(`/exchange/sme/${sme.listingId}`); };
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
+    <div onClick={open}
+      className={`bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5 ${clickable ? "cursor-pointer hover:border-cyan-500/40 hover:bg-white/[0.05] transition-colors" : ""}`}>
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="min-w-0">
           <div className="text-lg font-black text-white truncate">{sme.name}</div>
@@ -84,6 +88,11 @@ function SMECard({ sme }: { sme: ExchangeSME }) {
       {sme.sample && (
         <div className="mt-4 text-[10px] text-slate-600 border-t border-white/[0.06] pt-3">Sample listing · pending consent before public publication</div>
       )}
+      {clickable && (
+        <div className="mt-4 flex items-center justify-end gap-1 text-[11px] text-cyan-400 font-semibold border-t border-white/[0.06] pt-3">
+          View profile <ArrowRight className="w-3.5 h-3.5" />
+        </div>
+      )}
     </div>
   );
 }
@@ -95,6 +104,7 @@ export default function ExchangeHub() {
   // Approved DB listings (live) merged with the seed sample.
   const dbListings: ExchangeSME[] = (approved.data ?? []).map(r => ({
     id: `db-${r.id}`,
+    listingId: r.id,
     name: r.name,
     sector: r.sector,
     country: r.countryName,
