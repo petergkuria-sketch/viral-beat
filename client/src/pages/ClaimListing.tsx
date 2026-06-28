@@ -56,10 +56,20 @@ export default function ClaimListing() {
           <>
             <div className="flex items-start gap-2 text-[12px] text-slate-400 bg-[#050e1c] border border-[#1a2d4a] rounded-lg p-3 mb-4 text-left">
               <Lock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-              <p>You must sign in before taking over. The invite was sent to <span className="text-slate-200">{t.toEmail}</span> — sign in with that account for a clean match.</p>
+              <p>You must sign in with <span className="text-slate-200">{t.toEmail}</span> to take over — the invitation is bound to that email address.</p>
             </div>
             <Button className="w-full bg-cyan-500 text-[#04222b] font-bold" onClick={() => { window.location.href = getLoginUrl(); }}>
               Sign in to continue
+            </Button>
+          </>
+        ) : ((((user as any).email ?? "").trim().toLowerCase()) !== t.toEmail.trim().toLowerCase()) ? (
+          <>
+            <div className="flex items-start gap-2 text-[12px] text-amber-300 bg-amber-500/8 border border-amber-500/25 rounded-lg p-3 mb-4 text-left">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <p>You're signed in as <span className="text-slate-200">{(user as any).email || "an account with no email"}</span>, but this invitation was sent to <span className="text-slate-200">{t.toEmail}</span>. Sign in with the invited email to accept.</p>
+            </div>
+            <Button variant="outline" className="w-full border-[#1a2d4a] text-slate-300" onClick={() => { window.location.href = getLoginUrl(); }}>
+              Switch account
             </Button>
           </>
         ) : (

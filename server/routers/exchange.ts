@@ -251,6 +251,16 @@ export const exchangeRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "This transfer link has expired" });
       }
 
+      // Enforce email match — the invite is bound to the SME owner's address.
+      const userEmail = (ctx.user.email ?? "").trim().toLowerCase();
+      const invitedEmail = tr.toEmail.trim().toLowerCase();
+      if (!userEmail) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Your account has no email on file. Sign in with the invited email address to accept." });
+      }
+      if (userEmail !== invitedEmail) {
+        throw new TRPCError({ code: "FORBIDDEN", message: `This invitation was sent to ${tr.toEmail}. Sign in with that email address to take over this listing.` });
+      }
+
       const uid = String(ctx.user.id);
       // Reassign listing ownership and mark this listing self-listed by the new owner.
       await db.update(smeListings)
