@@ -169,8 +169,8 @@ function Router() {
     { path: "/developer-hub", component: DeveloperHub },
     { path: "/developer-hub/agent", component: () => <RedirectTo path="/developer-hub" /> },
     { path: "/developer-hub/thread/:threadId", component: ThreadDetail },
-    { path: "/tokens", component: TokenDashboard },
     { path: "/credits", component: TokenDashboard },
+    { path: "/tokens", component: () => <RedirectTo path="/credits" /> },
     { path: "/marketplace", component: () => <RedirectTo path="/intelligence" /> },
     { path: "/premium-analytics", component: () => <RedirectTo path="/intelligence" /> },
     { path: "/creator-verification", component: () => <RedirectTo path="/contributor" /> },
@@ -180,7 +180,7 @@ function Router() {
     { path: "/haa/leaderboard", component: () => <RedirectTo path="/trending" /> },
     { path: "/trending", component: PestelTrending },
     { path: "/aggregator", component: PoliticalAggregator },
-    { path: "/viralmind", component: PoliticalAggregator },
+    { path: "/viralmind", component: () => <RedirectTo path="/aggregator" /> },
     { path: "/newsletter", component: NewsletterSettings },
     // Generic country intelligence routes
     { path: "/country/:code", component: CountryDashboard },

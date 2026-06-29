@@ -196,8 +196,11 @@ export default function LandingPage() {
   };
 
   const handleCreator = () => {
-    if (user) setLocation("/dashboard");
-    else window.location.href = getLoginUrl();
+    if (user) {
+      let onboarded = "1";
+      try { onboarded = localStorage.getItem("vb_onboarded") ?? ""; } catch {}
+      setLocation(onboarded === "1" ? "/dashboard" : "/onboarding");
+    } else window.location.href = getLoginUrl();
   };
 
   const handleCountry = (code: string) => {
@@ -352,8 +355,8 @@ export default function LandingPage() {
             <button onClick={() => setLocation("/pricing")} className="px-4 py-2 text-sm font-medium text-cyan-400 hover:text-cyan-300 rounded-lg hover:bg-white/5 transition-all">
               Pricing
             </button>
-            <button onClick={() => setLocation("/exchange/list")} className="px-4 py-2 text-sm font-semibold text-cyan-300 border border-cyan-500/40 bg-cyan-500/10 rounded-lg hover:bg-cyan-500/20 transition-all">
-              SME Listing
+            <button onClick={() => setLocation("/exchange")} className="px-4 py-2 text-sm font-semibold text-cyan-300 border border-cyan-500/40 bg-cyan-500/10 rounded-lg hover:bg-cyan-500/20 transition-all">
+              SME Exchange
             </button>
           </div>
 
@@ -397,7 +400,7 @@ export default function LandingPage() {
               <button key={id} onClick={() => { setMobileMenuOpen(false); scrollTo(id); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
             <button onClick={() => { setMobileMenuOpen(false); setLocation("/about#methodology"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Methodology</button>
-            <button onClick={() => { setMobileMenuOpen(false); setLocation("/exchange/list"); }} className="text-left px-3 py-2.5 text-sm font-semibold text-cyan-300 rounded-lg hover:bg-cyan-500/10">SME Listing</button>
+            <button onClick={() => { setMobileMenuOpen(false); setLocation("/exchange"); }} className="text-left px-3 py-2.5 text-sm font-semibold text-cyan-300 rounded-lg hover:bg-cyan-500/10">SME Exchange</button>
             <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
               {!user && <Button variant="outline" className="w-full border-white/10 text-white" onClick={() => { setMobileMenuOpen(false); window.location.href = getLoginUrl(); }}>Sign In / Register</Button>}
               <Button className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-semibold" onClick={() => { setMobileMenuOpen(false); handleExplore(); }}>Get Access</Button>

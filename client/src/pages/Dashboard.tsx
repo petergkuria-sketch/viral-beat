@@ -117,6 +117,17 @@ export default function Dashboard() {
   const [selectedPlatform, setSelectedPlatform] = useState<"all" | "youtube" | "tiktok" | "twitter" | "instagram">("all");
   const { user, loading: authLoading, logout } = useAuth();
 
+  // First-run: route signed-in users who haven't completed the persona
+  // onboarding to /onboarding once. The flag is set in OnboardingPage.
+  useEffect(() => {
+    if (authLoading || !user) return;
+    try {
+      if (localStorage.getItem("vb_onboarded") !== "1") {
+        setLocation("/onboarding");
+      }
+    } catch {}
+  }, [authLoading, user, setLocation]);
+
   // Get topic from URL params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

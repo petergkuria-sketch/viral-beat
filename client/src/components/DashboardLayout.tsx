@@ -41,6 +41,7 @@ interface NavItem {
   label: string;
   path: string;
   badge?: string;
+  exact?: boolean;   // when true, only highlights on an exact path match (e.g. a section overview that is a prefix of its siblings)
 }
 
 interface Section {
@@ -63,8 +64,6 @@ const SECTIONS: Section[] = [
     items: [
       { icon: BarChart3,  label: "Africa Scanner",         path: "/scanner",     badge: "New" },
       { icon: Leaf,       label: "Green Intelligence",      path: "/green",       badge: "Beta" },
-      { icon: Activity,   label: "Political Aggregator",   path: "/aggregator" },
-      { icon: TrendingUp, label: "PESTEL Trending",        path: "/trending" },
       { icon: Users,      label: "Field Signals",          path: "/haa" },
     ],
   },
@@ -88,7 +87,10 @@ const SECTIONS: Section[] = [
     icon: Brain,
     accent: "#a78bfa",
     items: [
+      // Feed-analysis views — three lenses on the same live signal stream
       { icon: Sparkles,   label: "Intelligence Workspace", path: "/intelligence" },
+      { icon: Activity,   label: "Political Aggregator",   path: "/aggregator" },
+      { icon: TrendingUp, label: "PESTEL Trending",        path: "/trending" },
       { icon: BookOpen,   label: "Intelligence Archive",   path: "/archive" },
       { icon: Mail,       label: "Bulletin Archive",       path: "/bulletins" },
       { icon: Building2,  label: "Investment Readiness",   path: "/doing-business" },
@@ -105,19 +107,21 @@ const SECTIONS: Section[] = [
   // ── 4. KENYA MODULE — richest country module ───────────────────────────────
   {
     id: "kenya",
-    label: "Kenya Intelligence",
+    label: "Kenya (Deep-Dive)",
     icon: MapPin,
     accent: "#34d399",
     items: [
-      { icon: Globe,         label: "Country Overview",       path: "/kenya" },
+      // Kenya-unique intelligence (no equivalent in the generic country module) — lead with these
+      { icon: Globe,         label: "Country Overview",       path: "/kenya", exact: true },
+      { icon: Scale,         label: "ICC & Hate Speech",      path: "/kenya/icc-agent" },
+      { icon: AlertTriangle, label: "Fragmentation Risk",     path: "/kenya/balkanization" },
+      { icon: Vote,          label: "Election Intelligence",  path: "/kenya/election-phases" },
+      { icon: Users,         label: "Political Actors",       path: "/kenya/actors" },
+      // Country-standard views (also available via the generic /country/:code template)
       { icon: BarChart2,     label: "Political Sentiment",    path: "/kenya/tracker" },
       { icon: Map,           label: "Regional Map",           path: "/kenya/regional-map" },
-      { icon: AlertTriangle, label: "Fragmentation Risk",     path: "/kenya/balkanization" },
-      { icon: Scale,         label: "ICC & Hate Speech",      path: "/kenya/icc-agent" },
-      { icon: Users,         label: "Political Actors",       path: "/kenya/actors" },
       { icon: Newspaper,     label: "Signal Newsfeed",        path: "/kenya/newsfeed" },
       { icon: Radio,         label: "Breaking Signals",       path: "/kenya/breaking-news" },
-      { icon: Vote,          label: "Election Intelligence",  path: "/kenya/election-phases" },
       { icon: Bell,          label: "Signal Alerts",          path: "/kenya/alerts" },
       { icon: FileText,      label: "Intelligence Reports",   path: "/kenya/reports" },
       { icon: Flag,          label: "Political Movements",    path: "/kenya/movements" },
@@ -130,7 +134,6 @@ const SECTIONS: Section[] = [
     icon: Target,
     accent: "#22c55e",
     items: [
-      { icon: Briefcase,  label: "Go/No-Go Briefs",          path: "/scanner" },
       { icon: Bot,        label: "AI Agents Hub",            path: "/ai-agents" },
       { icon: Code2,      label: "Developer API",            path: "/developer-hub" },
       { icon: Code2,      label: "Widget Builder",           path: "/widget-builder" },
@@ -202,8 +205,8 @@ function AfricaSection({
 
   return (
     <div className="pb-1">
-      {/* Hub */}
-      <NavLink path="/africa" label="Africa Hub" icon={Globe} location={location} setLocation={setLocation} accent="#818cf8" pl={3} />
+      {/* Hub — social-trend search, key figures & movements (distinct from the scorecard Scanner) */}
+      <NavLink path="/africa" label="Social Trends & Figures" icon={Globe} location={location} setLocation={setLocation} accent="#818cf8" pl={3} />
 
       {/* My Country */}
       {myCountryCode && (() => {
@@ -259,12 +262,14 @@ function AfricaSection({
 }
 
 // ─── Single nav link ──────────────────────────────────────────────────────────
-function NavLink({ path, label, icon: Icon, location, setLocation, accent, pl = 2, badge }: {
+function NavLink({ path, label, icon: Icon, location, setLocation, accent, pl = 2, badge, exact }: {
   path: string; label: string; icon: React.ElementType;
   location: string; setLocation: (p: string) => void;
-  accent: string; pl?: number; badge?: React.ReactNode;
+  accent: string; pl?: number; badge?: React.ReactNode; exact?: boolean;
 }) {
-  const active = location === path || (path !== "/dashboard" && location.startsWith(path + "/"));
+  const active = exact
+    ? location === path
+    : location === path || (path !== "/dashboard" && location.startsWith(path + "/"));
   return (
     <button onClick={() => setLocation(path)}
       className={`w-full flex items-center gap-2.5 py-1.5 pr-3 text-sm transition-all rounded-r-lg my-0.5 relative
@@ -405,7 +410,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Section open/close — auto-open section of current page
   const activeSection = SECTIONS.find(s =>
     s.custom
-      ? location.startsWith("/africa") || location.startsWith("/kenya")
+      ? location.startsWith("/africa") || location.startsWith("/country/")
       : s.items?.some(i => location === i.path || (i.path !== "/dashboard" && location.startsWith(i.path + "/")))
   );
   const [openSections, setOpenSections] = useState<Set<string>>(() => {
@@ -502,7 +507,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             if (section.adminOnly && user?.role !== "admin") return null;
             const isOpen = openSections.has(section.id);
             const hasActive = section.custom
-              ? location.startsWith("/africa") || location.startsWith("/kenya")
+              ? location.startsWith("/africa") || location.startsWith("/country/")
               : section.items?.some(i =>
                   location === i.path || (i.path !== "/dashboard" && location.startsWith(i.path + "/"))
                 ) ?? false;
@@ -541,6 +546,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           setLocation={setLocation}
                           accent={section.accent}
                           pl={8}
+                          exact={item.exact}
                           badge={item.badge ? (
                             <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                               {item.badge}
