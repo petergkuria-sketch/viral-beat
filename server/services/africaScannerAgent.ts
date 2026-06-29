@@ -9,11 +9,10 @@
  *   runCountryCycle(code)  — single country refresh (webhook / on-demand)
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import Parser from "rss-parser";
 import crypto from "crypto";
 import { getDb } from "../db";
-import { ENV } from "../_core/env";
+import { getOrchestrator } from "../_core/ai/orchestrator";
 import {
   agentRuns, scannerSignals, tickerItems, signalWatchlists,
   type InsertAgentRun, type InsertScannerSignal, type InsertTickerItem,
@@ -100,12 +99,6 @@ const FLAG_MAP: Record<string, string> = {
   GAB:"🇬🇦", COG:"🇨🇬", GNQ:"🇬🇶", STP:"🇸🇹", CAF:"🇨🇫", GNB:"🇬🇼",
 };
 
-// ── Anthropic client ──────────────────────────────────────────────────────────
-
-function getAnthropic() {
-  return new Anthropic({ apiKey: ENV.anthropicApiKey });
-}
-
 // ── UUID helper ───────────────────────────────────────────────────────────────
 
 function uuid(): string {
@@ -179,7 +172,6 @@ interface ClassifiedSignal {
 async function classifyBatch(articles: RawArticle[]): Promise<ClassifiedSignal[]> {
   if (articles.length === 0) return [];
 
-  const anthropic = getAnthropic();
   const articlesText = articles.map((a, i) =>
     `[${i}] SOURCE: ${a.source}\nTITLE: ${a.title}\nSNIPPET: ${a.content.slice(0, 300)}\nURL: ${a.url}`
   ).join("\n\n---\n\n");
@@ -198,18 +190,17 @@ For each article, determine:
 Return ONLY valid JSON array. Skip articles not related to African nations.`;
 
   try {
-    const response = await anthropic.messages.create({
+    const response = await getOrchestrator().generate({
       model: MODEL,
-      max_tokens: 4096,
-      thinking: { type: "adaptive" },
+      maxTokens: 4096,
+      providerOptions: { thinking: { type: "adaptive" } },
       messages: [
         { role: "user", content: `${SYSTEM}\n\nArticles to classify:\n\n${articlesText}\n\nReturn JSON array of classified signals.` }
       ],
     });
 
-    const textBlock = response.content.find(b => b.type === "text");
-    if (!textBlock || textBlock.type !== "text") return [];
-    const raw = textBlock.text.trim();
+    const raw = (response.text ?? "").trim();
+    if (!raw) return [];
     const jsonMatch = raw.match(/\[[\s\S]*\]/);
     if (!jsonMatch) return [];
 

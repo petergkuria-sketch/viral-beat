@@ -36,6 +36,11 @@ export class ClaudeProvider implements AIProvider {
     return { tools: true, jsonMode: true, streaming: true, vision: true };
   }
 
+  /** Low-level SDK access for the legacy invokeLLM mapper. Prefer generate(). */
+  getSdkClient(): Anthropic {
+    return this.client;
+  }
+
   async generate(request: AIRequest): Promise<AIResponse> {
     const model = request.model ?? this.defaultModel;
 
@@ -87,7 +92,9 @@ export class ClaudeProvider implements AIProvider {
         messages,
         ...(tools ? { tools } : {}),
         ...(toolChoice ? { tool_choice: toolChoice } : {}),
-      });
+        // Provider-specific passthrough (e.g. thinking: { type: "adaptive" })
+        ...(request.providerOptions ?? {}),
+      } as Anthropic.MessageCreateParamsNonStreaming);
     } catch (e: any) {
       throw new AIProviderError("claude", e?.message ?? "Claude request failed", {
         status: e?.status,

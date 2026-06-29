@@ -9,9 +9,8 @@
  *   5. Signal boost   — archived reports accelerate field signal corroboration
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import { getDb } from "../db";
-import { ENV } from "../_core/env";
+import { getOrchestrator } from "../_core/ai/orchestrator";
 import {
   reportArchive, reportEntities, memoryInjections,
   type InsertReportEntity, type InsertMemoryInjection,
@@ -24,7 +23,6 @@ async function db() {
   return d;
 }
 
-const client = new Anthropic({ apiKey: ENV.anthropicApiKey });
 
 // ── Quality score ──────────────────────────────────────────────────────────────
 // Weighted composite of engagement signals. Called after every view/download/cite.
@@ -85,12 +83,12 @@ REPORT:
 ${row.bodyMd.slice(0, 4000)}`;
 
   try {
-    const response = await client.messages.create({
+    const response = await getOrchestrator().generate({
       model: "claude-opus-4-8",
-      max_tokens: 1024,
+      maxTokens: 1024,
       messages: [{ role: "user", content: prompt }],
     });
-    const text = response.content.find(b => b.type === "text")?.text ?? "[]";
+    const text = response.text || "[]";
     const match = text.match(/\[[\s\S]*\]/);
     if (!match) return;
 

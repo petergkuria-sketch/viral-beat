@@ -26,7 +26,6 @@ import {
 import { eq, desc, and, sql } from "drizzle-orm";
 import { runValidation, approveSubmission } from "../services/giaasEngine";
 import { runGiaasAgentCycle, runGiaasCountryCycle, ingestPendingFeeds } from "../services/giaasProjectAgent";
-import Anthropic from "@anthropic-ai/sdk";
 import { giaasDataFeeds } from "../../drizzle/schema";
 
 async function db() {
@@ -316,8 +315,7 @@ export const giaasRouter = router({
     .mutation(async () => {
       const { ENV } = await import("../_core/env");
       if (!ENV.anthropicApiKey) throw new Error("ANTHROPIC_API_KEY not configured");
-      const client = new Anthropic({ apiKey: ENV.anthropicApiKey });
-      return ingestPendingFeeds(client);
+      return ingestPendingFeeds();
     }),
 
   // ── Agent controls ────────────────────────────────────────────────────────

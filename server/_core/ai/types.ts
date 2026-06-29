@@ -41,8 +41,10 @@ export interface AIRequest {
   tools?: AITool[];
   toolChoice?: AIToolChoice;
   responseFormat?: AIResponseFormat;
-  /** Free-form metadata for observability (taskType, requestId, userId…). */
+  /** Free-form metadata for observability/routing (taskType, requestId, userId…). */
   metadata?: Record<string, unknown>;
+  /** Escape hatch for provider-specific params (e.g. Claude `thinking`). Forwarded verbatim. */
+  providerOptions?: Record<string, unknown>;
 }
 
 export interface AIToolCall {

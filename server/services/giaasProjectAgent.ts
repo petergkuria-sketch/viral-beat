@@ -10,7 +10,7 @@
  *   runGiaasCountryCycle(iso3)    — single country refresh
  */
 
-import Anthropic from "@anthropic-ai/sdk";
+import { getOrchestrator } from "../_core/ai/orchestrator";
 import { randomUUID } from "crypto";
 import { getDb } from "../db";
 import { ENV } from "../_core/env";
@@ -112,7 +112,6 @@ interface RawProject {
 // ── LLM harvest for a batch of countries ─────────────────────────────────────
 
 async function harvestCountryBatch(
-  client: Anthropic,
   countries: typeof AFRICAN_COUNTRIES
 ): Promise<Map<string, RawProject[]>> {
   const countryList = countries
@@ -165,13 +164,13 @@ Rules:
 - sourceConfidence: "high" = well-documented major project, "medium" = known but less data, "low" = referenced but limited info
 - Return only JSON, no preamble`;
 
-  const response = await client.messages.create({
+  const response = await getOrchestrator().generate({
     model: MODEL,
-    max_tokens: 8192,
+    maxTokens: 8192,
     messages: [{ role: "user", content: prompt }],
   });
 
-  const raw = response.content[0].type === "text" ? response.content[0].text : "";
+  const raw = response.text ?? "";
   const jsonMatch = raw.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return new Map();
 
@@ -220,7 +219,7 @@ async function fetchTextFromUrl(url: string): Promise<string> {
 
 // ── Ingest pending data feeds and extract projects ────────────────────────────
 
-export async function ingestPendingFeeds(client: Anthropic): Promise<{ processed: number; projectsCreated: number }> {
+export async function ingestPendingFeeds(): Promise<{ processed: number; projectsCreated: number }> {
   const d = await db();
   const pending = await d
     .select()
@@ -304,13 +303,13 @@ Rules:
 - Return empty array if no clear projects found
 - Return only JSON`;
 
-      const response = await client.messages.create({
+      const response = await getOrchestrator().generate({
         model: MODEL,
-        max_tokens: 4096,
+        maxTokens: 4096,
         messages: [{ role: "user", content: prompt }],
       });
 
-      const raw = response.content[0].type === "text" ? response.content[0].text : "";
+      const raw = response.text ?? "";
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         await d.update(giaasDataFeeds)
@@ -499,7 +498,6 @@ export async function runGiaasAgentCycle(): Promise<GiaasAgentResult> {
   _cycleRunning = true;
   const runId = randomUUID();
   const startMs = Date.now();
-  const client = new Anthropic({ apiKey: ENV.anthropicApiKey });
 
   let totalInserted = 0;
   let totalSkipped = 0;
@@ -509,7 +507,7 @@ export async function runGiaasAgentCycle(): Promise<GiaasAgentResult> {
 
   try {
     // Always ingest pending data feeds first — they add context for the country sweep
-    const feedResult = await ingestPendingFeeds(client);
+    const feedResult = await ingestPendingFeeds();
     if (feedResult.processed > 0) {
       console.log(`[GIaaS Agent] Feed pre-pass: ${feedResult.processed} feeds → ${feedResult.projectsCreated} projects`);
       totalInserted += feedResult.projectsCreated;
@@ -522,7 +520,7 @@ export async function runGiaasAgentCycle(): Promise<GiaasAgentResult> {
       console.log(`[GIaaS Agent] Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${batch.map(c => c.iso3).join(", ")}`);
 
       try {
-        const harvested = await harvestCountryBatch(client, batch);
+        const harvested = await harvestCountryBatch(batch);
 
         const toInsert: (RawProject & { countryCode: string; countryName: string })[] = [];
         for (const [iso3, projects] of Array.from(harvested.entries())) {
@@ -585,7 +583,6 @@ export async function runGiaasCountryCycle(iso3: string): Promise<GiaasAgentResu
 
   const runId = randomUUID();
   const startMs = Date.now();
-  const client = new Anthropic({ apiKey: ENV.anthropicApiKey });
   const country = AFRICAN_COUNTRIES.find(c => c.iso3 === iso3.toUpperCase());
   if (!country) {
     return { runId, status: "failed", countriesProcessed: 0, projectsInserted: 0, projectsSkipped: 0, durationMs: 0, error: `Unknown country: ${iso3}` };
@@ -594,7 +591,7 @@ export async function runGiaasCountryCycle(iso3: string): Promise<GiaasAgentResu
   console.log(`[GIaaS Agent] Single-country cycle: ${country.name} (${iso3})`);
 
   try {
-    const harvested = await harvestCountryBatch(client, [country]);
+    const harvested = await harvestCountryBatch([country]);
     const raw = harvested.get(iso3.toUpperCase()) ?? [];
     const toInsert = raw.map(p => ({ ...p, countryCode: iso3.toUpperCase(), countryName: country.name }));
     const { inserted, skipped } = toInsert.length > 0 ? await persistProjects(toInsert) : { inserted: 0, skipped: 0 };

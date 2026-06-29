@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { ENV } from "./env";
+import { getOrchestrator } from "./ai/orchestrator";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -243,7 +244,9 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     throw new Error("ANTHROPIC_API_KEY is not configured");
   }
 
-  const client = new Anthropic({ apiKey: ENV.anthropicApiKey });
+  // Anthropic client is owned by the orchestrator — no direct `new Anthropic()`
+  // outside server/_core/ai. Mapping below is unchanged.
+  const client = getOrchestrator().anthropic();
 
   const {
     messages,
