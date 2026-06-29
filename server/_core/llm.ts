@@ -1,6 +1,7 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { ENV } from "./env";
 import { getOrchestrator } from "./ai/orchestrator";
+import type {
+  AIRequest, AIResponse, AIMessage, AITool, AIToolChoice, AIResponseFormat,
+} from "./ai/types";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -114,6 +115,11 @@ export type ResponseFormat =
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+// Preferred model for this legacy path. It's a Claude model, so the
+// orchestrator's model-family guard keeps Claude-routed calls on Haiku exactly
+// as before (no cost change); OpenAI-routed tasks use the policy's gpt-4o-mini.
+const PREFERRED_MODEL = "claude-haiku-4-5-20251001";
+
 const ensureArray = (
   value: MessageContent | MessageContent[]
 ): MessageContent[] => (Array.isArray(value) ? value : [value]);
@@ -131,209 +137,91 @@ const resolveSchema = ({
   return null;
 };
 
-// Convert OpenAI-style messages to Anthropic format.
-// Returns { system, messages } where system is the extracted system prompt.
-function toAnthropicMessages(messages: Message[]): {
-  system: string | undefined;
-  messages: Anthropic.MessageParam[];
-} {
+const flattenContent = (content: MessageContent | MessageContent[]): string =>
+  ensureArray(content)
+    .map(p => (typeof p === "string" ? p : p.type === "text" ? p.text : JSON.stringify(p)))
+    .join("\n");
+
+// InvokeParams (OpenAI-shaped) → provider-neutral AIRequest.
+function toAIRequest(params: InvokeParams): AIRequest {
   const systemParts: string[] = [];
-  const result: Anthropic.MessageParam[] = [];
-
-  for (const msg of messages) {
-    const { role, content, tool_call_id } = msg;
-
-    if (role === "system") {
-      const text = ensureArray(content)
-        .map(p => (typeof p === "string" ? p : "text" in p ? p.text : JSON.stringify(p)))
-        .join("\n");
-      systemParts.push(text);
-      continue;
-    }
-
-    // tool/function results → Anthropic tool_result block inside a user message
-    if (role === "tool" || role === "function") {
-      const text = ensureArray(content)
-        .map(p => (typeof p === "string" ? p : JSON.stringify(p)))
-        .join("\n");
-      result.push({
-        role: "user",
-        content: [
-          {
-            type: "tool_result",
-            tool_use_id: tool_call_id ?? "unknown",
-            content: text,
-          } as Anthropic.ToolResultBlockParam,
-        ],
-      });
-      continue;
-    }
-
-    // user / assistant
-    const parts = ensureArray(content);
-    const anthropicContent: Anthropic.ContentBlockParam[] = parts.map(p => {
-      if (typeof p === "string") return { type: "text", text: p };
-      if (p.type === "text") return { type: "text", text: p.text };
-      if (p.type === "image_url") {
-        const url = p.image_url.url;
-        if (url.startsWith("data:")) {
-          const [meta, data] = url.split(",");
-          const mediaType = meta.split(":")[1].split(";")[0] as
-            | "image/jpeg"
-            | "image/png"
-            | "image/gif"
-            | "image/webp";
-          return {
-            type: "image",
-            source: { type: "base64", media_type: mediaType, data },
-          } as Anthropic.ImageBlockParam;
-        }
-        return {
-          type: "image",
-          source: { type: "url", url },
-        } as Anthropic.ImageBlockParam;
-      }
-      // file_url — unsupported natively; pass as text reference
-      return { type: "text", text: JSON.stringify(p) };
-    });
-
-    result.push({
-      role: role as "user" | "assistant",
-      content: anthropicContent.length === 1 && anthropicContent[0].type === "text"
-        ? (anthropicContent[0] as Anthropic.TextBlockParam).text
-        : anthropicContent,
+  const messages: AIMessage[] = [];
+  for (const m of params.messages) {
+    if (m.role === "system") { systemParts.push(flattenContent(m.content)); continue; }
+    messages.push({
+      role: (m.role === "function" ? "tool" : m.role) as AIMessage["role"],
+      content: flattenContent(m.content),
+      toolCallId: m.tool_call_id,
+      name: m.name,
     });
   }
 
+  const tools: AITool[] | undefined = params.tools?.map(t => ({
+    name: t.function.name,
+    description: t.function.description,
+    parameters: t.function.parameters ?? { type: "object", properties: {} },
+  }));
+
+  const tc = params.toolChoice ?? params.tool_choice;
+  let toolChoice: AIToolChoice | undefined;
+  if (tc === "auto") toolChoice = "auto";
+  else if (tc === "required") toolChoice = "required";
+  else if (tc && typeof tc === "object") toolChoice = "name" in tc ? { name: tc.name } : { name: tc.function.name };
+  // "none" → leave undefined
+
+  const schema = resolveSchema(params);
+  const explicit = params.responseFormat ?? params.response_format;
+  let responseFormat: AIResponseFormat | undefined;
+  if (schema) responseFormat = { type: "json_schema", name: schema.name, schema: schema.schema };
+  else if (explicit?.type === "json_object") responseFormat = { type: "json_object" };
+
   return {
-    system: systemParts.length > 0 ? systemParts.join("\n\n") : undefined,
-    messages: result,
+    model: PREFERRED_MODEL,
+    system: systemParts.length ? systemParts.join("\n\n") : undefined,
+    messages,
+    maxTokens: params.maxTokens ?? params.max_tokens,
+    tools,
+    toolChoice,
+    responseFormat,
   };
 }
 
-function toAnthropicTools(tools: Tool[]): Anthropic.Tool[] {
-  return tools.map(t => ({
-    name: t.function.name,
-    description: t.function.description,
-    input_schema: (t.function.parameters ?? { type: "object", properties: {} }) as Anthropic.Tool["input_schema"],
+// Provider-neutral AIResponse → OpenAI-shaped InvokeResult (unchanged contract).
+let _seq = 0;
+function toInvokeResult(r: AIResponse): InvokeResult {
+  const tool_calls: ToolCall[] | undefined = r.toolCalls?.map(tc => ({
+    id: tc.id,
+    type: "function",
+    function: { name: tc.name, arguments: tc.arguments },
   }));
-}
-
-function toAnthropicToolChoice(
-  toolChoice: ToolChoice | undefined,
-  tools: Tool[] | undefined
-): Anthropic.ToolChoiceAuto | Anthropic.ToolChoiceTool | undefined {
-  if (!toolChoice) return undefined;
-  if (toolChoice === "none") return undefined;
-  if (toolChoice === "auto") return { type: "auto" };
-  if (toolChoice === "required") {
-    if (!tools || tools.length === 0) throw new Error("tool_choice required but no tools provided");
-    return { type: "tool", name: tools[0].function.name };
-  }
-  if ("name" in toolChoice) return { type: "tool", name: toolChoice.name };
-  if ("type" in toolChoice && toolChoice.type === "function") {
-    return { type: "tool", name: toolChoice.function.name };
-  }
-  return undefined;
-}
-
-// ── Main export ───────────────────────────────────────────────────────────────
-
-export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
-  if (!ENV.anthropicApiKey) {
-    throw new Error("ANTHROPIC_API_KEY is not configured");
-  }
-
-  // Anthropic client is owned by the orchestrator — no direct `new Anthropic()`
-  // outside server/_core/ai. Mapping below is unchanged.
-  const client = getOrchestrator().anthropic();
-
-  const {
-    messages,
-    tools,
-    toolChoice,
-    tool_choice,
-    maxTokens,
-    max_tokens,
-  } = params;
-
-  const jsonSchema = resolveSchema(params);
-
-  const { system, messages: anthropicMessages } = toAnthropicMessages(messages);
-
-  // Build tools list — inject synthetic schema tool if response_format asks for structured JSON
-  let anthropicTools: Anthropic.Tool[] | undefined = tools ? toAnthropicTools(tools) : undefined;
-  let anthropicToolChoice: Anthropic.ToolChoiceAuto | Anthropic.ToolChoiceTool | undefined =
-    toAnthropicToolChoice(toolChoice ?? tool_choice, tools);
-
-  if (jsonSchema) {
-    const schemaName = jsonSchema.name.replace(/[^a-zA-Z0-9_-]/g, "_");
-    const syntheticTool: Anthropic.Tool = {
-      name: schemaName,
-      description: `Respond using the ${schemaName} schema`,
-      input_schema: jsonSchema.schema as Anthropic.Tool["input_schema"],
-    };
-    anthropicTools = [syntheticTool, ...(anthropicTools ?? [])];
-    anthropicToolChoice = { type: "tool", name: schemaName };
-  }
-
-  const response = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: maxTokens ?? max_tokens ?? 2048,
-    ...(system ? { system } : {}),
-    messages: anthropicMessages,
-    ...(anthropicTools ? { tools: anthropicTools } : {}),
-    ...(anthropicToolChoice ? { tool_choice: anthropicToolChoice } : {}),
-  });
-
-  // ── Map Anthropic response → OpenAI-shaped InvokeResult ─────────────────────
-  let textContent = "";
-  const toolCalls: ToolCall[] = [];
-
-  for (const block of response.content) {
-    if (block.type === "text") {
-      textContent += block.text;
-    } else if (block.type === "tool_use") {
-      if (jsonSchema && block.name === jsonSchema.name.replace(/[^a-zA-Z0-9_-]/g, "_")) {
-        // Structured JSON output — flatten tool input back to content string
-        textContent = JSON.stringify(block.input);
-      } else {
-        toolCalls.push({
-          id: block.id,
-          type: "function",
-          function: {
-            name: block.name,
-            arguments: JSON.stringify(block.input),
-          },
-        });
-      }
-    }
-  }
-
-  const finishReason =
-    response.stop_reason === "end_turn" ? "stop" :
-    response.stop_reason === "tool_use" ? "tool_calls" :
-    response.stop_reason ?? null;
-
   return {
-    id: response.id,
+    id: `ai_${Date.now()}_${_seq++}`,
     created: Math.floor(Date.now() / 1000),
-    model: response.model,
+    model: r.model,
     choices: [
       {
         index: 0,
         message: {
           role: "assistant",
-          content: textContent,
-          ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
+          content: r.text,
+          ...(tool_calls && tool_calls.length > 0 ? { tool_calls } : {}),
         },
-        finish_reason: finishReason,
+        finish_reason: r.finishReason,
       },
     ],
     usage: {
-      prompt_tokens: response.usage.input_tokens,
-      completion_tokens: response.usage.output_tokens,
-      total_tokens: response.usage.input_tokens + response.usage.output_tokens,
+      prompt_tokens: r.usage.promptTokens,
+      completion_tokens: r.usage.completionTokens,
+      total_tokens: r.usage.totalTokens,
     },
   };
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+
+// Routes through the AI Orchestrator (router → provider → fallback → telemetry).
+// Signature and return shape are unchanged, so all callers are untouched.
+export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
+  const response = await getOrchestrator().generate(toAIRequest(params));
+  return toInvokeResult(response);
 }
