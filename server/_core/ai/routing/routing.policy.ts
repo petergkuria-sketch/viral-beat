@@ -52,10 +52,12 @@ export const DEFAULT_FALLBACK: Record<ProviderName, ProviderName> = {
 
 /** THE POLICY. Task → provider (+ optional model / fallback). Edit freely. */
 export const ROUTING_POLICY: Record<TaskType, RouteRule> = {
-  CHAT:         { provider: "openai" },
-  SHORT_QA:     { provider: "openai" },
-  EVERYDAY:     { provider: "openai" },
+  // Cost-sensitive tasks → OpenAI's lightweight model.
+  CHAT:         { provider: "openai", model: "gpt-4o-mini" },
+  SHORT_QA:     { provider: "openai", model: "gpt-4o-mini" },
+  EVERYDAY:     { provider: "openai", model: "gpt-4o-mini" },
 
+  // High-value tasks → Claude (provider default model unless pinned here).
   RESEARCH:     { provider: "claude" },
   CODING:       { provider: "claude" },
   ARCHITECTURE: { provider: "claude" },
