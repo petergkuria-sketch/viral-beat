@@ -1654,6 +1654,31 @@ export type AgentMemory = typeof agentMemory.$inferSelect;
 export type InsertAgentMemory = typeof agentMemory.$inferInsert;
 
 /**
+ * AI request telemetry — one row per provider call made through the AI
+ * Orchestrator (success or failure). Powers usage/cost dashboards.
+ */
+export const aiUsageLog = mysqlTable("aiUsageLog", {
+  id:           int("id").autoincrement().primaryKey(),
+  provider:     varchar("provider", { length: 32 }).notNull(),     // claude | openai | gemini
+  model:        varchar("model", { length: 80 }),
+  taskType:     varchar("taskType", { length: 40 }),               // routing decision, if any
+  tokensIn:     int("tokensIn").notNull().default(0),
+  tokensOut:    int("tokensOut").notNull().default(0),
+  costUsd:      decimal("costUsd", { precision: 12, scale: 6 }).notNull().default("0"),
+  latencyMs:    int("latencyMs").notNull().default(0),
+  status:       mysqlEnum("status", ["success", "failure"]).notNull(),
+  errorMessage: varchar("errorMessage", { length: 500 }),
+  userId:       varchar("userId", { length: 128 }),                // if available
+  createdAt:    timestamp("createdAt").defaultNow().notNull(),     // timestamp
+}, t => ({
+  providerIdx: index("aiUsageLog_provider_idx").on(t.provider),
+  createdIdx:  index("aiUsageLog_created_idx").on(t.createdAt),
+  userIdx:     index("aiUsageLog_user_idx").on(t.userId),
+}));
+export type AiUsageLog = typeof aiUsageLog.$inferSelect;
+export type InsertAiUsageLog = typeof aiUsageLog.$inferInsert;
+
+/**
  * OSS (One-Stop-Shop) contributions — community-sourced investment-facilitation
  * data submitted by contributors for countries missing or needing updated OSS
  * records (e.g. Uganda's UFZEPA). Reviewed before promotion into OSS_DATA.

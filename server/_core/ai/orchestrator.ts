@@ -4,6 +4,8 @@ import { OpenAIProvider } from "./providers/openai/openai.provider";
 import { AIRouter } from "./routing/router";
 import type { AIProvider } from "./providers/provider.interface";
 import type { AIRequest, AIResponse, ProviderName } from "./types";
+import { recordUsage } from "./observability/metrics";
+import { computeCost } from "./observability/cost";
 
 /**
  * Single entry point for every AI request in the application.
@@ -59,8 +61,10 @@ class AIOrchestrator {
 
   /** The single call all business logic should use. */
   async generate(request: AIRequest): Promise<AIResponse> {
+    const userId = (request.metadata?.userId as string | undefined) ?? null;
+
     if (!ROUTING_ENABLED) {
-      return this.provider("claude").generate(request);
+      return this.run("claude", request.model, request, { userId, taskType: null });
     }
 
     const decision = this.router.route(request);
@@ -84,12 +88,51 @@ class AIOrchestrator {
         ? request.model
         : (name === decision.provider ? decision.model : undefined);
       try {
-        return await this.provider(name).generate({ ...request, model });
+        return await this.run(name, model, request, { userId, taskType: decision.taskType });
       } catch (err) {
         lastErr = err;
       }
     }
     throw lastErr;
+  }
+
+  /** Runs one provider attempt and records telemetry (success or failure). */
+  private async run(
+    name: ProviderName,
+    model: string | undefined,
+    request: AIRequest,
+    ctx: { userId: string | null; taskType: string | null },
+  ): Promise<AIResponse> {
+    const start = Date.now();
+    try {
+      const resp = await this.provider(name).generate({ ...request, model });
+      void recordUsage({
+        provider: resp.provider,
+        model: resp.model,
+        taskType: ctx.taskType,
+        tokensIn: resp.usage.promptTokens,
+        tokensOut: resp.usage.completionTokens,
+        costUsd: computeCost(resp.provider, resp.model, resp.usage),
+        latencyMs: resp.latencyMs,
+        status: "success",
+        userId: ctx.userId,
+      });
+      return resp;
+    } catch (err) {
+      void recordUsage({
+        provider: name,
+        model: model ?? null,
+        taskType: ctx.taskType,
+        tokensIn: 0,
+        tokensOut: 0,
+        costUsd: 0,
+        latencyMs: Date.now() - start,
+        status: "failure",
+        errorMessage: (err as any)?.message ?? String(err),
+        userId: ctx.userId,
+      });
+      throw err;
+    }
   }
 
   /**
