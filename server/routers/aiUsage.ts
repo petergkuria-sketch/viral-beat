@@ -4,6 +4,7 @@ import { getDb } from "../db";
 import { aiUsageLog } from "../../drizzle/schema";
 import { gte, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { getOrchestrator } from "../_core/ai/orchestrator";
 
 interface Bucket {
   requests: number;
@@ -79,5 +80,12 @@ export const aiUsageRouter = router({
         byDay: Array.from(byDay, ([day, b]) => ({ day, ...finalize(b) }))
           .sort((a, b) => a.day.localeCompare(b.day)),
       };
+    }),
+
+  /** Health-check a provider (single provider, no fallback). */
+  ping: adminProcedure
+    .input(z.object({ provider: z.enum(["claude", "openai", "gemini"]) }))
+    .mutation(async ({ input }) => {
+      return getOrchestrator().pingProvider(input.provider);
     }),
 });

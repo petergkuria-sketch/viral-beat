@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import {
   Cpu, Loader2, Lock, ShieldCheck, ArrowLeft, DollarSign, Activity, CheckCircle2, Gauge,
+  Plug, Check, X,
 } from "lucide-react";
 
 const usd = (n: number) => `$${n < 0.01 ? n.toFixed(4) : n.toFixed(2)}`;
@@ -64,6 +65,10 @@ export default function AiUsagePage() {
   const [days, setDays] = useState(30);
   const isAdmin = (user as any)?.role === "admin";
   const q = trpc.aiUsage.overview.useQuery({ days }, { enabled: isAdmin });
+  const [pingResult, setPingResult] = useState<Record<string, any>>({});
+  const ping = trpc.aiUsage.ping.useMutation({
+    onSuccess: (r) => setPingResult(p => ({ ...p, [r.provider]: r })),
+  });
 
   if (!user || !isAdmin) {
     return (
@@ -97,6 +102,36 @@ export default function AiUsagePage() {
               {n}d
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Provider health check */}
+      <div className="bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-4 mb-5">
+        <div className="flex items-center gap-2 mb-2">
+          <Plug className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-bold text-white">Provider health check</span>
+        </div>
+        <p className="text-[11px] text-slate-500 mb-3">Sends a 5-token ping to a single provider (no fallback). A "no credits" error still confirms the key is valid and wired.</p>
+        <div className="flex flex-wrap gap-2">
+          {(["openai", "claude"] as const).map(p => {
+            const res = pingResult[p];
+            const busy = ping.isPending && ping.variables?.provider === p;
+            return (
+              <div key={p} className="flex items-center gap-2">
+                <Button size="sm" variant="outline" disabled={ping.isPending}
+                  className="border-[#1a2d4a] text-slate-200 gap-1.5 capitalize"
+                  onClick={() => ping.mutate({ provider: p })}>
+                  {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plug className="w-3.5 h-3.5" />} Ping {p}
+                </Button>
+                {res && (
+                  <span className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border ${res.ok ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/30" : "text-amber-300 bg-amber-500/10 border-amber-500/30"}`}>
+                    {res.ok ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                    {res.ok ? `OK · ${res.model} · ${res.latencyMs}ms` : (res.hint ?? res.error)}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

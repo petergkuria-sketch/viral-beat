@@ -143,6 +143,39 @@ class AIOrchestrator {
   anthropic(): Anthropic {
     return (this.provider("claude") as ClaudeProvider).getSdkClient();
   }
+
+  /**
+   * Health-check a single provider with a minimal request — NO routing, NO
+   * fallback — so the result reflects that provider only. Distinguishes a bad
+   * key from a missing-credits situation.
+   */
+  async pingProvider(name: ProviderName): Promise<{
+    ok: boolean; provider: ProviderName; model?: string; latencyMs?: number;
+    status?: number; error?: string; hint?: string;
+  }> {
+    if (!isConfigured(name)) {
+      return { ok: false, provider: name, error: "API key not configured", hint: "Set the provider's API key in the environment." };
+    }
+    try {
+      const r = await this.provider(name).generate({
+        messages: [{ role: "user", content: "ping" }],
+        maxTokens: 5,
+      });
+      return { ok: true, provider: r.provider, model: r.model, latencyMs: r.latencyMs };
+    } catch (e: any) {
+      const status: number | undefined = e?.status;
+      const msg: string = e?.message ?? String(e);
+      let hint: string | undefined;
+      if (status === 401 || /invalid.*api key|incorrect api key|authentication/i.test(msg)) {
+        hint = "Key appears INVALID — check the value.";
+      } else if (status === 429 || /quota|insufficient_quota|billing|credit/i.test(msg)) {
+        hint = "Key is VALID and wired — provider reports no credits/quota. Add billing.";
+      } else {
+        hint = "Key reached the provider but the call errored — see message.";
+      }
+      return { ok: false, provider: name, status, error: msg, hint };
+    }
+  }
 }
 
 let singleton: AIOrchestrator | null = null;
