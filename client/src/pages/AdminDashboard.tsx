@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Shield, Activity, Users, Database, Server, AlertTriangle,
+  Shield, Activity, Users, Database, Server, AlertTriangle, Cpu,
   CheckCircle, Clock, TrendingUp, Loader2, RefreshCw,
   Search, ChevronLeft, ChevronRight, UserCog, Crown, LayoutDashboard
 } from "lucide-react";
@@ -281,6 +281,10 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => setLocation("/admin/ai-usage")}
+              className="border-[#1e3a5f] gap-2">
+              <Cpu className="w-4 h-4" /> AI Usage
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setLocation("/admin/moderation")}
               className="border-[#1e3a5f] gap-2">
               <Shield className="w-4 h-4" /> Moderation
