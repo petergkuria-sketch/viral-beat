@@ -21,6 +21,13 @@ import { Streamdown } from "streamdown";
 import { exportIntelligencePDF } from "@/lib/printBrief";
 import { AnimatePresence, motion } from "framer-motion";
 
+// Coerce an LLM result that may be a plain string or a content-block array into text.
+function toText(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return v.map((c) => (typeof c === "string" ? c : (c as { text?: string })?.text ?? "")).join("");
+  return "";
+}
+
 // ── types ───────────────────────────────────────────────────────────────────
 
 type GeoLayer = "continental" | "regional" | "country";
@@ -337,7 +344,7 @@ export default function IntelligencePage() {
 
   const summarizeTrends = trpc.xTrends.summarizeTrends.useMutation({
     onSuccess: (data) => {
-      setSignalAnalysis(data.summary || "");
+      setSignalAnalysis(toText(data.summary));
       setAnalysisLoading(false);
     },
     onError: () => setAnalysisLoading(false),
@@ -464,7 +471,7 @@ export default function IntelligencePage() {
       let binary = "";
       const chunk = 8192;
       for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+        binary += String.fromCharCode(...Array.from(bytes.subarray(i, i + chunk)));
       }
       extractDocument.mutate({ base64: btoa(binary), fileName: file.name, mimeType: file.type || "application/pdf" });
     } catch (err: any) {
@@ -520,9 +527,16 @@ export default function IntelligencePage() {
     });
   };
 
-  const handleRateSignal = (signalId: string, rating: number) => {
-    setRatings(prev => ({ ...prev, [signalId]: rating }));
-    rateSignal.mutate({ signalId, rating });
+  const handleRateSignal = (signal: Signal, key: string, rating: number) => {
+    setRatings(prev => ({ ...prev, [key]: rating }));
+    rateSignal.mutate({
+      messageId: signal.id || key,
+      topic: signal.topic,
+      geoLayer,
+      geoScope: signal.geoScope ?? scopeKey,
+      pestelCategory: signal.pestelCategory ?? selectedCategory,
+      rating,
+    });
   };
 
   const handleDownloadChatReport = (content: string) => {
@@ -591,7 +605,7 @@ export default function IntelligencePage() {
   };
 
   const buildAnalysisText = (insight: any) => {
-    const perf = safeJson(insight.predictedPerformance, {});
+    const perf = safeJson(insight.predictedPerformance, {} as { gameTheoryMove?: string; missionAlignment?: string });
     const recs: string[] = safeJson(insight.recommendations, []);
     const strengths: string[] = safeJson(insight.strengths, []);
     const tags: string[] = safeJson(insight.optimizedHashtags, []);
@@ -756,7 +770,7 @@ export default function IntelligencePage() {
         ].filter(Boolean).join("\n\n") || undefined
       },
       {
-        onSuccess: (data) => { setPestelOutput(data.summary || ""); setPipelineStage("pestel_done"); },
+        onSuccess: (data) => { setPestelOutput(toText(data.summary)); setPipelineStage("pestel_done"); },
         onError: (err) => { toast.error("PESTEL failed: " + err.message); setPipelineStage("confirming"); },
       }
     );
@@ -1465,7 +1479,7 @@ export default function IntelligencePage() {
                             key={star}
                             onMouseEnter={() => setHoverRatings(prev => ({ ...prev, [signal.id ?? idx]: star }))}
                             onMouseLeave={() => setHoverRatings(prev => { const n = { ...prev }; delete n[signal.id ?? idx]; return n; })}
-                            onClick={() => handleRateSignal(signal.id ?? String(idx), star)}
+                            onClick={() => handleRateSignal(signal, signal.id ?? String(idx), star)}
                             className="p-0.5"
                           >
                             <Star className={`w-3 h-3 ${star <= (hoverRatings[signal.id ?? idx] ?? ratings[signal.id ?? idx] ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-slate-400/40"}`} />
@@ -2211,7 +2225,7 @@ export default function IntelligencePage() {
                                     onClick={() => {
                                       handleDownloadChatReport(msg.message);
                                       if (archivedIds.has(msg.id)) {
-                                        archiveRecordDownload.mutate({ reportId: msg.id }).catch(() => null);
+                                        archiveRecordDownload.mutate({ reportId: msg.id });
                                       }
                                     }}
                                     className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-cyan-400 transition-colors group"
@@ -2473,7 +2487,7 @@ export default function IntelligencePage() {
               </div>
 
               {insights && insights.length > 0 ? insights.map((insight: any) => {
-                const perf = safeJson(insight.predictedPerformance, {});
+                const perf = safeJson(insight.predictedPerformance, {} as { gameTheoryMove?: string; missionAlignment?: string });
                 const recs: string[] = safeJson(insight.recommendations, []);
                 const strengths: string[] = safeJson(insight.strengths, []);
                 const tags: string[] = safeJson(insight.optimizedHashtags, []);

@@ -181,7 +181,7 @@ export default function ViralMindPage() {
       let binary = "";
       const chunk = 8192;
       for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+        binary += String.fromCharCode(...Array.from(bytes.subarray(i, i + chunk)));
       }
       const base64 = btoa(binary);
       extractDocument.mutate({ base64, fileName: file.name, mimeType: file.type || "application/pdf" });
