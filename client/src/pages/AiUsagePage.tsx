@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 const usd = (n: number) => `$${n < 0.01 ? n.toFixed(4) : n.toFixed(2)}`;
-const PROVIDER_COLOR: Record<string, string> = { claude: "#d97706", openai: "#10a37f", gemini: "#4285f4" };
+const PROVIDER_COLOR: Record<string, string> = { claude: "#d97706", openai: "#10a37f", gemini: "#4285f4", moonshot: "#22d3ee" };
 
 function Stat({ icon: Icon, label, value, sub }: { icon: typeof Cpu; label: string; value: string; sub?: string }) {
   return (
@@ -113,7 +113,7 @@ export default function AiUsagePage() {
         </div>
         <p className="text-[11px] text-slate-500 mb-3">Sends a 5-token ping to a single provider (no fallback). A "no credits" error still confirms the key is valid and wired.</p>
         <div className="flex flex-wrap gap-2">
-          {(["openai", "claude"] as const).map(p => {
+          {(["openai", "claude", "moonshot"] as const).map(p => {
             const res = pingResult[p];
             const busy = ping.isPending && ping.variables?.provider === p;
             return (
