@@ -37,5 +37,5 @@ export async function sendEmail({ to, subject, html, text }: SendEmailArgs): Pro
 }
 
 export function appBaseUrl(): string {
-  return process.env.APP_URL || "https://viralbeat.io";
+  return process.env.APP_URL || process.env.APP_BASE_URL || "https://viralbeat.io";
 }
