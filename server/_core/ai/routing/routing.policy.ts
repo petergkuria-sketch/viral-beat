@@ -1,26 +1,23 @@
 import type { ProviderName } from "../types";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AI ROUTING POLICY — the single source of truth for "which provider per task".
+// AI ROUTING POLICY — cost-effective three-tier escalation ladder.
 //
-// Adjust routing here only. The AIRouter and all application logic read from
-// this file; they never hard-code a provider. Changing a task's provider, its
-// model, or its fallback is a one-line edit below — no code changes elsewhere.
+//   Tier 1 (Economy)  → Moonshot / Kimi K2     ← DEFAULT for all tasks
+//   Tier 2 (Standard) → OpenAI GPT-5
+//   Tier 3 (Premium)  → Anthropic Claude 4.6
 //
-// Effective policy:
+// Directives:
+//   • Default to Economy. Every task starts at Tier 1 unless complexity
+//     triggers are detected, in which case it may start at Tier 2 — never Tier 3.
+//   • Dynamic escalation: if a tier's output fails (provider error, refusal,
+//     empty, or quality gate), escalate to the next tier with a contextual
+//     handoff (original prompt + failed output + reason).
 //
-//   CHAT          → Moonshot (Kimi)   fallback OpenAI
-//   SHORT_QA      → Moonshot (Kimi)   fallback OpenAI
-//   EVERYDAY      → Moonshot (Kimi)   fallback OpenAI   (cost-sensitive)
-//   RESEARCH      → Claude
-//   CODING        → Claude      (code review / refactor / debugging)
-//   ARCHITECTURE  → Claude
-//   STRATEGY      → Claude      (business strategy)
-//   CREATIVE      → Claude      (long-form / creative writing)
-//   REASONING     → Claude      (deep / rigorous reasoning)
+// This is the single source of truth — the router and orchestrator read it.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Canonical task categories the router maps requests onto. */
+/** Canonical task categories used for complexity analysis + telemetry. */
 export type TaskType =
   | "CHAT"
   | "SHORT_QA"
@@ -32,41 +29,28 @@ export type TaskType =
   | "CREATIVE"
   | "REASONING";
 
-export interface RouteRule {
-  provider: ProviderName;
-  /** Optional model override; omit to use the provider's default. */
-  model?: string;
-  /** Optional per-task fallback; omit to use DEFAULT_FALLBACK. */
-  fallback?: ProviderName;
-}
+/** The escalation ladder, economy → premium. Index 0 is the default start. */
+export const TIER_LADDER: ProviderName[] = ["moonshot", "openai", "claude"];
 
-/** Used when no task can be determined. */
-export const DEFAULT_PROVIDER: ProviderName = "openai"; // cost-sensitive default
-
-/** Provider used to retry when a primary fails (per provider). */
-export const DEFAULT_FALLBACK: Record<ProviderName, ProviderName> = {
-  openai: "claude",
-  claude: "openai",
-  gemini: "openai",
-  moonshot: "openai",   // cost-effective primary → OpenAI → (OpenAI's fallback) Claude
+/** Preferred model per tier. Requested models in the same family override these. */
+export const TIER_MODEL: Record<ProviderName, string> = {
+  moonshot: "kimi-k2-0711-preview", // Tier 1 — Economy
+  openai:   "gpt-5",                // Tier 2 — Standard
+  claude:   "claude-opus-4-6",      // Tier 3 — Premium (Claude 4.6)
+  gemini:   "gemini-1.5-pro",       // not in the ladder; only if explicitly forced
 };
 
-/** THE POLICY. Task → provider (+ optional model / fallback). Edit freely. */
-export const ROUTING_POLICY: Record<TaskType, RouteRule> = {
-  // Cost-sensitive tasks → Moonshot (Kimi), the most cost-effective leg.
-  // Fallback to OpenAI's lightweight model, then Claude, if Moonshot is
-  // unconfigured or fails — the orchestrator only dispatches to configured keys.
-  // Fallback to OpenAI if Moonshot is unconfigured or fails — the orchestrator
-  // only dispatches to providers whose key is configured.
-  CHAT:         { provider: "moonshot", model: "moonshot-v1-8k",  fallback: "openai" },
-  SHORT_QA:     { provider: "moonshot", model: "moonshot-v1-8k",  fallback: "openai" },
-  EVERYDAY:     { provider: "moonshot", model: "moonshot-v1-32k", fallback: "openai" },
+/**
+ * Complexity triggers — tasks that may START at Tier 2 (Standard) instead of
+ * Tier 1: multi-step reasoning, advanced code/architecture, deep research.
+ * Never start above Tier 2.
+ */
+export const COMPLEX_TASKS: ReadonlySet<TaskType> = new Set<TaskType>([
+  "CODING",
+  "ARCHITECTURE",
+  "REASONING",
+  "RESEARCH",
+]);
 
-  // High-value tasks → Claude (provider default model unless pinned here).
-  RESEARCH:     { provider: "claude" },
-  CODING:       { provider: "claude" },
-  ARCHITECTURE: { provider: "claude" },
-  STRATEGY:     { provider: "claude" },
-  CREATIVE:     { provider: "claude" },
-  REASONING:    { provider: "claude" },
-};
+/** Word count above which a prompt counts as "exceptionally large / deep synthesis". */
+export const LARGE_CONTEXT_WORDS = 1500;

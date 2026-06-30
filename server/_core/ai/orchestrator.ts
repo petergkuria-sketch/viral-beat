@@ -3,6 +3,7 @@ import { ClaudeProvider } from "./providers/claude/claude.provider";
 import { OpenAIProvider } from "./providers/openai/openai.provider";
 import { MoonshotProvider } from "./providers/moonshot/moonshot.provider";
 import { AIRouter } from "./routing/router";
+import { TIER_LADDER, TIER_MODEL } from "./routing/routing.policy";
 import type { AIProvider } from "./providers/provider.interface";
 import type { AIRequest, AIResponse, ProviderName } from "./types";
 import { recordUsage } from "./observability/metrics";
@@ -28,6 +29,43 @@ function isConfigured(name: ProviderName): boolean {
   if (name === "gemini") return !!process.env.GOOGLE_API_KEY;
   if (name === "moonshot") return !!process.env.MOONSHOT_API_KEY;
   return false;
+}
+
+const REFUSAL_RE = /\b(i (cannot|can'?t|am unable to|won'?t)|i'?m (sorry|unable)|as an ai|i do not have the ability)\b/i;
+
+/**
+ * Quality gate for the escalation ladder. Conservative by design — it only
+ * flags egregious failures (empty output, refusal) so we don't over-escalate
+ * and erode the cost saving. Deeper "lacks depth / hallucination" judging would
+ * require an LLM judge (an opt-in extension); this catches the clear cases.
+ */
+function evaluateQuality(resp: AIResponse): { ok: boolean; reason?: string } {
+  const text = (resp.text ?? "").trim();
+  if (!text && (!resp.toolCalls || resp.toolCalls.length === 0)) {
+    return { ok: false, reason: "empty response" };
+  }
+  if (text && text.length < 400 && REFUSAL_RE.test(text)) {
+    return { ok: false, reason: "model declined / refused the task" };
+  }
+  return { ok: true };
+}
+
+/**
+ * Contextual handoff — when escalating, give the higher tier the original task,
+ * the failed lower-tier output, and why it was inadequate.
+ */
+function withHandoff(
+  request: AIRequest,
+  prevTier: ProviderName | undefined,
+  prevText: string | undefined,
+  reason: string | undefined,
+): AIRequest {
+  const note = [
+    `[Escalation] A lower-tier model${prevTier ? ` (${prevTier})` : ""} attempted this task and the result was inadequate: ${reason ?? "unspecified"}.`,
+    prevText ? `\nIts attempt was:\n"""\n${prevText.slice(0, 4000)}\n"""` : "",
+    `\nProduce a correct, complete, high-quality answer that fixes the specific deficiency above. The original task and context follow unchanged.`,
+  ].join("");
+  return { ...request, system: request.system ? `${request.system}\n\n${note}` : note };
 }
 
 /** Which provider a model string belongs to, so we never cross-feed models. */
@@ -63,41 +101,66 @@ class AIOrchestrator {
     return instance;
   }
 
-  /** The single call all business logic should use. */
+  /**
+   * The single call all business logic should use. Implements the cost-effective
+   * three-tier escalation ladder (Economy → Standard → Premium):
+   *   1. Start at Tier 1 (Moonshot/Kimi) unless complexity triggers → Tier 2.
+   *   2. Run the tier; evaluate the output (provider error, refusal, empty).
+   *   3. On failure, escalate to the next configured tier with a contextual
+   *      handoff (original prompt + failed output + reason).
+   */
   async generate(request: AIRequest): Promise<AIResponse> {
     const userId = (request.metadata?.userId as string | undefined) ?? null;
 
     if (!ROUTING_ENABLED) {
-      return this.run("claude", request.model, request, { userId, taskType: null });
+      // Explicit override: skip the ladder, go straight to Premium.
+      return this.run("claude", request.model ?? TIER_MODEL.claude, request, { userId, taskType: null });
     }
 
     const decision = this.router.route(request);
 
-    // Build the attempt order: chosen provider, then fallback. Keep only
-    // providers whose key is configured; if none are, fall back to Claude.
-    const chain: ProviderName[] = [];
-    for (const name of [decision.provider, decision.fallback]) {
-      if (!chain.includes(name) && isConfigured(name)) chain.push(name);
-    }
-    if (chain.length === 0) chain.push("claude");
+    // Build the escalation chain from the start tier upward, keeping only
+    // providers whose key is configured. Fall back to any configured provider.
+    let chain = TIER_LADDER.slice(decision.startTier).filter(isConfigured);
+    if (chain.length === 0) chain = TIER_LADDER.filter(isConfigured);
+    if (chain.length === 0) chain = ["claude"];
 
     let lastErr: unknown;
-    for (const name of chain) {
-      // Pick a model valid for THIS provider:
-      //  • the requested model only if it belongs to this provider's family,
-      //  • else the policy hint (only meaningful for the chosen provider),
-      //  • else undefined → the provider's own default.
-      const requestedFitsProvider = modelFamily(request.model) === name;
-      const model = requestedFitsProvider
-        ? request.model
-        : (name === decision.provider ? decision.model : undefined);
+    let prevText: string | undefined;
+    let prevTier: ProviderName | undefined;
+    let prevReason: string | undefined;
+
+    for (let i = 0; i < chain.length; i++) {
+      const name = chain[i];
+      const isLast = i === chain.length - 1;
+
+      // Model: requested model if it belongs to this tier's family, else the
+      // tier's preferred model.
+      const model = modelFamily(request.model) === name ? request.model : TIER_MODEL[name];
+
+      // On escalation, hand the higher tier the original task + the failed
+      // attempt + why it failed.
+      const req = prevText !== undefined || prevReason
+        ? withHandoff(request, prevTier, prevText, prevReason)
+        : request;
+
       try {
-        return await this.run(name, model, request, { userId, taskType: decision.taskType });
+        const resp = await this.run(name, model, req, { userId, taskType: decision.taskType });
+        const verdict = evaluateQuality(resp);
+        if (verdict.ok || isLast) return resp;
+        // Output inadequate — escalate with context.
+        prevText = resp.text;
+        prevTier = name;
+        prevReason = verdict.reason;
       } catch (err) {
         lastErr = err;
+        prevText = undefined;
+        prevTier = name;
+        prevReason = `provider error: ${(err as any)?.message ?? String(err)}`;
       }
     }
-    throw lastErr;
+    if (lastErr) throw lastErr;
+    throw new Error("All tiers exhausted without a usable response");
   }
 
   /** Runs one provider attempt and records telemetry (success or failure). */

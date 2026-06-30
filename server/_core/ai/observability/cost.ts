@@ -14,6 +14,8 @@ const PRICES: Array<{ match: RegExp; price: Price }> = [
   { match: /^claude-3-5-haiku/i,  price: { in: 0.8,  out: 4  } },
   { match: /^claude-3-5-sonnet/i, price: { in: 3,    out: 15 } },
   // OpenAI
+  { match: /^gpt-5-mini/i,        price: { in: 0.25, out: 2  } },   // estimate — verify
+  { match: /^gpt-5/i,             price: { in: 1.25, out: 10 } },   // estimate — verify
   { match: /^gpt-4o-mini/i,       price: { in: 0.15, out: 0.6 } },
   { match: /^gpt-4o/i,            price: { in: 2.5,  out: 10 } },
   { match: /^gpt-4\.1-mini/i,     price: { in: 0.4,  out: 1.6 } },

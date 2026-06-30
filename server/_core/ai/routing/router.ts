@@ -1,31 +1,24 @@
 import type { AIRequest, ProviderName } from "../types";
 import {
-  ROUTING_POLICY,
-  DEFAULT_PROVIDER,
-  DEFAULT_FALLBACK,
+  TIER_LADDER,
+  COMPLEX_TASKS,
+  LARGE_CONTEXT_WORDS,
   type TaskType,
-  type RouteRule,
 } from "./routing.policy";
 
 export type { TaskType } from "./routing.policy";
 
 export interface RoutingDecision {
-  provider: ProviderName;
-  /** Provider to retry with if the primary fails. */
-  fallback: ProviderName;
-  /** Optional model hint from the policy; undefined ⇒ provider default. */
-  model?: string;
+  /** Index into TIER_LADDER to begin at (0 = Economy, 1 = Standard). Never 2. */
+  startTier: number;
+  /** A specific provider forced by the caller (metadata.provider), if any. */
+  forced?: ProviderName;
   taskType: TaskType;
   /** How the decision was reached — for telemetry/debugging. */
   reason: string;
 }
 
 interface AIRouterOptions {
-  /** Override individual policy rules at runtime (merged over the policy file). */
-  policy?: Partial<Record<TaskType, RouteRule>>;
-  /** Provider used when no task can be determined. */
-  defaultProvider?: ProviderName;
-  /** Word count above which untyped prose is treated as long-form/creative. */
   longFormWordThreshold?: number;
 }
 
@@ -41,44 +34,50 @@ const KEYWORD_RULES: Array<{ task: TaskType; re: RegExp }> = [
 ];
 
 export class AIRouter {
-  private policy: Record<TaskType, RouteRule>;
-  private defaultProvider: ProviderName;
   private longFormWordThreshold: number;
 
   constructor(opts: AIRouterOptions = {}) {
-    this.policy = { ...ROUTING_POLICY, ...(opts.policy ?? {}) } as Record<TaskType, RouteRule>;
-    this.defaultProvider = opts.defaultProvider ?? DEFAULT_PROVIDER;
     this.longFormWordThreshold = opts.longFormWordThreshold ?? 220;
   }
 
-  /** Inspect a request and decide which provider should handle it. */
+  /** Decide the starting tier via pre-execution complexity analysis. */
   route(request: AIRequest): RoutingDecision {
     const forced = request.metadata?.provider as ProviderName | undefined;
     const taskType = this.resolveTaskType(request);
-    const rule = this.policy[taskType];
 
-    const provider = forced ?? rule?.provider ?? this.defaultProvider;
-    const fallback = rule?.fallback ?? DEFAULT_FALLBACK[provider] ?? "openai";
+    // Caller forced a provider → start at that provider's tier.
+    if (forced) {
+      const idx = TIER_LADDER.indexOf(forced);
+      return { startTier: Math.max(0, idx), forced, taskType, reason: `forced provider=${forced}` };
+    }
 
-    return {
-      provider,
-      fallback,
-      model: rule?.model,
-      taskType,
-      reason: forced
-        ? `forced provider=${forced}`
-        : (request.metadata?.taskType ? `explicit taskType=${taskType}` : `inferred taskType=${taskType}`),
-    };
+    // Complexity analysis: large context or complex task → start at Tier 2.
+    const words = this.wordCount(request);
+    const complex = COMPLEX_TASKS.has(taskType);
+    const large = words >= LARGE_CONTEXT_WORDS;
+    const startTier = complex || large ? 1 : 0; // never start above Tier 2
+
+    const reason = startTier === 1
+      ? `start Tier 2 — ${complex ? `complex task (${taskType})` : `large context (${words}w)`}`
+      : `start Tier 1 — economy default (${taskType})`;
+
+    return { startTier, taskType, reason };
+  }
+
+  private wordCount(request: AIRequest): number {
+    const corpus = `${request.system ?? ""}\n${request.messages.map(m => m.content).join("\n")}`;
+    return corpus.trim().split(/\s+/).filter(Boolean).length;
   }
 
   /** Explicit taskType wins; otherwise infer from request shape + content. */
   private resolveTaskType(request: AIRequest): TaskType {
     const explicit = request.metadata?.taskType as TaskType | undefined;
-    if (explicit && explicit in this.policy) return explicit;
+    const known: TaskType[] = ["CHAT","SHORT_QA","EVERYDAY","RESEARCH","CODING","ARCHITECTURE","STRATEGY","CREATIVE","REASONING"];
+    if (explicit && known.includes(explicit)) return explicit;
 
     const lastUser = [...request.messages].reverse().find(m => m.role === "user")?.content ?? "";
     const corpus = `${request.system ?? ""}\n${request.messages.map(m => m.content).join("\n")}`;
-    const words = corpus.trim().split(/\s+/).filter(Boolean).length;
+    const words = this.wordCount(request);
 
     for (const { task, re } of KEYWORD_RULES) {
       if (re.test(lastUser) || re.test(corpus)) return task;
