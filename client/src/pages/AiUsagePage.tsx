@@ -2,13 +2,56 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import {
   Cpu, Loader2, Lock, ShieldCheck, ArrowLeft, DollarSign, Activity, CheckCircle2, Gauge,
-  Plug, Check, X,
+  Plug, Check, X, Mail, Send,
 } from "lucide-react";
 
 const usd = (n: number) => `$${n < 0.01 ? n.toFixed(4) : n.toFixed(2)}`;
+
+function EmailHealth() {
+  const status = trpc.email.status.useQuery();
+  const [to, setTo] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const send = trpc.email.sendTest.useMutation({ onSuccess: r => setResult(r), onError: e => setResult({ sent: false, error: e.message }) });
+  const s = status.data;
+
+  return (
+    <div className="bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-4 mb-5">
+      <div className="flex items-center gap-2 mb-2">
+        <Mail className="w-4 h-4 text-cyan-400" />
+        <span className="text-sm font-bold text-white">Email (transactional)</span>
+        {s && (
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${s.configured ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/30" : "text-amber-300 bg-amber-500/10 border-amber-500/30"}`}>
+            {s.configured ? "Configured" : "Not configured"}
+          </span>
+        )}
+      </div>
+      <p className="text-[11px] text-slate-500 mb-3">
+        {s?.configured
+          ? `Provider key present. From ${s.from}. Send a test to confirm delivery (domain must be verified in Resend).`
+          : "RESEND_API_KEY is not set — invites fall back to copyable links. Add the key in Railway to enable sending."}
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <Input value={to} onChange={e => setTo(e.target.value)} placeholder="test recipient (defaults to your email)" type="email"
+          className="bg-[#050e1c] border-[#1a2d4a] text-sm h-9 max-w-xs" />
+        <Button size="sm" disabled={send.isPending}
+          className="h-9 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 gap-1.5"
+          onClick={() => { setResult(null); send.mutate({ to: to || undefined }); }}>
+          {send.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />} Send test email
+        </Button>
+        {result && (
+          <span className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border ${result.sent ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/30" : "text-amber-300 bg-amber-500/10 border-amber-500/30"}`}>
+            {result.sent ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+            {result.sent ? `Sent to ${result.to}` : (result.error ?? "Failed")}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 const PROVIDER_COLOR: Record<string, string> = { claude: "#d97706", openai: "#10a37f", gemini: "#4285f4", moonshot: "#22d3ee" };
 
 function Stat({ icon: Icon, label, value, sub }: { icon: typeof Cpu; label: string; value: string; sub?: string }) {
@@ -134,6 +177,9 @@ export default function AiUsagePage() {
           })}
         </div>
       </div>
+
+      {/* Email health check */}
+      <EmailHealth />
 
       {q.isLoading || !d ? (
         <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-cyan-400" /></div>

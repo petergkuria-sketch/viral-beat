@@ -68,6 +68,7 @@ import { moderationRouter } from "./routers/moderation";
 import { exchangeRouter } from "./routers/exchange";
 import { exchangeThreadsRouter } from "./routers/exchangeThreads";
 import { aiUsageRouter } from "./routers/aiUsage";
+import { emailRouter } from "./routers/email";
 import { generateCitationKey, extractEntities } from "./services/reportMemory";
 import { reportArchive as reportArchiveTable } from "../drizzle/schema";
 
@@ -3218,6 +3219,7 @@ Be concise, technical, and actionable. When discussing features, consider:
   exchange: exchangeRouter,
   exchangeThreads: exchangeThreadsRouter,
   aiUsage: aiUsageRouter,
+  email: emailRouter,
 
   briefs: router({
     // Save a brief and return a shareable ID
