@@ -70,14 +70,19 @@ export class OpenAIProvider implements AIProvider {
       };
     }
 
+    // GPT-5 and the o-series rename max_tokens → max_completion_tokens and only
+    // accept the default temperature. Branch the params for those models.
+    const isNewGen = /^(gpt-5|o\d)/i.test(model);
     const start = Date.now();
     let resp: OpenAI.Chat.Completions.ChatCompletion;
     try {
       resp = await this.client.chat.completions.create({
         model,
         messages,
-        ...(request.maxTokens != null ? { max_tokens: request.maxTokens } : {}),
-        ...(request.temperature != null ? { temperature: request.temperature } : {}),
+        ...(request.maxTokens != null
+          ? (isNewGen ? { max_completion_tokens: request.maxTokens } : { max_tokens: request.maxTokens })
+          : {}),
+        ...(request.temperature != null && !isNewGen ? { temperature: request.temperature } : {}),
         ...(tools ? { tools } : {}),
         ...(toolChoice ? { tool_choice: toolChoice } : {}),
         ...(responseFormat ? { response_format: responseFormat } : {}),

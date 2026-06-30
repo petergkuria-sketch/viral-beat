@@ -34,7 +34,10 @@ export const TIER_LADDER: ProviderName[] = ["moonshot", "openai", "claude"];
 
 /** Preferred model per tier. Requested models in the same family override these. */
 export const TIER_MODEL: Record<ProviderName, string> = {
-  moonshot: "kimi-k2-0711-preview", // Tier 1 — Economy
+  // Tier 1 — Economy. moonshot-v1-8k is confirmed available on the international
+  // endpoint; "kimi-k2-0711-preview" 404s on this account. Override with
+  // MOONSHOT_MODEL once Kimi K2 access is confirmed.
+  moonshot: process.env.MOONSHOT_MODEL || "moonshot-v1-8k",
   openai:   "gpt-5",                // Tier 2 — Standard
   claude:   "claude-opus-4-6",      // Tier 3 — Premium (Claude 4.6)
   gemini:   "gemini-1.5-pro",       // not in the ladder; only if explicitly forced
