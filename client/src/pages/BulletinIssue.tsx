@@ -1,7 +1,7 @@
 import { useLocation, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { AFRICAN_COUNTRIES } from "@shared/africanCountries";
-import { ArrowLeft, Calendar, Zap, TrendingUp, Users, Leaf, ExternalLink, Download } from "lucide-react";
+import { ArrowLeft, Calendar, Zap, TrendingUp, Users, Leaf, ExternalLink, Download, Home } from "lucide-react";
 
 function downloadHtml(title: string, slug: string, htmlContent: string, sections: any, stats: any) {
   const s = sections ?? {};
@@ -187,6 +187,10 @@ export default function BulletinIssue() {
       {/* Back nav */}
       <div className="border-b border-white/5 bg-[#080d1a] sticky top-0 z-20 backdrop-blur">
         <div className="max-w-3xl mx-auto px-6 h-12 flex items-center gap-3">
+          <button onClick={() => setLocation("/")} className="flex items-center gap-1.5 text-white/40 hover:text-white text-sm transition-colors shrink-0" title="Home">
+            <Home className="w-4 h-4" />
+          </button>
+          <span className="text-white/15">/</span>
           <button onClick={() => setLocation("/bulletins")} className="flex items-center gap-1.5 text-white/40 hover:text-white text-sm transition-colors">
             <ArrowLeft className="w-4 h-4" /> Archive
           </button>

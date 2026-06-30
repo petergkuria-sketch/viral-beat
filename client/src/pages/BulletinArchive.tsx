@@ -2,6 +2,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { AFRICAN_COUNTRIES } from "@shared/africanCountries";
 import { BookOpen, Calendar, ArrowRight, TrendingUp, Zap, Users, Leaf } from "lucide-react";
+import { BackToDashboard } from "@/components/BackToDashboard";
 
 function issueLabel(slug: string) {
   const [y, m] = slug.split("-");
@@ -28,6 +29,7 @@ export default function BulletinArchive() {
       {/* Header */}
       <div className="border-b border-white/5 bg-[#080d1a]">
         <div className="max-w-4xl mx-auto px-6 py-10">
+          <BackToDashboard />
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-cyan-400" />

@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { ARCHIVE_COUNTRIES } from "@shared/africanCountries";
+import { BackToDashboard } from "@/components/BackToDashboard";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -334,6 +335,7 @@ export default function ReportArchivePage() {
       {/* ── Header ── */}
       <div className="border-b border-[#1e293b] bg-[#0a1628]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {user && <BackToDashboard />}
           <div className="flex items-center gap-3 mb-1">
             <div className="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center">
               <Archive className="w-5 h-5 text-purple-400" />
