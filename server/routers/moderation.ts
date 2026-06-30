@@ -6,6 +6,7 @@ import { ossSubmissions, greenSubmissions, viralSubmissions, creatorProfiles, sm
 import { eq, desc, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { sendEmail, appBaseUrl } from "../services/email";
+import { emailForUserId } from "../services/notify";
 
 /**
  * Unified moderation surface — one place to review every kind of
@@ -162,11 +163,29 @@ export const moderationRouter = router({
             .set({ status: approve ? "approved" : "rejected", reviewNote: input.note })
             .where(eq(ossSubmissions.id, input.id));
           break;
-        case "sme":
+        case "sme": {
           await d.update(smeListings)
             .set({ status: approve ? "approved" : "rejected", reviewNote: input.note })
             .where(eq(smeListings.id, input.id));
+          // Notify the listing owner (best-effort).
+          const [l] = await d.select().from(smeListings).where(eq(smeListings.id, input.id));
+          if (l) {
+            const ownerEmail = (await emailForUserId(d, l.contributorId)) || l.contactEmail;
+            if (ownerEmail) {
+              await sendEmail({
+                to: ownerEmail,
+                subject: approve ? `Your listing "${l.name}" is now live on ViralBeat` : `Update on your ViralBeat listing "${l.name}"`,
+                html: approve
+                  ? `<p>Good news — <strong>${l.name}</strong> has been approved and is now live on the ViralBeat SME Exchange.</p><p><a href="${appBaseUrl()}/exchange/sme/${l.id}">View your listing</a></p><p>— ViralBeat</p>`
+                  : `<p>Your listing <strong>${l.name}</strong> needs changes before it can be published.${input.note ? `</p><p><em>Reviewer note: ${input.note}</em>` : ""}</p><p><a href="${appBaseUrl()}/exchange/mine">Update and resubmit</a></p><p>— ViralBeat</p>`,
+                text: approve
+                  ? `${l.name} is approved and live. View: ${appBaseUrl()}/exchange/sme/${l.id}`
+                  : `${l.name} needs changes before publishing.${input.note ? ` Note: ${input.note}` : ""} Update: ${appBaseUrl()}/exchange/mine`,
+              });
+            }
+          }
           break;
+        }
         case "green":
           await d.update(greenSubmissions)
             .set({ status: approve ? "approved" : "rejected" })

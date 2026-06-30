@@ -4,6 +4,8 @@ import { getDb } from "../db";
 import { smeListings, exchangeIntros, exchangeMessages } from "../../drizzle/schema";
 import { eq, desc, or, and, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { sendEmail, appBaseUrl } from "../services/email";
+import { emailForUserId } from "../services/notify";
 
 // Investor↔SME safe contact. Communication is platform-mediated: no email/phone
 // is exchanged. Investor expresses interest → SME accepts → thread opens.
@@ -49,6 +51,19 @@ export const exchangeThreadsRouter = router({
       await db.insert(exchangeMessages).values({
         introId: created.id, senderId: uid, senderRole: "investor", body: input.message,
       });
+
+      // Notify the SME owner (best-effort).
+      const ownerEmail = (await emailForUserId(db, listing.contributorId)) || listing.contactEmail;
+      if (ownerEmail) {
+        const who = input.investorOrg || "An investor";
+        await sendEmail({
+          to: ownerEmail,
+          subject: `New interest in ${listing.name} on ViralBeat`,
+          html: `<p><strong>${who}</strong> expressed interest in <strong>${listing.name}</strong> (${input.intent.replace(/_/g, " ")}).</p><p>Review and choose whether to open a conversation:</p><p><a href="${appBaseUrl()}/exchange/messages">${appBaseUrl()}/exchange/messages</a></p><p>— ViralBeat</p>`,
+          text: `${who} expressed interest in ${listing.name}. Review: ${appBaseUrl()}/exchange/messages`,
+        });
+      }
+
       return { ok: true, introId: created.id };
     }),
 
@@ -169,6 +184,18 @@ export const exchangeThreadsRouter = router({
         introId: intro.id, senderId: uid, senderRole: isInvestor ? "investor" : "sme", body: input.body,
       });
       await db.update(exchangeIntros).set({ updatedAt: new Date() }).where(eq(exchangeIntros.id, intro.id));
+
+      // Notify the other participant (best-effort).
+      const recipientId = isInvestor ? listing?.contributorId : intro.investorId;
+      const recipientEmail = (await emailForUserId(db, recipientId ?? null)) || (isInvestor ? listing?.contactEmail : null);
+      if (recipientEmail) {
+        await sendEmail({
+          to: recipientEmail,
+          subject: `New message about ${listing?.name ?? "your listing"} on ViralBeat`,
+          html: `<p>You have a new message in your ViralBeat conversation about <strong>${listing?.name ?? "a listing"}</strong>.</p><p><a href="${appBaseUrl()}/exchange/thread/${intro.id}">Open the conversation</a></p><p>— ViralBeat</p>`,
+          text: `New message about ${listing?.name ?? "a listing"}. Open: ${appBaseUrl()}/exchange/thread/${intro.id}`,
+        });
+      }
       return { ok: true };
     }),
 });
