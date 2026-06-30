@@ -27,7 +27,9 @@ export async function sendEmail({ to, subject, html, text }: SendEmailArgs): Pro
     if (!res.ok) {
       const body = await res.text();
       console.error(`[email] Resend failed (${res.status}): ${body}`);
-      return { sent: false, error: `provider ${res.status}` };
+      let msg = `provider ${res.status}`;
+      try { const j = JSON.parse(body); if (j?.message) msg = `${res.status}: ${j.message}`; } catch {}
+      return { sent: false, error: msg };
     }
     return { sent: true };
   } catch (e: any) {
