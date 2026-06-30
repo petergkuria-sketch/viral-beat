@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { TopNav } from "@/components/TopNav";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import {
 } from "@/lib/exchangeData";
 import {
   Building2, ArrowRight, TrendingUp, Plus, ShieldCheck,
-  Globe, Award, BadgeCheck,
+  Globe, Award, BadgeCheck, Filter, X,
 } from "lucide-react";
 
 function PillarBar({ label, value, color }: { label: string; value: number; color: string }) {
@@ -130,8 +131,27 @@ export default function ExchangeHub() {
 
   // Real listings take over once they exist; the seed sample only fills an empty board.
   const all = dbListings.length ? dbListings : EXCHANGE_SMES;
-  const openBoard = all.filter(s => boardOf(s) === "open");
-  const capitalBoard = all.filter(s => boardOf(s) === "capital_ready");
+
+  // ── Filters ──────────────────────────────────────────────────────────────
+  const [fCountry, setFCountry] = useState("");
+  const [fSector, setFSector] = useState("");
+  const [fMinErs, setFMinErs] = useState(0);
+  const [fStatus, setFStatus] = useState("");
+
+  const countries = Array.from(new Set(all.map(s => s.country))).sort();
+  const sectors = Array.from(new Set(all.map(s => s.sector))).sort();
+  const statusOptions = Array.from(new Set(all.flatMap(s => s.status))).sort();
+  const activeFilters = !!(fCountry || fSector || fMinErs > 0 || fStatus);
+
+  const filtered = all.filter(s =>
+    (!fCountry || s.country === fCountry) &&
+    (!fSector || s.sector === fSector) &&
+    s.ers >= fMinErs &&
+    (!fStatus || s.status.includes(fStatus))
+  );
+
+  const openBoard = filtered.filter(s => boardOf(s) === "open");
+  const capitalBoard = filtered.filter(s => boardOf(s) === "capital_ready");
 
   return (
     <div className="min-h-screen bg-[#050b1a] text-white">
@@ -160,6 +180,45 @@ export default function ExchangeHub() {
             <Button variant="outline" className="border-white/15 text-slate-300 hover:bg-white/5" onClick={() => setLocation("/exchange/messages")}>
               Messages
             </Button>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-3 mb-6 flex flex-wrap items-end gap-3">
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 mr-1"><Filter className="w-3.5 h-3.5 text-cyan-400" /> Filter</div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-slate-500 mb-1 block">Country</label>
+            <select value={fCountry} onChange={e => setFCountry(e.target.value)} className="bg-[#050e1c] border border-[#1a2d4a] rounded-md text-xs h-8 px-2 min-w-[130px]">
+              <option value="">All countries</option>
+              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-slate-500 mb-1 block">Sector</label>
+            <select value={fSector} onChange={e => setFSector(e.target.value)} className="bg-[#050e1c] border border-[#1a2d4a] rounded-md text-xs h-8 px-2 min-w-[130px]">
+              <option value="">All sectors</option>
+              {sectors.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-slate-500 mb-1 block">Status</label>
+            <select value={fStatus} onChange={e => setFStatus(e.target.value)} className="bg-[#050e1c] border border-[#1a2d4a] rounded-md text-xs h-8 px-2 min-w-[130px]">
+              <option value="">Any status</option>
+              {statusOptions.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-slate-500 mb-1 block">Min ERS: {fMinErs}</label>
+            <input type="range" min={0} max={100} step={5} value={fMinErs} onChange={e => setFMinErs(Number(e.target.value))} className="accent-cyan-400 w-32 h-8" />
+          </div>
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-[11px] text-slate-500">{filtered.length} of {all.length}</span>
+            {activeFilters && (
+              <button onClick={() => { setFCountry(""); setFSector(""); setFMinErs(0); setFStatus(""); }}
+                className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                <X className="w-3 h-3" /> Clear
+              </button>
+            )}
           </div>
         </div>
 

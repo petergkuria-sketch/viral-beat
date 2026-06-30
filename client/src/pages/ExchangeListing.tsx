@@ -15,6 +15,15 @@ import {
 const INTENTS: [string, string][] = [["collaboration", "Collaboration"], ["supply_chain", "Supply chain"], ["capital", "Capital"]];
 const INVESTOR_TYPES: [string, string][] = [["dfi", "DFI"], ["pe_vc", "PE / VC"], ["angel", "Angel"], ["strategic", "Strategic"], ["other", "Other"]];
 
+/** Ensure a website opens as an absolute external URL (a scheme-less value like
+ *  "www.example.com" would otherwise be treated as a relative path → 404). */
+function externalUrl(raw?: string | null): string | null {
+  if (!raw) return null;
+  const v = raw.trim();
+  if (!v) return null;
+  return /^https?:\/\//i.test(v) ? v : `https://${v.replace(/^\/+/, "")}`;
+}
+
 function Pillar({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div>
@@ -35,6 +44,7 @@ export default function ExchangeListing() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const q = trpc.exchange.getPublic.useQuery({ id }, { enabled: !Number.isNaN(id) });
+  const others = trpc.exchange.listApproved.useQuery();
 
   const [showEoi, setShowEoi] = useState(false);
   const [org, setOrg] = useState("");
@@ -101,8 +111,8 @@ export default function ExchangeListing() {
             {l.foundedYear ? <Fact icon={Calendar} label="Founded" value={String(l.foundedYear)} /> : null}
             {l.employees ? <Fact icon={Users} label="Employees" value={l.employees} /> : null}
             {l.ownership ? <Fact icon={BadgeCheck} label="Ownership" value={l.ownership} /> : null}
-            {l.website ? (
-              <a href={l.website} target="_blank" rel="noreferrer" className="block">
+            {externalUrl(l.website) ? (
+              <a href={externalUrl(l.website)!} target="_blank" rel="noreferrer" className="block">
                 <Fact icon={Globe} label="Website" value="Visit" accent />
               </a>
             ) : null}
@@ -214,6 +224,51 @@ export default function ExchangeListing() {
             <span className="text-slate-600">·</span><span className="capitalize">{l.listedByType}</span>
           </div>
         )}
+
+        {/* Next steps — related listings */}
+        {(() => {
+          const related = (others.data ?? [])
+            .filter(r => r.id !== l.id && (r.sector === l.sector || r.countryName === l.countryName))
+            .slice(0, 3);
+          return (
+            <div className="mt-2">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-white">More on the exchange</h2>
+                <button onClick={() => setLocation("/exchange")} className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                  Browse all <ArrowLeft className="w-3 h-3 rotate-180" />
+                </button>
+              </div>
+              {related.length > 0 ? (
+                <div className="grid sm:grid-cols-3 gap-2">
+                  {related.map(r => {
+                    const b = ersBand(r.ers ?? 0);
+                    return (
+                      <button key={r.id} onClick={() => setLocation(`/exchange/sme/${r.id}`)}
+                        className="text-left bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-3 hover:border-cyan-500/40 transition-colors">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-bold text-white truncate">{r.name}</span>
+                          <span className="text-sm font-black shrink-0" style={{ color: b.color }}>{r.ers ?? 0}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 truncate">{r.sector} · {r.countryName}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-2">
+                  <button onClick={() => setLocation("/exchange")} className="bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-3 text-left hover:border-cyan-500/40">
+                    <div className="text-sm font-bold text-white">Browse the exchange</div>
+                    <div className="text-[11px] text-slate-500">See all listed SMEs</div>
+                  </button>
+                  <button onClick={() => setLocation("/exchange/list")} className="bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-3 text-left hover:border-cyan-500/40">
+                    <div className="text-sm font-bold text-white">List your SME</div>
+                    <div className="text-[11px] text-slate-500">Join the exchange</div>
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         <p className="text-center text-[11px] text-slate-600 mt-6">Phase 1 · discovery only · no capital handled through the platform</p>
       </div>

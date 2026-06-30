@@ -44,6 +44,14 @@ function composite(g = 0, f = 0, i = 0, m = 0) {
   return Math.round((g + f + i + m) / 4);
 }
 
+/** Ensure stored websites are absolute URLs (scheme-less values break links). */
+function normalizeUrl(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  const v = raw.trim();
+  if (!v) return undefined;
+  return /^https?:\/\//i.test(v) ? v : `https://${v.replace(/^\/+/, "")}`;
+}
+
 function valuesFrom(input: z.infer<typeof listingInput>) {
   return {
     name: input.name,
@@ -51,7 +59,7 @@ function valuesFrom(input: z.infer<typeof listingInput>) {
     countryCode: input.countryCode.toUpperCase(),
     countryName: input.countryName,
     location: input.location,
-    website: input.website,
+    website: normalizeUrl(input.website),
     foundedYear: input.foundedYear,
     ownership: input.ownership,
     employees: input.employees,
