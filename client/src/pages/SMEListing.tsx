@@ -259,6 +259,38 @@ export default function SMEListing() {
           </div>
         </div>
 
+        {/* Value proposition — new listings only */}
+        {!isEdit && (
+          <div className="mt-5 rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/[0.07] to-purple-500/[0.05] p-5">
+            <h2 className="text-base font-black text-white mb-1.5">
+              Get discovered by the people who fund and partner with businesses like yours.
+            </h2>
+            <p className="text-[13px] text-slate-300 leading-relaxed mb-3">
+              Put your enterprise in front of investors, development finance institutions, and large corporates
+              actively looking for African SMEs to back, buy from, and partner with.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-2.5 mb-3">
+              {[
+                ["Build a verified track record", "Your Enterprise Readiness Score turns governance, finances, innovation and reach into one credible signal — no pitch deck needed."],
+                ["Be found, not lost", "The right investor finds you by country, sector and readiness — instead of you cold-emailing hundreds."],
+                ["Talk safely, on your terms", "Interested parties reach out through the platform. Your contact details stay private until you accept."],
+                ["Free to list, no fees to connect", "Phase 1 is pure discovery. ViralBeat never handles your money or charges to introduce you."],
+              ].map(([t, d]) => (
+                <div key={t} className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 text-cyan-400 mt-0.5 shrink-0" />
+                  <div>
+                    <div className="text-[12px] font-semibold text-white">{t}</div>
+                    <div className="text-[11px] text-slate-400 leading-snug">{d}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[12px] text-cyan-300 font-semibold">
+              Takes 5 minutes — or download the Word template below and we'll fill it in for you.
+            </p>
+          </div>
+        )}
+
         {wasApproved && (
           <div className="flex items-start gap-2 text-[12px] text-amber-300 bg-amber-500/8 border border-amber-500/25 rounded-lg p-3 mt-5">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
