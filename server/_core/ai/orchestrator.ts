@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { ClaudeProvider } from "./providers/claude/claude.provider";
 import { OpenAIProvider } from "./providers/openai/openai.provider";
+import { MoonshotProvider } from "./providers/moonshot/moonshot.provider";
 import { AIRouter } from "./routing/router";
 import type { AIProvider } from "./providers/provider.interface";
 import type { AIRequest, AIResponse, ProviderName } from "./types";
@@ -25,6 +26,7 @@ function isConfigured(name: ProviderName): boolean {
   if (name === "claude") return !!process.env.ANTHROPIC_API_KEY;
   if (name === "openai") return !!process.env.OPENAI_API_KEY;
   if (name === "gemini") return !!process.env.GOOGLE_API_KEY;
+  if (name === "moonshot") return !!process.env.MOONSHOT_API_KEY;
   return false;
 }
 
@@ -34,6 +36,7 @@ function modelFamily(model?: string): ProviderName | null {
   if (/^claude/i.test(model)) return "claude";
   if (/^(gpt|o\d|chatgpt|text-|davinci)/i.test(model)) return "openai";
   if (/^gemini/i.test(model)) return "gemini";
+  if (/^(kimi|moonshot)/i.test(model)) return "moonshot";
   return null;
 }
 
@@ -47,6 +50,7 @@ class AIOrchestrator {
     // while routing is off, because the OpenAI provider is never constructed.
     this.factories.claude = () => new ClaudeProvider();
     this.factories.openai = () => new OpenAIProvider();
+    this.factories.moonshot = () => new MoonshotProvider();
   }
 
   private provider(name: ProviderName): AIProvider {

@@ -31,6 +31,55 @@ const ROLE_STYLE: Record<string, { label: string; color: string }> = {
   admin: { label: "Admin", color: "text-yellow-400 border-yellow-600" },
 };
 
+function AIProviderHealth() {
+  const providers = ["claude", "openai", "moonshot", "gemini"] as const;
+  const ping = trpc.aiUsage.ping.useMutation();
+  const [results, setResults] = useState<Record<string, any>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function test(p: typeof providers[number]) {
+    setBusy(p);
+    try {
+      const r = await ping.mutateAsync({ provider: p });
+      setResults(prev => ({ ...prev, [p]: r }));
+    } catch (e: any) {
+      setResults(prev => ({ ...prev, [p]: { ok: false, error: e?.message } }));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <Card className="bg-[#0d1e36] border-[#1e3a5f]">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium">AI Provider Health</CardTitle>
+        <CardDescription>Live key check — valid · invalid · no-credits. Confirm before buying tokens.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {providers.map(p => {
+          const r = results[p];
+          return (
+            <div key={p} className="flex items-center justify-between gap-3 border-b border-[#1e3a5f]/50 pb-2">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold capitalize">{p}</div>
+                {r && (
+                  <div className={`text-xs ${r.ok ? "text-green-400" : "text-amber-400"}`}>
+                    {r.ok ? `OK · ${r.model ?? ""} · ${r.latencyMs ?? "?"}ms` : (r.hint ?? r.error ?? "failed")}
+                  </div>
+                )}
+              </div>
+              <Button size="sm" variant="outline" className="border-[#1e3a5f] shrink-0"
+                disabled={busy === p} onClick={() => test(p)}>
+                {busy === p ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Test"}
+              </Button>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
 function UsersTab() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -404,6 +453,9 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* AI provider health */}
+        <AIProviderHealth />
 
         {/* Registration Trends Chart */}
         <RegistrationTrendsChart />

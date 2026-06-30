@@ -20,6 +20,13 @@ const PRICES: Array<{ match: RegExp; price: Price }> = [
   { match: /^gpt-4\.1/i,          price: { in: 2,    out: 8  } },
   { match: /^o3-mini/i,           price: { in: 1.1,  out: 4.4 } },
   { match: /^o3/i,                price: { in: 2,    out: 8  } },
+  // Moonshot (Kimi) — international, USD/1M. Verify against current Moonshot pricing.
+  { match: /^kimi-k2/i,           price: { in: 0.6,  out: 2.5 } },
+  { match: /^kimi/i,              price: { in: 0.6,  out: 2.5 } },
+  { match: /^moonshot-v1-128k/i,  price: { in: 2.0,  out: 5.0 } },
+  { match: /^moonshot-v1-32k/i,   price: { in: 0.8,  out: 2.4 } },
+  { match: /^moonshot-v1-8k/i,    price: { in: 0.2,  out: 2.0 } },
+  { match: /^moonshot/i,          price: { in: 0.2,  out: 2.0 } },
 ];
 
 /** Computes USD cost for a completed call. Unknown models cost 0 (logged anyway). */

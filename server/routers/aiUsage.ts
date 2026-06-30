@@ -84,7 +84,7 @@ export const aiUsageRouter = router({
 
   /** Health-check a provider (single provider, no fallback). */
   ping: adminProcedure
-    .input(z.object({ provider: z.enum(["claude", "openai", "gemini"]) }))
+    .input(z.object({ provider: z.enum(["claude", "openai", "gemini", "moonshot"]) }))
     .mutation(async ({ input }) => {
       return getOrchestrator().pingProvider(input.provider);
     }),

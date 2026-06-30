@@ -9,9 +9,9 @@ import type { ProviderName } from "../types";
 //
 // Effective policy:
 //
-//   CHAT          → OpenAI
-//   SHORT_QA      → OpenAI
-//   EVERYDAY      → OpenAI      (everyday / cost-sensitive reasoning)
+//   CHAT          → Moonshot (Kimi)   fallback OpenAI
+//   SHORT_QA      → Moonshot (Kimi)   fallback OpenAI
+//   EVERYDAY      → Moonshot (Kimi)   fallback OpenAI   (cost-sensitive)
 //   RESEARCH      → Claude
 //   CODING        → Claude      (code review / refactor / debugging)
 //   ARCHITECTURE  → Claude
@@ -48,14 +48,19 @@ export const DEFAULT_FALLBACK: Record<ProviderName, ProviderName> = {
   openai: "claude",
   claude: "openai",
   gemini: "openai",
+  moonshot: "openai",   // cost-effective primary → OpenAI → (OpenAI's fallback) Claude
 };
 
 /** THE POLICY. Task → provider (+ optional model / fallback). Edit freely. */
 export const ROUTING_POLICY: Record<TaskType, RouteRule> = {
-  // Cost-sensitive tasks → OpenAI's lightweight model.
-  CHAT:         { provider: "openai", model: "gpt-4o-mini" },
-  SHORT_QA:     { provider: "openai", model: "gpt-4o-mini" },
-  EVERYDAY:     { provider: "openai", model: "gpt-4o-mini" },
+  // Cost-sensitive tasks → Moonshot (Kimi), the most cost-effective leg.
+  // Fallback to OpenAI's lightweight model, then Claude, if Moonshot is
+  // unconfigured or fails — the orchestrator only dispatches to configured keys.
+  // Fallback to OpenAI if Moonshot is unconfigured or fails — the orchestrator
+  // only dispatches to providers whose key is configured.
+  CHAT:         { provider: "moonshot", model: "moonshot-v1-8k",  fallback: "openai" },
+  SHORT_QA:     { provider: "moonshot", model: "moonshot-v1-8k",  fallback: "openai" },
+  EVERYDAY:     { provider: "moonshot", model: "moonshot-v1-32k", fallback: "openai" },
 
   // High-value tasks → Claude (provider default model unless pinned here).
   RESEARCH:     { provider: "claude" },

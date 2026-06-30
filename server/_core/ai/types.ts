@@ -2,7 +2,7 @@
 // provider maps its own SDK shapes to/from these. Business logic and the
 // orchestrator only ever speak in these types.
 
-export type ProviderName = "claude" | "openai" | "gemini";
+export type ProviderName = "claude" | "openai" | "gemini" | "moonshot";
 
 export type AIRole = "system" | "user" | "assistant" | "tool";
 
