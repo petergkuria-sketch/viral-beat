@@ -5,14 +5,18 @@ import {
   Zap, Users, Newspaper, AlertTriangle, BarChart3, Coins,
   CheckCircle2, Star, Activity, MapPin, Code2, Calendar,
   Rss, Brain, Database, Clock, FileText, LayoutGrid, Rows, Smartphone, Leaf,
-  Building2, ExternalLink,
+  Building2, ExternalLink, ChevronDown, Settings as SettingsIcon, Check,
 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useTheme, type ThemeName } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
-import { ThemeSelector } from "@/components/ThemeSelector";
 import IntelligenceTicker from "@/components/IntelligenceTicker";
 import { EXCHANGE_SMES, boardOf, ersBand, ERS_GATE, type ExchangeSME } from "@/lib/exchangeData";
 import { trpc } from "@/lib/trpc";
@@ -189,6 +193,8 @@ export default function LandingPage() {
     setViewMode(v);
     try { localStorage.setItem("vb_landing_view", v); } catch {}
   };
+  const { theme, setTheme } = useTheme();
+  const themeList: ThemeName[] = ["dark", "light", "neon", "minimal", "ocean"];
 
   const handleExplore = () => {
     if (user) setLocation("/africa");
@@ -337,57 +343,78 @@ export default function LandingPage() {
       {/* ── NAV ─────────────────────────────────────────────────────────────── */}
       <nav className="fixed top-0 w-full bg-[#050b1a]/90 backdrop-blur-xl border-b border-white/5 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <button className="flex items-center gap-2.5 focus:outline-none" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+          <button className="flex items-center gap-3 focus:outline-none" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
             <img src="/logo.png" alt="ViralBeat" className="w-8 h-8 rounded-lg object-cover shadow-lg shadow-cyan-500/20" />
             <span className="font-bold text-lg tracking-tight text-white">ViralBeat</span>
-            <Badge className="hidden sm:inline-flex bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px]">Africa Intelligence</Badge>
+            {/* Single, unified context badge */}
+            <Badge className="hidden sm:inline-flex bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px] ml-1" title="Africa Intelligence Scanner">Africa Intelligence</Badge>
           </button>
 
-          <div className="hidden md:flex items-center gap-1">
-            {[["scanner-section", "Scanner"], ["intelligence", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
-              <button key={id} onClick={() => scrollTo(id)} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
+          {/* Primary links — the 6 most-used */}
+          <div className="hidden md:flex items-center gap-0.5">
+            {[["intelligence", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
+              <button key={id} onClick={() => scrollTo(id)} className="px-3.5 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
                 {label}
               </button>
             ))}
-            <button onClick={() => setLocation("/about#methodology")} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
+            <button onClick={() => setLocation("/about#methodology")} className="px-3.5 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
               Methodology
             </button>
-            <button onClick={() => setLocation("/pricing")} className="px-4 py-2 text-sm font-medium text-cyan-400 hover:text-cyan-300 rounded-lg hover:bg-white/5 transition-all">
-              Pricing
-            </button>
-            <button onClick={() => setLocation("/exchange")} className="px-4 py-2 text-sm font-semibold text-cyan-300 border border-cyan-500/40 bg-cyan-500/10 rounded-lg hover:bg-cyan-500/20 transition-all">
-              SME Exchange
-            </button>
+
+            {/* More ▾ — lower-frequency destinations */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="px-3.5 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all inline-flex items-center gap-1 focus:outline-none">
+                More <ChevronDown className="w-3.5 h-3.5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onClick={() => scrollTo("scanner-section")}>Scanner</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation("/exchange")}>SME Exchange</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => scrollTo("download-app")}>Get the app</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation("/about")}>About</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
+          {/* Right zone — exactly three: Pricing · Settings · CTA */}
           <div className="flex items-center gap-2">
-            {/* View mode toggle */}
-            <div className="hidden sm:flex items-center bg-white/5 border border-white/10 rounded-lg p-0.5 gap-0.5">
-              <button
-                onClick={() => setView("icon")}
-                title="Icon view"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all ${viewMode === "icon" ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" : "text-slate-400 hover:text-white"}`}
-              >
-                <LayoutGrid className="w-3.5 h-3.5" /> Icon
-              </button>
-              <button
-                onClick={() => setView("classic")}
-                title="Classic view"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all ${viewMode === "classic" ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" : "text-slate-400 hover:text-white"}`}
-              >
-                <Rows className="w-3.5 h-3.5" /> Classic
-              </button>
-            </div>
-            <ThemeSelector />
+            <button onClick={() => setLocation("/pricing")} className="hidden sm:inline-flex px-3 py-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300 rounded-lg hover:bg-white/5 transition-all">
+              Pricing
+            </button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="hidden sm:inline-flex border-white/10 text-gray-300">
+                  <SettingsIcon className="w-4 h-4" />
+                  <span className="sr-only">Settings</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Landing view</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setView("icon")}>
+                  <LayoutGrid className="w-4 h-4 mr-2" /> Icon view
+                  {viewMode === "icon" && <Check className="w-4 h-4 ml-auto text-cyan-400" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setView("classic")}>
+                  <Rows className="w-4 h-4 mr-2" /> Classic view
+                  {viewMode === "classic" && <Check className="w-4 h-4 ml-auto text-cyan-400" />}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Theme</DropdownMenuLabel>
+                {themeList.map(t => (
+                  <DropdownMenuItem key={t} onClick={() => setTheme(t)} className="capitalize">
+                    {t}
+                    {theme === t && <Check className="w-4 h-4 ml-auto text-cyan-400" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {user ? (
               <Button onClick={() => setLocation("/africa")} size="sm" className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-lg shadow-cyan-500/20">
                 Open Dashboard <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
               </Button>
             ) : (
-              <>
-                <Button variant="ghost" size="sm" className="hidden sm:inline-flex text-gray-400 hover:text-white" onClick={() => window.location.href = getLoginUrl()}>Sign In / Register</Button>
-                <Button size="sm" onClick={handleExplore} className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-lg shadow-cyan-500/20">Get Access</Button>
-              </>
+              <Button size="sm" onClick={handleExplore} className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-lg shadow-cyan-500/20">Get Access</Button>
             )}
             <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 text-gray-400" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
