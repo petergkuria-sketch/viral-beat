@@ -149,6 +149,14 @@ const POLITICAL_TOPICS = [
   'oparanya'
 ];
 
+// Ingestion recency gate: only articles published within this window qualify as
+// "live". Stale feed items are dropped before entering the pipeline. Undated
+// items default to now (treated as fresh).
+const SIGNAL_MAX_AGE_DAYS = 7;
+const isFreshArticle = (publishedAt: Date): boolean =>
+  Number.isFinite(publishedAt.getTime()) &&
+  Date.now() - publishedAt.getTime() <= SIGNAL_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+
 const parser = new Parser({
   timeout: 10000,
   headers: {
@@ -163,20 +171,23 @@ const parser = new Parser({
 async function fetchFeed(feedKey: string, feedConfig: typeof KENYA_NEWS_FEEDS[keyof typeof KENYA_NEWS_FEEDS]): Promise<NewsArticle[]> {
   try {
     const feed = await parser.parseURL(feedConfig.url);
-    
-    return (feed.items || []).map((item, index) => ({
-      id: `${feedKey}-${item.guid || item.link || index}-${Date.now()}`,
-      title: item.title || 'Untitled',
-      content: item.content || item.contentSnippet || item.summary || '',
-      summary: item.contentSnippet || item.summary || item.content?.substring(0, 300) || '',
-      url: item.link || '',
-      source: feedConfig.name,
-      sourceUrl: feedConfig.url,
-      author: item.creator || item.author || null,
-      publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
-      category: feedConfig.category,
-      imageUrl: item.enclosure?.url || extractImageFromContent(item.content || '') || null
-    }));
+
+    return (feed.items || [])
+      .map((item, index) => ({
+        id: `${feedKey}-${item.guid || item.link || index}-${Date.now()}`,
+        title: item.title || 'Untitled',
+        content: item.content || item.contentSnippet || item.summary || '',
+        summary: item.contentSnippet || item.summary || item.content?.substring(0, 300) || '',
+        url: item.link || '',
+        source: feedConfig.name,
+        sourceUrl: feedConfig.url,
+        author: item.creator || item.author || null,
+        publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
+        category: feedConfig.category,
+        imageUrl: item.enclosure?.url || extractImageFromContent(item.content || '') || null
+      }))
+      // Recency gate: drop stale feed items (older than the cutoff) at ingestion.
+      .filter(a => isFreshArticle(a.publishedAt));
   } catch (error) {
     console.error(`Error fetching feed ${feedConfig.name}:`, error);
     return [];

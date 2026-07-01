@@ -19,7 +19,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import IntelligenceTicker from "@/components/IntelligenceTicker";
 import { EXCHANGE_SMES, boardOf, ersBand, ERS_GATE, type ExchangeSME } from "@/lib/exchangeData";
-import { COUNTRIES, composite, VERDICT_LABELS } from "@/lib/scannerData";
+import { COUNTRIES, composite, VERDICT_LABELS, relativeTime, isFresh } from "@/lib/scannerData";
 import { trpc } from "@/lib/trpc";
 
 const RISK: Record<string, { label: string; cls: string }> = {
@@ -219,17 +219,10 @@ export default function LandingPage() {
 
   // Live feed that ticks (P: make it tick) — rotate a window of 4 through the pool.
   // Recency gate: only signals published within the last 7 days qualify for "live".
-  // Relative-time units — min/h/d, plus w only when ≤1 week. Months ("m") and older are excluded.
-  const withinLastWeek = (t: string) => {
-    const m = /^(\d+)\s*(min|h|d|w)\b/i.exec((t ?? "").trim());
-    if (!m) return false;
-    const n = parseInt(m[1], 10);
-    const days = { min: n / 1440, h: n / 24, d: n, w: n * 7 }[m[2].toLowerCase() as "min" | "h" | "d" | "w"];
-    return days <= 7;
-  };
+  // Freshness is derived from each signal's real ISO publish date.
   const signalPool = COUNTRIES
     .flatMap(c => (c.signals ?? []).map(s => ({ ...s, flag: c.flag, country: c.name })))
-    .filter(s => withinLastWeek(s.time));
+    .filter(s => isFresh(s.date));
   const [feedStart, setFeedStart] = useState(0);
   const [ago, setAgo] = useState(0);
   useEffect(() => {
@@ -698,7 +691,7 @@ export default function LandingPage() {
                       <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${s.impact === "pos" ? "bg-emerald-400" : s.impact === "neg" ? "bg-red-400" : "bg-slate-500"}`} />
                       <div className="min-w-0">
                         <div className="text-[12px] text-slate-300 leading-snug truncate">{s.flag} {s.text}</div>
-                        <div className="text-[10px] text-slate-600">{s.source} · {s.time} · <span className="text-emerald-500/70">✓ verified</span></div>
+                        <div className="text-[10px] text-slate-600">{s.source} · {relativeTime(s.date)} · <span className="text-emerald-500/70">✓ verified</span></div>
                       </div>
                     </div>
                   ))}

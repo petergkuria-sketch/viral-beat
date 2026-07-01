@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import type { CountryProfile } from "./scannerData";
-import { composite, scoreColor, VERDICT_LABELS, OSS_DATA } from "./scannerData";
+import { composite, scoreColor, VERDICT_LABELS, OSS_DATA, relativeTime } from "./scannerData";
 
 // ── colour helpers ────────────────────────────────────────────────────────────
 
@@ -267,7 +267,7 @@ function PrintBrief({
                 }}>{s.dim}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: "12px", color: "#334155", lineHeight: 1.45 }}>{s.text}</div>
-                  <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "2px" }}>{s.source} · {s.time} · Verified</div>
+                  <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "2px" }}>{s.source} · {relativeTime(s.date)} · Verified</div>
                   <div style={{
                     fontSize: "10px", fontWeight: 600, marginTop: "2px",
                     color: s.impact === "pos" ? "#22c55e" : s.impact === "neg" ? "#ef4444" : "#94a3b8",

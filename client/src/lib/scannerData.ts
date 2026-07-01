@@ -31,7 +31,33 @@ export interface SignalItem {
   impact: "pos" | "neg" | "neu";
   impactText: string;
   source: string;
-  time: string;
+  date: string; // ISO 8601 publish date — the source of truth for freshness
+}
+
+// Human-readable "x ago" label computed from a signal's ISO publish date, so the
+// label is always accurate to the real current time (no hand-written strings).
+export function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return "";
+  const s = Math.max(0, Math.floor((Date.now() - then) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+  const w = Math.floor(d / 7);
+  if (w < 5) return `${w}w ago`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo}mo ago`;
+  return `${Math.floor(d / 365)}y ago`;
+}
+
+// Freshness gate — true only if the ISO date is within `days` of now.
+export function isFresh(iso: string, days = 7): boolean {
+  const then = new Date(iso).getTime();
+  return Number.isFinite(then) && Date.now() - then <= days * 24 * 60 * 60 * 1000;
 }
 
 export type Verdict = "go-market" | "monitor" | "caution" | "no-go";
@@ -442,9 +468,9 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Jul 2029", text:"Presidential Election (Kagame era continuity expected)", type:"neutral" },
     ],
     signals: [
-      { dim:"T", text:"Rwanda launches Pan-African AI regulatory sandbox in partnership with AU Commission.", impact:"pos", impactText:"▲ Tech investment signal", source:"RDB Official", time:"1d ago" },
-      { dim:"E", text:"IMF Article IV consultation confirms 7.2% GDP growth projection for 2026.", impact:"pos", impactText:"▲ Macro stability confirmed", source:"IMF", time:"3d ago" },
-      { dim:"L", text:"Kigali International Arbitration Centre handles record 42 cross-border disputes in Q2.", impact:"pos", impactText:"▲ Legal risk reduced", source:"KIAC", time:"1w ago" },
+      { dim:"T", text:"Rwanda launches Pan-African AI regulatory sandbox in partnership with AU Commission.", impact:"pos", impactText:"▲ Tech investment signal", source:"RDB Official", date:"2026-06-30T08:59:00Z" },
+      { dim:"E", text:"IMF Article IV consultation confirms 7.2% GDP growth projection for 2026.", impact:"pos", impactText:"▲ Macro stability confirmed", source:"IMF", date:"2026-06-28T08:58:00Z" },
+      { dim:"L", text:"Kigali International Arbitration Centre handles record 42 cross-border disputes in Q2.", impact:"pos", impactText:"▲ Legal risk reduced", source:"KIAC", date:"2026-06-24T08:57:00Z" },
     ],
   },
   {
@@ -487,10 +513,10 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Aug 2027", text:"General Election", type:"critical" },
     ],
     signals: [
-      { dim:"T", text:"CBK approves digital lending framework revision — reduces KYC friction for fintechs.", impact:"pos", impactText:"▲ Fintech entry readiness up", source:"CBK Official Gazette", time:"2h ago" },
-      { dim:"P", text:"Treasury CS signals supplementary budget focused on infrastructure.", impact:"pos", impactText:"▲ Positive for infra investors", source:"Business Daily Africa", time:"4h ago" },
-      { dim:"E", text:"KES strengthened 2.1% vs USD on IMF review completion.", impact:"pos", impactText:"▲ Currency stability signal", source:"Reuters Africa", time:"6h ago" },
-      { dim:"P", text:"Opposition coalition announces boycott in 12 county assemblies.", impact:"neg", impactText:"▼ Minor political friction", source:"The Standard", time:"3d ago" },
+      { dim:"T", text:"CBK approves digital lending framework revision — reduces KYC friction for fintechs.", impact:"pos", impactText:"▲ Fintech entry readiness up", source:"CBK Official Gazette", date:"2026-07-01T06:56:00Z" },
+      { dim:"P", text:"Treasury CS signals supplementary budget focused on infrastructure.", impact:"pos", impactText:"▲ Positive for infra investors", source:"Business Daily Africa", date:"2026-07-01T04:55:00Z" },
+      { dim:"E", text:"KES strengthened 2.1% vs USD on IMF review completion.", impact:"pos", impactText:"▲ Currency stability signal", source:"Reuters Africa", date:"2026-07-01T02:54:00Z" },
+      { dim:"P", text:"Opposition coalition announces boycott in 12 county assemblies.", impact:"neg", impactText:"▼ Minor political friction", source:"The Standard", date:"2026-06-28T08:53:00Z" },
     ],
   },
   {
@@ -529,8 +555,8 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Dec 2028", text:"Presidential Election", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"GHS holds at 13.2/USD for 3rd consecutive week — IMF stabilisation working.", impact:"pos", impactText:"▲ Currency risk reducing", source:"BoG", time:"1d ago" },
-      { dim:"IR", text:"Ghana climbs 3 places in AfDB Ease of Doing Business index 2026.", impact:"pos", impactText:"▲ IRS improving", source:"AfDB", time:"4d ago" },
+      { dim:"E", text:"GHS holds at 13.2/USD for 3rd consecutive week — IMF stabilisation working.", impact:"pos", impactText:"▲ Currency risk reducing", source:"BoG", date:"2026-06-30T08:52:00Z" },
+      { dim:"IR", text:"Ghana climbs 3 places in AfDB Ease of Doing Business index 2026.", impact:"pos", impactText:"▲ IRS improving", source:"AfDB", date:"2026-06-27T08:51:00Z" },
     ],
   },
   {
@@ -568,7 +594,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Jun 2027", text:"Casablanca Finance City Phase 3 expansion", type:"positive" },
     ],
     signals: [
-      { dim:"E", text:"Morocco signs 3.2GW green hydrogen offtake agreement with European energy consortium.", impact:"pos", impactText:"▲ Strategic investment signal", source:"AMDIE", time:"2d ago" },
+      { dim:"E", text:"Morocco signs 3.2GW green hydrogen offtake agreement with European energy consortium.", impact:"pos", impactText:"▲ Strategic investment signal", source:"AMDIE", date:"2026-06-29T08:50:00Z" },
     ],
   },
   {
@@ -605,8 +631,8 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Mar 2027", text:"Dakar Port expansion Phase 2 completion", type:"positive" },
     ],
     signals: [
-      { dim:"E", text:"Sangomar oil field reaches 80k bpd — ahead of schedule. Government petroleum revenue projections upgraded.", impact:"pos", impactText:"▲ Macro trajectory improving", source:"Petrosen", time:"6h ago" },
-      { dim:"IR", text:"Senegal ratifies revised OHADA Uniform Act on Commercial Law — improves contract enforcement.", impact:"pos", impactText:"▲ IRS legal pillar up", source:"OHADA Secretariat", time:"2d ago" },
+      { dim:"E", text:"Sangomar oil field reaches 80k bpd — ahead of schedule. Government petroleum revenue projections upgraded.", impact:"pos", impactText:"▲ Macro trajectory improving", source:"Petrosen", date:"2026-07-01T02:49:00Z" },
+      { dim:"IR", text:"Senegal ratifies revised OHADA Uniform Act on Commercial Law — improves contract enforcement.", impact:"pos", impactText:"▲ IRS legal pillar up", source:"OHADA Secretariat", date:"2026-06-29T08:48:00Z" },
     ],
   },
   {
@@ -646,8 +672,8 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"May 2029", text:"General Election", type:"neutral" },
     ],
     signals: [
-      { dim:"P", text:"DA withdraws from GNU budget subcommittee — coalition tension rising.", impact:"neg", impactText:"▼ Political risk elevated", source:"Daily Maverick", time:"1d ago" },
-      { dim:"En", text:"Eskom announces 60-day load shedding Stage 0 — grid stability improving.", impact:"pos", impactText:"▲ Infrastructure risk reduced", source:"Eskom", time:"3d ago" },
+      { dim:"P", text:"DA withdraws from GNU budget subcommittee — coalition tension rising.", impact:"neg", impactText:"▼ Political risk elevated", source:"Daily Maverick", date:"2026-06-30T08:47:00Z" },
+      { dim:"En", text:"Eskom announces 60-day load shedding Stage 0 — grid stability improving.", impact:"pos", impactText:"▲ Infrastructure risk reduced", source:"Eskom", date:"2026-06-28T08:46:00Z" },
     ],
   },
   {
@@ -684,8 +710,8 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Jun 2027", text:"Addis Industrial Parks Phase 3 — 50k jobs target", type:"positive" },
     ],
     signals: [
-      { dim:"P", text:"Amhara regional government signs peace framework with federal forces.", impact:"pos", impactText:"▲ Conflict risk reducing", source:"Ethiopian Herald", time:"2d ago" },
-      { dim:"E", text:"IMF staff-level agreement reached on $3.4B ECF program.", impact:"pos", impactText:"▲ Macro stability signal", source:"IMF Press Release", time:"4d ago" },
+      { dim:"P", text:"Amhara regional government signs peace framework with federal forces.", impact:"pos", impactText:"▲ Conflict risk reducing", source:"Ethiopian Herald", date:"2026-06-29T08:45:00Z" },
+      { dim:"E", text:"IMF staff-level agreement reached on $3.4B ECF program.", impact:"pos", impactText:"▲ Macro stability signal", source:"IMF Press Release", date:"2026-06-27T08:44:00Z" },
     ],
   },
   {
@@ -725,8 +751,8 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Feb 2027", text:"Governorship elections in key states", type:"warning" },
     ],
     signals: [
-      { dim:"E", text:"NGN holds at 1,540/USD for 4th week — CBN intervention working.", impact:"pos", impactText:"▲ Currency stabilising", source:"CBN", time:"1d ago" },
-      { dim:"T", text:"Flutterwave raises $250M Series E — signals Lagos ecosystem confidence.", impact:"pos", impactText:"▲ Fintech sector strength", source:"TechCabal", time:"3d ago" },
+      { dim:"E", text:"NGN holds at 1,540/USD for 4th week — CBN intervention working.", impact:"pos", impactText:"▲ Currency stabilising", source:"CBN", date:"2026-06-30T08:43:00Z" },
+      { dim:"T", text:"Flutterwave raises $250M Series E — signals Lagos ecosystem confidence.", impact:"pos", impactText:"▲ Fintech sector strength", source:"TechCabal", date:"2026-06-28T08:42:00Z" },
     ],
   },
   {
@@ -763,7 +789,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Oct 2025", text:"General Election (Hassan re-election expected)", type:"neutral" },
     ],
     signals: [
-      { dim:"IR", text:"TIC (Tanzania Investment Centre) launches online one-stop permit portal — reduces bureaucracy.", impact:"pos", impactText:"▲ IRS improving", source:"TIC", time:"1w ago" },
+      { dim:"IR", text:"TIC (Tanzania Investment Centre) launches online one-stop permit portal — reduces bureaucracy.", impact:"pos", impactText:"▲ IRS improving", source:"TIC", date:"2026-06-24T08:41:00Z" },
     ],
   },
   {
@@ -800,7 +826,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Dec 2028", text:"Presidential Election", type:"neutral" },
     ],
     signals: [
-      { dim:"P", text:"M23 ceasefire holds for 14 days — longest pause in 18 months.", impact:"neu", impactText:"→ Monitor; fragile", source:"AU Commission", time:"3d ago" },
+      { dim:"P", text:"M23 ceasefire holds for 14 days — longest pause in 18 months.", impact:"neu", impactText:"→ Monitor; fragile", source:"AU Commission", date:"2026-06-28T08:40:00Z" },
     ],
   },
   // ── NORTH AFRICA ─────────────────────────────────────────────────────────
@@ -839,7 +865,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Oct 2027", text:"Presidential term continues (Sisi re-elected 2024)", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"EGP stabilises below 50/USD — first sustained period in 18 months.", impact:"pos", impactText:"▲ FX risk reducing", source:"CBE", time:"1w ago" },
+      { dim:"E", text:"EGP stabilises below 50/USD — first sustained period in 18 months.", impact:"pos", impactText:"▲ FX risk reducing", source:"CBE", date:"2026-06-24T08:39:00Z" },
     ],
   },
   {
@@ -875,7 +901,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2026 H1", text:"IMF deal renegotiation expected", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"IMF Article IV consultation resumes — signals possible deal restart.", impact:"pos", impactText:"▲ Fiscal risk watch", source:"IMF", time:"2w ago" },
+      { dim:"E", text:"IMF Article IV consultation resumes — signals possible deal restart.", impact:"pos", impactText:"▲ Fiscal risk watch", source:"IMF", date:"2026-06-17T08:38:00Z" },
     ],
   },
   {
@@ -911,7 +937,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2026 Q2", text:"National economic reform plan review", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Algeria signs 15-year LNG supply extension with Italy's ENI.", impact:"pos", impactText:"▲ Energy sector stability", source:"Sonatrach", time:"1m ago" },
+      { dim:"E", text:"Algeria signs 15-year LNG supply extension with Italy's ENI.", impact:"pos", impactText:"▲ Energy sector stability", source:"Sonatrach", date:"2026-06-01T08:37:00Z" },
     ],
   },
   {
@@ -943,7 +969,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"TBD", text:"UN-mediated national elections (repeatedly delayed)", type:"critical" },
     ],
     signals: [
-      { dim:"P", text:"GNU and LNA representatives meet in Cairo — first direct talks in 8 months.", impact:"neu", impactText:"→ Monitor; fragile", source:"UN SMIL", time:"3w ago" },
+      { dim:"P", text:"GNU and LNA representatives meet in Cairo — first direct talks in 8 months.", impact:"neu", impactText:"→ Monitor; fragile", source:"UN SMIL", date:"2026-06-10T08:36:00Z" },
     ],
   },
   {
@@ -975,7 +1001,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Ongoing", text:"SAF-RSF conflict — AU ceasefire negotiations", type:"critical" },
     ],
     signals: [
-      { dim:"P", text:"RSF advances into North Darfur — SAF counter-offensive launched.", impact:"neg", impactText:"▼ Conflict escalating", source:"OCHA", time:"4d ago" },
+      { dim:"P", text:"RSF advances into North Darfur — SAF counter-offensive launched.", impact:"neg", impactText:"▼ Conflict escalating", source:"OCHA", date:"2026-06-27T08:35:00Z" },
     ],
   },
 
@@ -1012,7 +1038,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Oct 2025", text:"Presidential election — succession risk key", type:"critical" },
     ],
     signals: [
-      { dim:"E", text:"Abidjan port completes container terminal expansion — capacity +40%.", impact:"pos", impactText:"▲ Logistics capacity", source:"Port Autonome d'Abidjan", time:"2w ago" },
+      { dim:"E", text:"Abidjan port completes container terminal expansion — capacity +40%.", impact:"pos", impactText:"▲ Logistics capacity", source:"Port Autonome d'Abidjan", date:"2026-06-17T08:34:00Z" },
     ],
   },
   {
@@ -1048,7 +1074,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Oct 2025", text:"Presidential election (Biya expected to run)", type:"critical" },
     ],
     signals: [
-      { dim:"P", text:"Anglophone separatists declare 90-day ceasefire — ICRC-mediated.", impact:"pos", impactText:"▲ NW/SW access marginally improving", source:"ICRC", time:"1m ago" },
+      { dim:"P", text:"Anglophone separatists declare 90-day ceasefire — ICRC-mediated.", impact:"pos", impactText:"▲ NW/SW access marginally improving", source:"ICRC", date:"2026-06-01T08:33:00Z" },
     ],
   },
   {
@@ -1079,7 +1105,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"TBD", text:"Junta transition elections (repeatedly delayed)", type:"critical" },
     ],
     signals: [
-      { dim:"P", text:"Junta expels MINUSMA peacekeepers — security void expanding.", impact:"neg", impactText:"▼ Security deteriorating", source:"UN", time:"1m ago" },
+      { dim:"P", text:"Junta expels MINUSMA peacekeepers — security void expanding.", impact:"neg", impactText:"▼ Security deteriorating", source:"UN", date:"2026-06-01T08:32:00Z" },
     ],
   },
   {
@@ -1110,7 +1136,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"TBD", text:"Junta transition plan — no timeline set", type:"critical" },
     ],
     signals: [
-      { dim:"P", text:"JNIM attacks Ouagadougou perimeter — first since 2021.", impact:"neg", impactText:"▼ Capital security deteriorating", source:"ACLED", time:"2w ago" },
+      { dim:"P", text:"JNIM attacks Ouagadougou perimeter — first since 2021.", impact:"neg", impactText:"▼ Capital security deteriorating", source:"ACLED", date:"2026-06-17T08:31:00Z" },
     ],
   },
   {
@@ -1142,7 +1168,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"TBD", text:"Junta transition elections", type:"critical" },
     ],
     signals: [
-      { dim:"E", text:"Agadem–Benin oil pipeline exports first cargo.", impact:"pos", impactText:"▲ Oil revenue starting", source:"CNPC", time:"6w ago" },
+      { dim:"E", text:"Agadem–Benin oil pipeline exports first cargo.", impact:"pos", impactText:"▲ Oil revenue starting", source:"CNPC", date:"2026-05-20T08:30:00Z" },
     ],
   },
   {
@@ -1173,7 +1199,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Apr 2025", text:"Post-election government formation — donor engagement", type:"neutral" },
     ],
     signals: [
-      { dim:"P", text:"Déby Itno wins April 2024 presidential election — transition to civilian rule formalised.", impact:"pos", impactText:"▲ Political legitimacy improving", source:"AU Election Observer", time:"2m ago" },
+      { dim:"P", text:"Déby Itno wins April 2024 presidential election — transition to civilian rule formalised.", impact:"pos", impactText:"▲ Political legitimacy improving", source:"AU Election Observer", date:"2026-05-02T08:29:00Z" },
     ],
   },
   {
@@ -1208,7 +1234,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2026", text:"Simandou iron ore first production expected", type:"positive" },
     ],
     signals: [
-      { dim:"E", text:"Rio Tinto resumes Simandou construction after financing close.", impact:"pos", impactText:"▲ Mining FDI confirmed", source:"Rio Tinto", time:"3w ago" },
+      { dim:"E", text:"Rio Tinto resumes Simandou construction after financing close.", impact:"pos", impactText:"▲ Mining FDI confirmed", source:"Rio Tinto", date:"2026-06-10T08:28:00Z" },
     ],
   },
   {
@@ -1242,7 +1268,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2027", text:"Next presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"L", text:"Sierra Leone enacts new Mines & Minerals Act — royalty renegotiation clause removed.", impact:"pos", impactText:"▲ Mining legal stability", source:"NMA", time:"1m ago" },
+      { dim:"L", text:"Sierra Leone enacts new Mines & Minerals Act — royalty renegotiation clause removed.", impact:"pos", impactText:"▲ Mining legal stability", source:"NMA", date:"2026-06-01T08:27:00Z" },
     ],
   },
   {
@@ -1276,7 +1302,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2029", text:"Next presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"P", text:"Boakai signs new anti-corruption executive order — asset declaration mandatory for ministers.", impact:"pos", impactText:"▲ Governance improving", source:"Government of Liberia", time:"5w ago" },
+      { dim:"P", text:"Boakai signs new anti-corruption executive order — asset declaration mandatory for ministers.", impact:"pos", impactText:"▲ Governance improving", source:"Government of Liberia", date:"2026-05-27T08:26:00Z" },
     ],
   },
   {
@@ -1309,7 +1335,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Dec 2026", text:"Presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"T", text:"Gambia joins PAPSS (Pan-African Payment Settlement System).", impact:"pos", impactText:"▲ Fintech infrastructure improving", source:"Afreximbank", time:"2m ago" },
+      { dim:"T", text:"Gambia joins PAPSS (Pan-African Payment Settlement System).", impact:"pos", impactText:"▲ Fintech infrastructure improving", source:"Afreximbank", date:"2026-05-02T08:25:00Z" },
     ],
   },
   {
@@ -1341,7 +1367,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2026", text:"Elections (schedule uncertain)", type:"neutral" },
     ],
     signals: [
-      { dim:"P", text:"President Embaló survives fourth coup attempt — political class reshuffled.", impact:"neg", impactText:"▼ Instability persisting", source:"ECOWAS", time:"3m ago" },
+      { dim:"P", text:"President Embaló survives fourth coup attempt — political class reshuffled.", impact:"neg", impactText:"▼ Instability persisting", source:"ECOWAS", date:"2026-04-02T08:24:00Z" },
     ],
   },
   {
@@ -1375,7 +1401,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2026", text:"Presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"T", text:"Cabo Verde launches Digital Nomad Visa — remote worker permits in 72 hours.", impact:"pos", impactText:"▲ Digital economy growing", source:"Governo de Cabo Verde", time:"6w ago" },
+      { dim:"T", text:"Cabo Verde launches Digital Nomad Visa — remote worker permits in 72 hours.", impact:"pos", impactText:"▲ Digital economy growing", source:"Governo de Cabo Verde", date:"2026-05-20T09:00:00Z" },
     ],
   },
   {
@@ -1409,7 +1435,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Apr 2026", text:"Presidential election — Talon constitutionally barred", type:"critical" },
     ],
     signals: [
-      { dim:"E", text:"GDIZ (Glo-Djigbé Industrial Zone) reaches 50 operational firms — ahead of schedule.", impact:"pos", impactText:"▲ Industrial zone delivering", source:"GDIZ Authority", time:"1m ago" },
+      { dim:"E", text:"GDIZ (Glo-Djigbé Industrial Zone) reaches 50 operational firms — ahead of schedule.", impact:"pos", impactText:"▲ Industrial zone delivering", source:"GDIZ Authority", date:"2026-06-01T08:59:00Z" },
     ],
   },
   {
@@ -1443,7 +1469,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2025 H2", text:"New parliamentary government formation post-constitution change", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Lomé port wins Bests African Container Port 2024 — Lloyds List.", impact:"pos", impactText:"▲ Logistics positioning", source:"Lloyds List", time:"2m ago" },
+      { dim:"E", text:"Lomé port wins Bests African Container Port 2024 — Lloyds List.", impact:"pos", impactText:"▲ Logistics positioning", source:"Lloyds List", date:"2026-05-02T08:58:00Z" },
     ],
   },
 
@@ -1482,7 +1508,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2025", text:"EACOP first oil expected", type:"positive" },
     ],
     signals: [
-      { dim:"E", text:"Uganda coffee exports hit record $1.1B — 3rd year of growth.", impact:"pos", impactText:"▲ Agri sector expanding", source:"UCDA", time:"1m ago" },
+      { dim:"E", text:"Uganda coffee exports hit record $1.1B — 3rd year of growth.", impact:"pos", impactText:"▲ Agri sector expanding", source:"UCDA", date:"2026-06-01T08:57:00Z" },
     ],
   },
   {
@@ -1513,7 +1539,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2027", text:"Presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Musongati nickel deposit feasibility study restarts under Chinese partnership.", impact:"neu", impactText:"→ Watch nickel sector", source:"BME", time:"2m ago" },
+      { dim:"E", text:"Musongati nickel deposit feasibility study restarts under Chinese partnership.", impact:"neu", impactText:"→ Watch nickel sector", source:"BME", date:"2026-05-02T08:56:00Z" },
     ],
   },
   {
@@ -1546,7 +1572,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2026", text:"Parliamentary and presidential elections", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Somalia completes HIPC debt relief — $4.5B debt cancelled.", impact:"pos", impactText:"▲ IFI access unlocked", source:"IMF/World Bank", time:"2m ago" },
+      { dim:"E", text:"Somalia completes HIPC debt relief — $4.5B debt cancelled.", impact:"pos", impactText:"▲ IFI access unlocked", source:"IMF/World Bank", date:"2026-05-02T08:55:00Z" },
     ],
   },
   {
@@ -1580,7 +1606,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2026", text:"Presidential election — Guelleh expected to run again", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Djibouti Port volumes up 18% YoY — Ethiopia rerouting post-Eritrea tensions.", impact:"pos", impactText:"▲ Port revenue growing", source:"DPA", time:"1m ago" },
+      { dim:"E", text:"Djibouti Port volumes up 18% YoY — Ethiopia rerouting post-Eritrea tensions.", impact:"pos", impactText:"▲ Port revenue growing", source:"DPA", date:"2026-06-01T08:54:00Z" },
     ],
   },
   {
@@ -1611,7 +1637,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"TBD", text:"No transition visible", type:"critical" },
     ],
     signals: [
-      { dim:"P", text:"Eritrea sends troops to support Ethiopian federal forces — regional entanglement deepening.", impact:"neg", impactText:"▼ Regional conflict exposure", source:"ISS Africa", time:"1m ago" },
+      { dim:"P", text:"Eritrea sends troops to support Ethiopian federal forces — regional entanglement deepening.", impact:"neg", impactText:"▼ Regional conflict exposure", source:"ISS Africa", date:"2026-06-01T08:53:00Z" },
     ],
   },
 
@@ -1649,7 +1675,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2025 H1", text:"Chapo government stability test — protest negotiations", type:"critical" },
     ],
     signals: [
-      { dim:"P", text:"Mondlane protest movement suspends demonstrations — negotiation talks announced.", impact:"pos", impactText:"▲ Political risk easing marginally", source:"CIP Mozambique", time:"3w ago" },
+      { dim:"P", text:"Mondlane protest movement suspends demonstrations — negotiation talks announced.", impact:"pos", impactText:"▲ Political risk easing marginally", source:"CIP Mozambique", date:"2026-06-10T08:52:00Z" },
     ],
   },
   {
@@ -1685,7 +1711,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2028", text:"Presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"ZiG currency depreciates 40% vs USD — third devaluation in 8 months.", impact:"neg", impactText:"▼ Currency instability persists", source:"RBZ", time:"2w ago" },
+      { dim:"E", text:"ZiG currency depreciates 40% vs USD — third devaluation in 8 months.", impact:"neg", impactText:"▼ Currency instability persists", source:"RBZ", date:"2026-06-17T08:51:00Z" },
     ],
   },
   {
@@ -1720,7 +1746,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Aug 2026", text:"Presidential election — Hichilema vs. opposition", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Zambia copper production hits 830k tonnes — 10-year high under new mine expansions.", impact:"pos", impactText:"▲ Mining sector performing", source:"Zambia Chamber of Mines", time:"3w ago" },
+      { dim:"E", text:"Zambia copper production hits 830k tonnes — 10-year high under new mine expansions.", impact:"pos", impactText:"▲ Mining sector performing", source:"Zambia Chamber of Mines", date:"2026-06-10T08:50:00Z" },
     ],
   },
   {
@@ -1755,7 +1781,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Oct 2024", text:"Duma government 100-day reform programme", type:"positive" },
     ],
     signals: [
-      { dim:"P", text:"Botswana new government's first budget — infrastructure and digital economy focus.", impact:"pos", impactText:"▲ Reform momentum", source:"Ministry of Finance", time:"1m ago" },
+      { dim:"P", text:"Botswana new government's first budget — infrastructure and digital economy focus.", impact:"pos", impactText:"▲ Reform momentum", source:"Ministry of Finance", date:"2026-06-01T08:49:00Z" },
     ],
   },
   {
@@ -1790,7 +1816,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2025 H2", text:"TotalEnergies Orange Basin FID", type:"positive" },
     ],
     signals: [
-      { dim:"E", text:"TotalEnergies Namibia confirms $9B Orange Basin FID — first oil 2029.", impact:"pos", impactText:"▲ Oil sector transformation confirmed", source:"TotalEnergies", time:"2w ago" },
+      { dim:"E", text:"TotalEnergies Namibia confirms $9B Orange Basin FID — first oil 2029.", impact:"pos", impactText:"▲ Oil sector transformation confirmed", source:"TotalEnergies", date:"2026-06-17T08:48:00Z" },
     ],
   },
   {
@@ -1824,7 +1850,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Jun 2025", text:"Presidential election — Chakwera seeks re-election", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Malawi kwacha stabilises after 6-month IMF intervention — FX crisis easing.", impact:"pos", impactText:"▲ Macro risk reducing", source:"RBM", time:"6w ago" },
+      { dim:"E", text:"Malawi kwacha stabilises after 6-month IMF intervention — FX crisis easing.", impact:"pos", impactText:"▲ Macro risk reducing", source:"RBM", date:"2026-05-20T08:47:00Z" },
     ],
   },
   {
@@ -1858,7 +1884,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2027", text:"Next election (schedule permitting)", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Lesotho LHWP Phase II reaches 70% construction completion.", impact:"pos", impactText:"▲ Water export revenue pipeline", source:"LHDA", time:"2m ago" },
+      { dim:"E", text:"Lesotho LHWP Phase II reaches 70% construction completion.", impact:"pos", impactText:"▲ Water export revenue pipeline", source:"LHDA", date:"2026-05-02T08:46:00Z" },
     ],
   },
   {
@@ -1891,7 +1917,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"TBD", text:"Pro-democracy reform demands — ongoing", type:"critical" },
     ],
     signals: [
-      { dim:"L", text:"US confirms AGOA suspension remains in place — textile exports to US blocked.", impact:"neg", impactText:"▼ AGOA market access closed", source:"USTR", time:"3m ago" },
+      { dim:"L", text:"US confirms AGOA suspension remains in place — textile exports to US blocked.", impact:"neg", impactText:"▼ AGOA market access closed", source:"USTR", date:"2026-04-02T08:45:00Z" },
     ],
   },
   {
@@ -1925,7 +1951,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2028", text:"Presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Vanilla price rebounds 40% — cyclone-reduced supply tightens global market.", impact:"pos", impactText:"▲ Export revenue improving", source:"FAOSTAT", time:"2m ago" },
+      { dim:"E", text:"Vanilla price rebounds 40% — cyclone-reduced supply tightens global market.", impact:"pos", impactText:"▲ Export revenue improving", source:"FAOSTAT", date:"2026-05-02T08:44:00Z" },
     ],
   },
   {
@@ -1960,7 +1986,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2028", text:"Next parliamentary election", type:"neutral" },
     ],
     signals: [
-      { dim:"L", text:"Mauritius signs new DTA with Saudi Arabia — Gulf investment corridor opens.", impact:"pos", impactText:"▲ IFC positioning strengthened", source:"FSC Mauritius", time:"3w ago" },
+      { dim:"L", text:"Mauritius signs new DTA with Saudi Arabia — Gulf investment corridor opens.", impact:"pos", impactText:"▲ IFC positioning strengthened", source:"FSC Mauritius", date:"2026-06-10T08:43:00Z" },
     ],
   },
   {
@@ -1991,7 +2017,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2026", text:"Presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"P", text:"Azali wins referendum extending presidential term — opposition boycott.", impact:"neg", impactText:"▼ Democratic backsliding", source:"IOC", time:"4m ago" },
+      { dim:"P", text:"Azali wins referendum extending presidential term — opposition boycott.", impact:"neg", impactText:"▼ Democratic backsliding", source:"IOC", date:"2026-03-03T08:42:00Z" },
     ],
   },
 
@@ -2027,7 +2053,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2025", text:"Transition elections promised by junta", type:"neutral" },
     ],
     signals: [
-      { dim:"P", text:"Oligui Nguema announces August 2025 presidential election date — transition calendar confirmed.", impact:"pos", impactText:"▲ Transition credibility improving", source:"Transition Government", time:"2m ago" },
+      { dim:"P", text:"Oligui Nguema announces August 2025 presidential election date — transition calendar confirmed.", impact:"pos", impactText:"▲ Transition credibility improving", source:"Transition Government", date:"2026-05-02T08:41:00Z" },
     ],
   },
   {
@@ -2058,7 +2084,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"TBD", text:"UN stabilisation plan — no timeline", type:"critical" },
     ],
     signals: [
-      { dim:"P", text:"Wagner rebrands as Africa Corps — operations continue unchanged in CAR.", impact:"neg", impactText:"▼ Russian influence entrenching", source:"ISS", time:"2m ago" },
+      { dim:"P", text:"Wagner rebrands as Africa Corps — operations continue unchanged in CAR.", impact:"neg", impactText:"▼ Russian influence entrenching", source:"ISS", date:"2026-05-02T08:40:00Z" },
     ],
   },
   {
@@ -2091,7 +2117,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2026", text:"Presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"Congo receives $500M IMF disbursement — programme on track.", impact:"pos", impactText:"▲ Fiscal stabilising", source:"IMF", time:"5w ago" },
+      { dim:"E", text:"Congo receives $500M IMF disbursement — programme on track.", impact:"pos", impactText:"▲ Fiscal stabilising", source:"IMF", date:"2026-05-27T08:39:00Z" },
     ],
   },
   {
@@ -2122,7 +2148,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"TBD", text:"No visible transition", type:"critical" },
     ],
     signals: [
-      { dim:"E", text:"EG LNG completes train 2 maintenance — capacity restored.", impact:"neu", impactText:"→ LNG output stable", source:"EG LNG", time:"2m ago" },
+      { dim:"E", text:"EG LNG completes train 2 maintenance — capacity restored.", impact:"neu", impactText:"→ LNG output stable", source:"EG LNG", date:"2026-05-02T08:38:00Z" },
     ],
   },
   {
@@ -2154,7 +2180,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"Jul 2026", text:"Presidential election", type:"neutral" },
     ],
     signals: [
-      { dim:"E", text:"STP cocoa receives UNESCO Terroir recognition — premium price uplift.", impact:"pos", impactText:"▲ Cocoa export value", source:"ICCO", time:"3m ago" },
+      { dim:"E", text:"STP cocoa receives UNESCO Terroir recognition — premium price uplift.", impact:"pos", impactText:"▲ Cocoa export value", source:"ICCO", date:"2026-04-02T08:37:00Z" },
     ],
   },
 
@@ -2189,7 +2215,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2025", text:"Parliamentary election", type:"neutral" },
     ],
     signals: [
-      { dim:"En", text:"Seychelles signs 30x30 blue bond — largest IOC ocean conservation finance.", impact:"pos", impactText:"▲ Blue economy leadership", source:"World Bank", time:"2m ago" },
+      { dim:"En", text:"Seychelles signs 30x30 blue bond — largest IOC ocean conservation finance.", impact:"pos", impactText:"▲ Blue economy leadership", source:"World Bank", date:"2026-05-02T08:36:00Z" },
     ],
   },
 
@@ -2225,7 +2251,7 @@ export const COUNTRIES: CountryProfile[] = [
       { date:"2025", text:"GTA LNG train 2 FID", type:"positive" },
     ],
     signals: [
-      { dim:"E", text:"GTA FLNG delivers first LNG cargo — BP confirms production ramp.", impact:"pos", impactText:"▲ LNG revenue starts", source:"BP", time:"1m ago" },
+      { dim:"E", text:"GTA FLNG delivers first LNG cargo — BP confirms production ramp.", impact:"pos", impactText:"▲ LNG revenue starts", source:"BP", date:"2026-06-01T08:35:00Z" },
     ],
   },
 ];

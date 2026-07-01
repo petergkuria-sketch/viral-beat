@@ -32,6 +32,14 @@ const MODEL = "claude-opus-4-8";
 const TICKER_TTL_H = 72;
 const BREAKING_SCORE_THRESHOLD = 10; // composite Δ that triggers BREAKING
 
+// Ingestion recency gate: only articles published within this window qualify as
+// "live" signals. Stale feed items (weeks/months old) are dropped before they
+// ever reach the classifier or the store. Undated items are treated as fresh.
+const SIGNAL_MAX_AGE_DAYS = 7;
+const isFreshArticle = (publishedAt: Date): boolean =>
+  Number.isFinite(publishedAt.getTime()) &&
+  Date.now() - publishedAt.getTime() <= SIGNAL_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+
 // ── Source registry ───────────────────────────────────────────────────────────
 
 interface RssSource {
@@ -134,13 +142,15 @@ async function fetchRssSources(): Promise<RawArticle[]> {
         const feed = await rssParser.parseURL(src.url);
         for (const item of (feed.items ?? []).slice(0, 15)) {
           if (!item.title) continue;
+          const publishedAt = item.isoDate ? new Date(item.isoDate) : new Date();
+          if (!isFreshArticle(publishedAt)) continue; // drop stale feed items at the gateway
           articles.push({
             title: item.title,
             content: item.contentSnippet ?? item.content ?? item.title,
             url: item.link ?? "",
             source: src.name,
             sourceType: src.type,
-            publishedAt: item.isoDate ? new Date(item.isoDate) : new Date(),
+            publishedAt,
             hintCountries: src.countryCodes,
           });
         }
@@ -523,13 +533,15 @@ export async function runCountryCycle(countryCode: string): Promise<AgentRunResu
           const feed = await rssParser.parseURL(src.url);
           for (const item of (feed.items ?? []).slice(0, 10)) {
             if (!item.title) continue;
+            const publishedAt = item.isoDate ? new Date(item.isoDate) : new Date();
+            if (!isFreshArticle(publishedAt)) continue; // drop stale feed items at the gateway
             articles.push({
               title: item.title,
               content: item.contentSnippet ?? item.title,
               url: item.link ?? "",
               source: src.name,
               sourceType: src.type,
-              publishedAt: item.isoDate ? new Date(item.isoDate) : new Date(),
+              publishedAt,
               hintCountries: [countryCode],
             });
           }

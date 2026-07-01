@@ -15,7 +15,7 @@ import {
   Share2, Copy, Check, Twitter, Linkedin, Plus, Pencil,
 } from "lucide-react";
 import {
-  COUNTRIES, OSS_DATA, composite, scoreColor, VERDICT_LABELS,
+  COUNTRIES, OSS_DATA, composite, scoreColor, VERDICT_LABELS, relativeTime,
   type CountryProfile, type Verdict, type OSSFacility,
 } from "@/lib/scannerData";
 
@@ -229,7 +229,7 @@ function SignalsTab({ c }: { c: CountryProfile }) {
           <div className="flex items-center gap-2 mb-1.5">
             <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide ${DIM_SIGNAL_MAP[s.dim] ?? "bg-slate-700 text-slate-400"}`}>{s.dim}</span>
             <span className="text-[10px] text-slate-500">{s.source}</span>
-            <span className="ml-auto text-[10px] text-slate-600">{s.time}</span>
+            <span className="ml-auto text-[10px] text-slate-600">{relativeTime(s.date)}</span>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">{s.text}</p>
           <p className={`text-[10px] mt-1 font-medium ${s.impact === "pos" ? "text-green-400" : s.impact === "neg" ? "text-red-400" : "text-slate-500"}`}>
