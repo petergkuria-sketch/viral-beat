@@ -375,7 +375,7 @@ export default function LandingPage() {
 
           {/* Primary links — the 6 most-used */}
           <div className="hidden md:flex items-center gap-0.5">
-            {[["intelligence", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
+            {[["scanner-section", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => scrollTo(id)} className="px-3.5 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
                 {label}
               </button>
@@ -446,7 +446,7 @@ export default function LandingPage() {
         </div>
         {mobileMenuOpen && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="md:hidden border-t border-white/5 bg-[#050b1a] px-4 py-4 flex flex-col gap-1">
-            {[["scanner-section", "Scanner"], ["intelligence", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
+            {[["scanner-section", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => { setMobileMenuOpen(false); scrollTo(id); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
             <button onClick={() => { setMobileMenuOpen(false); setLocation("/about#methodology"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Methodology</button>
@@ -1402,93 +1402,6 @@ export default function LandingPage() {
       </section>
 
       {/* ── INTELLIGENCE SECTION ────────────────────────────────────────────── */}
-      <section id="intelligence" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">PESTEL+IR Intelligence</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mb-4">Africa Intelligence at Scale</h2>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              What used to require expensive consultancies and months of research is now available on demand — for every African country, every day, across political, economic, civic, and investor dimensions.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {[
-              {
-                icon: MapPin,
-                color: "#22d3ee",
-                title: "Country Briefings",
-                desc: "On-demand PESTEL intelligence briefs for all 55 nations — government structure, stability scores, key political figures, and economic outlook. Updated as news breaks.",
-                bullets: ["Stability score 0–100", "Head of State + key figures", "Risk classification", "PESTEL+IR overlay"],
-              },
-              {
-                icon: Activity,
-                color: "#a78bfa",
-                title: "Civic Movement Tracker",
-                desc: "Live tracking of active and emerging civic movements across Africa — from protest networks to diaspora coalitions — with RSS-backed news and sentiment signals.",
-                bullets: ["Active / emerging / dormant", "Movement leadership & demands", "RSS news integration", "Cross-border linkages"],
-              },
-              {
-                icon: Globe,
-                color: "#34d399",
-                title: "Geo-Personalised Default",
-                desc: "The platform detects your country on signup and makes it your default intelligence profile. An analyst in Lagos opens to Nigeria. A researcher in Nairobi opens to Kenya.",
-                bullets: ["IP & language detection", "Per-user country profile", "55 country coverage", "Instant onboarding"],
-              },
-              {
-                icon: BarChart3,
-                color: "#22c55e",
-                title: "Go/No-Go Briefs",
-                desc: "Composite entry verdict (PESTEL × 0.6 + IRS × 0.4) with sector readiness, risk matrix, and structured PDF export — built for the business prospector in a hurry.",
-                bullets: ["Go-Market / Monitor / Caution / No-Go", "Sector entry recommendation", "Risk matrix + mitigations", "PDF export with branded header"],
-                href: "/scanner/ken/brief",
-                badge: "Decide",
-              },
-            ].map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }} viewport={{ once: true }}
-                className={`bg-[#0f2240] border rounded-2xl p-7 hover:border-opacity-60 transition-all relative overflow-hidden ${i === 3 ? "border-orange-500/30 hover:border-orange-400/50" : "border-[#1e3a5f] hover:border-cyan-500/30"}`}
-                onClick={i === 3 ? () => user ? setLocation("/scanner/ken/brief") : (window.location.href = getLoginUrl()) : undefined}
-                style={i === 3 ? { cursor: "pointer" } : {}}
-              >
-                {"badge" in item && item.badge && (
-                  <span className="absolute top-4 right-4 text-[9px] font-bold px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400">{item.badge}</span>
-                )}
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: `${item.color}15` }}>
-                  <item.icon className="w-6 h-6" style={{ color: item.color }} />
-                </div>
-                <h3 className="font-bold text-lg text-white mb-3">{item.title}</h3>
-                <p className="text-gray-300 text-sm leading-relaxed mb-4">{item.desc}</p>
-                <ul className="space-y-1.5">
-                  {item.bullets.map(b => (
-                    <li key={b} className="flex items-center gap-2 text-xs text-gray-400">
-                      <CheckCircle2 className="w-3 h-3 shrink-0" style={{ color: item.color }} />{b}
-                    </li>
-                  ))}
-                </ul>
-                {i === 3 && (
-                  <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-orange-400">
-                    Generate a Go/No-Go Brief <ArrowRight className="w-3 h-3" />
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Kenya deep-dive callout */}
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="bg-gradient-to-r from-cyan-500/10 to-blue-600/10 border border-cyan-500/20 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <div className="text-lg font-bold text-white mb-1">🇰🇪 Kenya — Deep Intelligence Module</div>
-              <p className="text-gray-300 text-sm max-w-xl">
-                Kenya has our most comprehensive coverage: live parliament tracker, all 47 county sentiment scores, ICC monitoring, governors & senators, civic movements, regional risk, and breaking-news alerts.
-              </p>
-            </div>
-            <Button onClick={() => user ? setLocation("/country/ke") : (window.location.href = getLoginUrl())} className="shrink-0 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold">
-              Open Kenya Intelligence <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
-            </Button>
-          </motion.div>
-        </div>
-      </section>
 
       {/* ── GREEN INVESTMENT (GIaaS) ────────────────────────────────────────── */}
       <section id="green-investment" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
@@ -2061,9 +1974,9 @@ export default function LandingPage() {
               {[
                 ["Methodology & scoring", "How PESTEL+IR composites are built", "/about#methodology"],
                 ["How data is validated", "Four-stage ground-truth verification", "/about#methodology"],
-                ["Intelligence at scale", "Coverage, feeds and the workspace", "#intelligence"],
+                ["Intelligence at scale", "Coverage, feeds and the workspace", "#scanner-section"],
                 ["API & embedding", "Build on the intelligence layer", "#api"],
-                ["Why ViralBeat exists", "The mission behind the platform", "#mission"],
+                ["Why ViralBeat exists", "The mission behind the platform", "/about"],
                 ["Field contributors", "Who files the signals, and how they're tiered", "#creator-network"],
               ].map(([t, d, href]) => (
                 <button key={t as string}
@@ -2082,97 +1995,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── MISSION ─────────────────────────────────────────────────────────── */}
-      <section id="mission" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Built for Africa. By Africans.</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mb-4">Why ViralBeat Exists</h2>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Africa's political and market intelligence should be produced, verified, and structured by the people who live it — and delivered as a decision tool, not a news feed.
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Globe,   color: "#22d3ee", title: "Africa First",           desc: "Every product decision is made through the lens of what best serves African communities, businesses, and institutions entering the continent." },
-              { icon: Users,   color: "#a78bfa", title: "People-Powered",         desc: "Ground truth comes from verified contributors on the ground — not scraped headlines. Local knowledge, structured into intelligence you can cite." },
-              { icon: Shield,  color: "#34d399", title: "Verified Intelligence",  desc: "Every signal is cross-referenced before it reaches your dashboard. Confidence thresholds are published. We never fabricate a score." },
-              { icon: Zap,     color: "#fb923c", title: "Decision-Ready",         desc: "Raw intelligence is only useful when it drives a decision. Every score on VB maps directly to a Go-Market, Monitor, Caution, or No-Go verdict." },
-            ].map(v => (
-              <motion.div key={v.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                className="bg-[#0d1e36] border border-[#1e3a5f] rounded-xl p-6">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style={{ background: v.color + "22" }}>
-                  <v.icon className="w-5 h-5" style={{ color: v.color }} />
-                </div>
-                <h3 className="font-bold text-white mb-2">{v.title}</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">{v.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── METHODOLOGY SUMMARY ──────────────────────────────────────────────── */}
-      <section id="methodology" className="py-32 px-4" style={{ scrollMarginTop: "5rem" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Published Methodology</Badge>
-              <h2 className="text-4xl sm:text-5xl font-black mb-5">
-                Scores You Can<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Cite in Public</span>
-              </h2>
-              <p className="text-gray-300 text-lg leading-relaxed mb-8">
-                Every sentiment score, risk level, and stability index on ViralBeat is derived from a documented, auditable pipeline — not a black box. RSS ingestion, keyword analysis, LLM blending, and confidence thresholds are all published.
-              </p>
-              <div className="space-y-4 mb-8">
-                {[
-                  { icon: Rss,      color: "#22d3ee", label: "Country-Specific RSS Feeds", detail: "Each nation has its own geo-curated sources — GhanaWeb for Ghana, Punch for Nigeria, AllAfrica for regional signals — updated every 4 hours" },
-                  { icon: Brain,    color: "#a78bfa", label: "LLM Sentiment Blend",   detail: "Rule-based scoring + Claude AI for Tier-1 figures, averaged for accuracy" },
-                  { icon: Shield,   color: "#34d399", label: "Confidence Badges",      detail: "High (10+ articles), Medium (4–9), Low (1–3) — never fabricates data" },
-                  { icon: Database, color: "#fb923c", label: "Field Signal Layer",     detail: "Verified contributor submissions weighted by tier and institutional affiliation" },
-                ].map(s => (
-                  <div key={s.label} className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: s.color + "22" }}>
-                      <s.icon className="w-4 h-4" style={{ color: s.color }} />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-white text-sm">{s.label}</div>
-                      <div className="text-gray-400 text-sm">{s.detail}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => setLocation("/about#methodology")}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                Read the full methodology <ArrowRight className="w-4 h-4" />
-              </button>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
-              className="bg-[#0d1e36] border border-[#1e3a5f] rounded-2xl p-6 space-y-4">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Confidence Thresholds</div>
-              {[
-                { level: "High",   range: "10+ articles", color: "#22d3ee", badge: "bg-cyan-500/20 text-cyan-300",   desc: "Score published with full confidence" },
-                { level: "Medium", range: "4–9 articles", color: "#a78bfa", badge: "bg-purple-500/20 text-purple-300", desc: "Score published with advisory note" },
-                { level: "Low",    range: "1–3 articles", color: "#fb923c", badge: "bg-orange-500/20 text-orange-300", desc: "Score flagged — treat as indicative" },
-                { level: "None",   range: "0 articles",   color: "#64748b", badge: "bg-slate-500/20 text-slate-400",  desc: "No score shown — never fabricated" },
-              ].map(c => (
-                <div key={c.level} className="flex items-center gap-4 p-3 rounded-lg bg-white/5">
-                  <span className={`text-xs font-bold px-2 py-1 rounded ${c.badge}`}>{c.level}</span>
-                  <span className="text-sm text-gray-400 flex-1">{c.range}</span>
-                  <span className="text-xs text-gray-500">{c.desc}</span>
-                </div>
-              ))}
-              <div className="pt-4 border-t border-white/5 text-xs text-gray-600">
-                All scores update every 4 hours from live RSS feeds. <br />
-                Methodology audited quarterly. Last review: Q2 2026.
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
 
       {/* ── TEAM ─────────────────────────────────────────────────────────────── */}
       <section id="team" className="py-32 px-4 bg-white/[0.015] border-t border-white/5" style={{ scrollMarginTop: "4rem" }}>
