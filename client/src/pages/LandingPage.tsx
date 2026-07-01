@@ -1264,33 +1264,44 @@ export default function LandingPage() {
               <p className="text-gray-300 text-lg leading-relaxed mb-8">
                 A clean REST API gives your app real-time stability scores, country briefings, civic movement data, PESTEL+IR signals, and Investment Readiness Scores — ready to integrate in minutes.
               </p>
-              <div className="space-y-3 mb-8">
-                {[
-                  ["GET /v1/scanner/:code",           "Composite score + verdict for any AU nation"],
-                  ["GET /v1/scanner/:code/brief",     "Full Go/No-Go brief with risk matrix"],
-                  ["GET /v1/pestel/:code/signals",    "PESTEL+IR signals by country"],
-                  ["GET /v1/africa/:code/news",       "Live news articles by country"],
-                  ["GET /v1/elections/calendar",      "Upcoming elections for all 55 nations"],
-                  ["GET /v1/irs/:code",               "Investment Readiness Score + B-READY indicators"],
-                ].map(([endpoint, desc]) => (
-                  <div key={endpoint} className="flex items-center gap-3 bg-[#0f2240] border border-[#1e3a5f] rounded-lg px-4 py-2.5">
-                    <code className="text-xs text-cyan-400 font-mono flex-1 truncate">{endpoint}</code>
-                    <span className="text-[10px] text-gray-500 shrink-0">{desc}</span>
-                  </div>
-                ))}
-              </div>
+              <details className="group mb-8" open>
+                <summary className="flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden bg-[#0f2240] border border-[#1e3a5f] rounded-lg px-4 py-3 hover:border-blue-500/40 transition-colors">
+                  <span className="text-sm font-semibold text-white">Endpoints <span className="text-gray-500 font-normal">· 8</span></span>
+                  <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="space-y-2.5 mt-3">
+                  {[
+                    ["GET /v1/scanner/:code",           "Composite score + verdict for any AU nation"],
+                    ["GET /v1/scanner/:code/brief",     "Full Go/No-Go brief with risk matrix"],
+                    ["GET /v1/pestel/:code/signals",    "PESTEL+IR signals by country"],
+                    ["GET /v1/africa/:code/news",       "Live news articles by country"],
+                    ["GET /v1/elections/calendar",      "Upcoming elections for all 55 nations"],
+                    ["GET /v1/irs/:code",               "Investment Readiness Score + B-READY indicators"],
+                    ["GET /v1/exchange/listings",       "SME Exchange listings by board & sector"],
+                    ["GET /v1/exchange/:id",            "SME listing detail + ERS pillar scores"],
+                  ].map(([endpoint, desc]) => (
+                    <div key={endpoint} className="flex items-center gap-3 bg-[#0f2240] border border-[#1e3a5f] rounded-lg px-4 py-2.5">
+                      <code className="text-xs text-cyan-400 font-mono flex-1 truncate">{endpoint}</code>
+                      <span className="text-[10px] text-gray-500 shrink-0">{desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </details>
               <Button onClick={() => user ? setLocation("/developer-hub") : (window.location.href = getLoginUrl())} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold">
                 <Code2 className="mr-2 w-4 h-4" /> Get API Keys
               </Button>
             </motion.div>
 
             <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1e3a5f] bg-white/[0.02]">
-                  <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-green-500/60" /></div>
-                  <span className="text-xs text-gray-500 font-mono ml-1">GET /v1/africa/NG/brief</span>
-                </div>
-                <pre className="p-5 text-xs font-mono text-gray-300 leading-relaxed overflow-x-auto">{`{
+              <details className="group">
+                <summary className="flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden bg-[#0f2240] border border-[#1e3a5f] rounded-2xl group-open:rounded-b-none px-4 py-3 hover:border-blue-500/40 transition-colors">
+                  <span className="flex items-center gap-2">
+                    <span className="flex gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" /><span className="w-2.5 h-2.5 rounded-full bg-green-500/60" /></span>
+                    <span className="text-xs text-gray-500 font-mono ml-1">Example response · GET /v1/africa/NG/brief</span>
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" />
+                </summary>
+                <pre className="bg-[#0f2240] border border-t-0 border-[#1e3a5f] rounded-b-2xl p-5 text-xs font-mono text-gray-300 leading-relaxed overflow-x-auto">{`{
   "country": "Nigeria",
   "pestelScore": 58,
   "irs": 51,
@@ -1310,7 +1321,7 @@ export default function LandingPage() {
   },
   "nextElection": "Feb 2027"
 }`}</pre>
-              </div>
+              </details>
             </motion.div>
           </div>
         </div>
