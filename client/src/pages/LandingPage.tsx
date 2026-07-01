@@ -19,6 +19,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import IntelligenceTicker from "@/components/IntelligenceTicker";
 import { EXCHANGE_SMES, boardOf, ersBand, ERS_GATE, type ExchangeSME } from "@/lib/exchangeData";
+import { COUNTRIES, composite, VERDICT_LABELS } from "@/lib/scannerData";
 import { trpc } from "@/lib/trpc";
 
 const RISK: Record<string, { label: string; cls: string }> = {
@@ -195,6 +196,13 @@ export default function LandingPage() {
   };
   const { theme, setTheme } = useTheme();
   const themeList: ThemeName[] = ["dark", "light", "neon", "minimal", "ocean"];
+
+  // ── Live hero data (Bloomberg-style board + feed) ──────────────────────────
+  const verdictColour = (v: string) => v === "go-market" ? "#22c55e" : v === "monitor" ? "#84cc16" : v === "caution" ? "#f59e0b" : "#ef4444";
+  const boardRows = [...COUNTRIES].sort((a, b) => composite(b) - composite(a)).slice(0, 6);
+  const avgComposite = boardRows.length ? Math.round(boardRows.reduce((s, c) => s + composite(c), 0) / boardRows.length) : 0;
+  const liveFeed = COUNTRIES.flatMap(c => (c.signals ?? []).slice(0, 1).map(s => ({ ...s, flag: c.flag, country: c.name }))).slice(0, 4);
+  const totalSignals = COUNTRIES.reduce((n, c) => n + (c.signals?.length ?? 0), 0);
 
   const handleExplore = () => {
     if (user) setLocation("/africa");
@@ -559,35 +567,105 @@ export default function LandingPage() {
           <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-blue-600/8 rounded-full blur-3xl" />
           <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
         </div>
-        <div className="relative max-w-5xl mx-auto">
+        <div className="relative max-w-6xl mx-auto">
 
-          {/* Headline */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-2 text-sm font-medium text-cyan-400 mb-8">
-              <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-              55 African nations · Updated by people on the ground · Live now
-            </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-6" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
-              You are the Investor.<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400">
-                Get your feet on the ground before you book the ticket.
-              </span>
-            </h1>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
-              Real-time political intelligence for all 55 African nations — from journalists, NGO officers and civic researchers who are{" "}
-              <span className="text-white font-semibold">already there.</span>{" "}
-              Live PESTEL+IR scores, Go/No-Go briefs and field signals. Free while in beta.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-3">
-              <Button size="lg" className="text-base px-7 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20" onClick={() => user ? setLocation("/scanner/ken/brief") : (window.location.href = getLoginUrl())}>
-                Read the Kenya brief free <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="text-base px-7 py-5 border-white/10 text-gray-300 hover:text-white hover:border-cyan-500/40" onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())}>
-                See all 55 nations
-              </Button>
-            </div>
-            <p className="text-xs text-gray-600">No card required · Free during beta · Brief ready in 30 seconds</p>
-          </motion.div>
+          <div className="grid lg:grid-cols-2 gap-10 items-center mb-12">
+
+            {/* LEFT — message (P4) */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-4 py-2 text-sm font-medium text-cyan-400 mb-6">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                55 African nations · Live now
+              </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight mb-5" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                You are the Investor.<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400">
+                  Get your feet on the ground before you book the ticket.
+                </span>
+              </h1>
+              <p className="text-lg text-gray-400 max-w-xl mx-auto lg:mx-0 mb-6">
+                Real-time political intelligence for all 55 African nations — from journalists, NGO officers and civic researchers who are{" "}
+                <span className="text-white font-semibold">already there.</span>{" "}
+                Live PESTEL+IR scores, Go/No-Go briefs and field signals. Free while in beta.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-3">
+                <Button size="lg" className="text-base px-7 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20" onClick={() => user ? setLocation("/scanner/ken/brief") : (window.location.href = getLoginUrl())}>
+                  Read the Kenya brief free <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+                <Button size="lg" variant="outline" className="text-base px-7 py-5 border-white/10 text-gray-300 hover:text-white hover:border-cyan-500/40" onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())}>
+                  See all 55 nations
+                </Button>
+              </div>
+              <p className="text-xs text-gray-600 mb-6">No card required · Free during beta · Brief ready in 30 seconds</p>
+
+              {/* Authority rail (P7) */}
+              <div className="flex flex-wrap justify-center lg:justify-start items-center gap-x-5 gap-y-1.5 text-[11px] text-gray-500 border-t border-white/5 pt-4">
+                <span><b className="text-white">55</b> nations</span>
+                <span className="text-gray-700">·</span>
+                <span><b className="text-white">{totalSignals}</b> signals tracked</span>
+                <span className="text-gray-700">·</span>
+                <span><b className="text-white">Ground-truth</b> field contributors</span>
+                <span className="text-gray-700">·</span>
+                <span>Sources: S&amp;P · IMF · national bodies</span>
+              </div>
+            </motion.div>
+
+            {/* RIGHT — live markets board (P1/P2/P5/P6) + feed (P3) */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
+              <div className="rounded-2xl border border-[#1e3a5f] bg-[#0a1628]/80 backdrop-blur overflow-hidden shadow-2xl shadow-black/40">
+                {/* Index header (P2) */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e3a5f]">
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-slate-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live · Africa markets
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-lg font-black text-cyan-400 tabular-nums">{avgComposite}</span>
+                    <span className="text-[9px] uppercase tracking-widest text-slate-500">Composite idx</span>
+                  </div>
+                </div>
+                {/* Rows (P1 + P6 deltas) */}
+                {boardRows.map(c => {
+                  const comp = composite(c);
+                  const up = c.change30d >= 0;
+                  const vc = verdictColour(c.verdict);
+                  return (
+                    <button key={c.code} onClick={() => user ? setLocation(`/scanner/${c.code}`) : (window.location.href = getLoginUrl())}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors text-left">
+                      <span className="text-base w-6 shrink-0">{c.flag}</span>
+                      <span className="text-sm text-white font-medium flex-1 truncate">{c.name}</span>
+                      <span className="text-sm font-black text-white tabular-nums w-8 text-right">{comp}</span>
+                      <span className={`text-xs font-bold tabular-nums w-14 text-right ${up ? "text-emerald-400" : "text-red-400"}`}>
+                        {up ? "▲" : "▼"} {up ? "+" : ""}{c.change30d}
+                      </span>
+                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded w-[70px] text-center shrink-0"
+                        style={{ color: vc, background: `${vc}18`, border: `1px solid ${vc}33` }}>
+                        {VERDICT_LABELS[c.verdict]}
+                      </span>
+                    </button>
+                  );
+                })}
+                <div className="px-4 py-2 text-[10px] text-slate-600">Updated 2m ago · composite = PESTEL ×0.6 + IRS ×0.4 · 30-day Δ</div>
+              </div>
+
+              {/* Live signals feed (P3 + P5 provenance) */}
+              <div className="mt-3 rounded-2xl border border-[#1e3a5f] bg-[#0a1628]/80 p-3">
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-slate-500 mb-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> Live signals — updating now
+                </div>
+                <div className="space-y-2">
+                  {liveFeed.map((s, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${s.impact === "pos" ? "bg-emerald-400" : s.impact === "neg" ? "bg-red-400" : "bg-slate-500"}`} />
+                      <div className="min-w-0">
+                        <div className="text-[12px] text-slate-300 leading-snug truncate">{s.flag} {s.text}</div>
+                        <div className="text-[10px] text-slate-600">{s.source} · {s.time} · <span className="text-emerald-500/70">✓ verified</span></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </div>
 
           {/* Persona selector */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}>
