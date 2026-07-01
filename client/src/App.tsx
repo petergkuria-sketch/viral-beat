@@ -64,6 +64,7 @@ const MyListings = lazy(() => import("./pages/MyListings"));
 const ClaimListing = lazy(() => import("./pages/ClaimListing"));
 const ValidatorScore = lazy(() => import("./pages/ValidatorScore"));
 const ValidatorsAdmin = lazy(() => import("./pages/ValidatorsAdmin"));
+const DocumentsAdmin = lazy(() => import("./pages/DocumentsAdmin"));
 const ExchangeListing = lazy(() => import("./pages/ExchangeListing"));
 const ExchangeMessages = lazy(() => import("./pages/ExchangeMessages"));
 const ExchangeThread = lazy(() => import("./pages/ExchangeThread"));
@@ -168,6 +169,7 @@ function Router() {
     { path: "/admin/moderation", component: ModerationDashboard },
     { path: "/admin/access", component: AccessRequestsAdmin },
     { path: "/admin/validators", component: ValidatorsAdmin },
+    { path: "/admin/documents", component: DocumentsAdmin },
     { path: "/admin/ai-usage", component: AiUsagePage },
     { path: "/admin/users", component: AdminUsers },
     { path: "/admin/bulletins", component: BulletinAdmin },

@@ -1835,6 +1835,32 @@ export type ErsValidator = typeof ersValidators.$inferSelect;
 export type InsertErsValidator = typeof ersValidators.$inferInsert;
 
 /**
+ * ERS Layer 3 — document gateway (final phase). SMEs submit a verifiable
+ * reference per required document; admins verify/reject/flag. Tier-1
+ * (foundation) docs are mandatory and act as a VETO — a gap or fraud flag
+ * blocks fully_verified regardless of the other layers.
+ */
+export const ersDocuments = mysqlTable("ersDocuments", {
+  id:            int("id").autoincrement().primaryKey(),
+  listingId:     int("listingId").notNull(),
+  submittedByUserId: varchar("submittedByUserId", { length: 128 }).notNull(),
+  tier:          mysqlEnum("tier", ["foundation", "verification", "compliance"]).notNull(),
+  docType:       varchar("docType", { length: 64 }).notNull(),   // e.g. business_registration
+  label:         varchar("label", { length: 200 }),              // human label / issuer + number
+  reference:     text("reference"),                              // URL or issuer reference
+  status:        mysqlEnum("status", ["pending", "verified", "rejected", "flagged"]).notNull().default("pending"),
+  reviewNote:    text("reviewNote"),
+  aiNote:        text("aiNote"),                                 // AI authenticity assist (advisory)
+  createdAt:     timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:     timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, t => ({
+  listingIdx: index("ersDocuments_listing_idx").on(t.listingId),
+  statusIdx:  index("ersDocuments_status_idx").on(t.status),
+}));
+export type ErsDocument = typeof ersDocuments.$inferSelect;
+export type InsertErsDocument = typeof ersDocuments.$inferInsert;
+
+/**
  * SME Exchange — investor↔SME safe contact. An investor/DFI expresses interest
  * in a listing (exchangeIntros); the SME owner accepts/declines. On accept, a
  * platform-mediated message thread (exchangeMessages) opens. No raw contact

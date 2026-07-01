@@ -67,6 +67,7 @@ import { ossRouter } from "./routers/oss";
 import { moderationRouter } from "./routers/moderation";
 import { exchangeRouter } from "./routers/exchange";
 import { ersValidationRouter } from "./routers/ersValidation";
+import { ersDocumentsRouter } from "./routers/ersDocuments";
 import { exchangeThreadsRouter } from "./routers/exchangeThreads";
 import { aiUsageRouter } from "./routers/aiUsage";
 import { emailRouter } from "./routers/email";
@@ -3220,6 +3221,7 @@ Be concise, technical, and actionable. When discussing features, consider:
   moderation: moderationRouter,
   exchange: exchangeRouter,
   ersValidation: ersValidationRouter,
+  ersDocuments: ersDocumentsRouter,
   exchangeThreads: exchangeThreadsRouter,
   aiUsage: aiUsageRouter,
   email: emailRouter,

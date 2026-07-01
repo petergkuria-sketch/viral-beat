@@ -6,57 +6,11 @@ import { smeListings, ersValidators } from "../../drizzle/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { sendEmail, appBaseUrl } from "../services/email";
+import { recomputeErs, MIN_VALIDATORS } from "../services/ersScore";
 
-const MIN_VALIDATORS = 3;   // independent validators required before Layer 2 counts
 const MAX_VALIDATORS = 7;   // cap nominations per listing
 
 const dim = z.number().int().min(0).max(100);
-
-/**
- * Recompute a listing's weighted ERS from its validator consensus.
- * validatorErs = reputation-weighted mean of validators' 4-dimension averages × 0.30.
- * Only counts once ≥3 validators have submitted blind scores. Flags a >30pt spread.
- */
-async function recompute(db: NonNullable<Awaited<ReturnType<typeof getDb>>>, listingId: number) {
-  const [listing] = await db.select().from(smeListings).where(eq(smeListings.id, listingId));
-  if (!listing) return;
-  const selfErs = listing.selfErs ?? 0;
-  const documentErs = listing.documentErs ?? 0;
-
-  const vals = await db.select().from(ersValidators)
-    .where(and(eq(ersValidators.listingId, listingId), eq(ersValidators.status, "scored")));
-  const scored = vals.filter(v =>
-    v.govScore != null && v.finScore != null && v.innScore != null && v.mktScore != null);
-
-  if (scored.length >= MIN_VALIDATORS) {
-    const rows = scored.map(v => ({
-      avg: ((v.govScore! + v.finScore! + v.innScore! + v.mktScore!) / 4),
-      rep: Math.max(1, v.reputation ?? 100),
-    }));
-    const wsum = rows.reduce((s, r) => s + r.rep, 0);
-    const consensus = rows.reduce((s, r) => s + r.avg * r.rep, 0) / (wsum || 1); // 0–100
-    const validatorErs = Math.round(consensus * 0.30);                            // 0–30
-    const spread = Math.max(...rows.map(r => r.avg)) - Math.min(...rows.map(r => r.avg));
-    // Documents are Layer 3 (final phase). Until then, validated listings are
-    // "validator_verified"; they reach "fully_verified" only once documents clear.
-    const level = documentErs > 0 ? "fully_verified" as const : "validator_verified" as const;
-    const ers = Math.min(100, selfErs + validatorErs + documentErs);
-    await db.update(smeListings).set({
-      validatorErs, ers, verificationLevel: level,
-      validatorFlag: spread > 30,
-      provisional: level !== "fully_verified",
-      ersVerifiedAt: new Date(),
-    }).where(eq(smeListings.id, listingId));
-  } else {
-    // Not enough validators yet — Layer 2 stays at zero.
-    await db.update(smeListings).set({
-      validatorErs: 0,
-      ers: Math.min(100, selfErs + documentErs),
-      verificationLevel: documentErs > 0 ? "document_verified" as const : "unverified" as const,
-      validatorFlag: false,
-    }).where(eq(smeListings.id, listingId));
-  }
-}
 
 const nomineeInput = z.object({
   name: z.string().min(2).max(160),
@@ -212,7 +166,7 @@ export const ersValidationRouter = router({
         comment: input.comment ?? null, status: "scored", scoredAt: new Date(),
       }).where(eq(ersValidators.id, v.id));
 
-      await recompute(db, v.listingId);
+      await recomputeErs(db, v.listingId);
       const [l] = await db.select().from(smeListings).where(eq(smeListings.id, v.listingId));
       return { ok: true, verificationLevel: l?.verificationLevel ?? "unverified", ers: l?.ers ?? 0 };
     }),

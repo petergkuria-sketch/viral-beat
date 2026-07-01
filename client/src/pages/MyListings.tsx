@@ -8,6 +8,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { ersBand, boardOf, verificationBadge, type VerificationLevel } from "@/lib/exchangeData";
 import { ValidatorInvite } from "@/components/ValidatorInvite";
+import { DocumentGateway } from "@/components/DocumentGateway";
 import {
   Building2, Plus, Pencil, Loader2, Lock, Inbox, ArrowLeft, Clock, CheckCircle2, XCircle,
   Send, Copy, Check, X, UserCheck,
@@ -195,6 +196,10 @@ export default function MyListings() {
 
                   {/* Layer 2 — validator verification (only for published, self-managed listings) */}
                   {l.status === "approved" && !onBehalf && <ValidatorInvite listingId={l.id} />}
+                  {/* Layer 3 — document gateway (final step, once validators have verified) */}
+                  {l.status === "approved" && !onBehalf && (vlevel === "validator_verified" || vlevel === "fully_verified") && (
+                    <DocumentGateway listingId={l.id} />
+                  )}
                 </div>
               );
             })}
