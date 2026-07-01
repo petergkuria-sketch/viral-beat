@@ -50,4 +50,14 @@ export const accessRouter = router({
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
     return db.select().from(accessRequests).orderBy(desc(accessRequests.createdAt));
   }),
+
+  /** Admin: update a request's status. */
+  setStatus: adminProcedure
+    .input(z.object({ id: z.number().int(), status: z.enum(["new", "contacted", "closed"]) }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      await db.update(accessRequests).set({ status: input.status }).where(eq(accessRequests.id, input.id));
+      return { ok: true };
+    }),
 });

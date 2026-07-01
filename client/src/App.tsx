@@ -28,6 +28,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const ModerationDashboard = lazy(() => import("./pages/ModerationDashboard"));
+const AccessRequestsAdmin = lazy(() => import("./pages/AccessRequestsAdmin"));
 const AiUsagePage = lazy(() => import("./pages/AiUsagePage"));
 const DeveloperHub = lazy(() => import("./pages/DeveloperHub"));
 const DeveloperAgent = lazy(() => import("./pages/DeveloperAgent"));
@@ -162,6 +163,7 @@ function Router() {
     { path: "/africa/:code", component: AfricaIntelligence },
     { path: "/admin", component: AdminDashboard },
     { path: "/admin/moderation", component: ModerationDashboard },
+    { path: "/admin/access", component: AccessRequestsAdmin },
     { path: "/admin/ai-usage", component: AiUsagePage },
     { path: "/admin/users", component: AdminUsers },
     { path: "/admin/bulletins", component: BulletinAdmin },

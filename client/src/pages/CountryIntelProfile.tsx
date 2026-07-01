@@ -626,10 +626,11 @@ function OSSPanel({ oss, isSubscribed }: { oss: OSSFacility; isSubscribed: boole
         {!isSubscribed && (
           <div className="px-4 pb-4 pt-1 border-t border-[#0f1e35]">
             <p className="text-[10px] text-slate-500 leading-relaxed mb-2">
-              Direct contacts for {oss.contacts.length} OSS officer{oss.contacts.length !== 1 ? "s" : ""} are visible to Analyst and Enterprise subscribers.
+              Direct contacts for {oss.contacts.length} OSS officer{oss.contacts.length !== 1 ? "s" : ""} are available with Bronze and Premium access.
             </p>
-            <Button size="sm" className="h-7 text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30">
-              Upgrade to Analyst →
+            <Button size="sm" className="h-7 text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30"
+              onClick={() => { window.location.href = "/pricing"; }}>
+              Request access →
             </Button>
           </div>
         )}
@@ -667,12 +668,13 @@ function ForecastTab({ c, isSubscribed }: { c: CountryProfile; isSubscribed: boo
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <Lock className="w-10 h-10 text-slate-600 mb-3" />
-        <p className="font-semibold text-slate-300 mb-1">12-Month Forecast — Analyst Plan Required</p>
+        <p className="font-semibold text-slate-300 mb-1">12-Month Forecast — Bronze / Premium access</p>
         <p className="text-xs text-slate-500 mb-4 max-w-xs">
           Access 12-month composite score trajectory, election risk windows, and sector timing recommendations.
         </p>
-        <Button size="sm" className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30">
-          Upgrade to Analyst →
+        <Button size="sm" className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 hover:bg-cyan-500/30"
+          onClick={() => { window.location.href = "/pricing"; }}>
+          Request access →
         </Button>
       </div>
     );
