@@ -1536,57 +1536,55 @@ export default function LandingPage() {
 
       {/* ── CREATOR NETWORK ─────────────────────────────────────────────────── */}
       <section id="creator-network" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+        <div className="max-w-4xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <div className="text-center mb-8">
               <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Field Contributors</Badge>
               <h2 className="text-4xl sm:text-5xl font-black mb-5">
-                Ground Truth<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Earns Its Own Weight</span>
+                Ground Truth <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Earns Its Own Weight</span>
               </h2>
-              <p className="text-gray-300 text-lg leading-relaxed mb-8">
-                Observers, Analysts, and Correspondents submit verified field signals that feed the PESTEL+IR intelligence pipeline. Every submission is cross-referenced, tiered by contributor credibility, and surfaced in the Intelligence Workspace. The value chain runs through verification — not volume. Contributors cite the methodology publicly, giving institutional users data they can defend.
+              <p className="text-gray-300 text-lg leading-relaxed max-w-2xl mx-auto">
+                Observers, Analysts, and Correspondents submit verified field signals that feed the PESTEL+IR intelligence pipeline. Every submission is cross-referenced, tiered by contributor credibility, and surfaced in the Intelligence Workspace. The value chain runs through verification — not volume — giving institutional users data they can defend.
               </p>
-              <ul className="space-y-4 mb-8">
-                {[
-                  ["Verified Contributor Tiers", "Observer → Analyst → Correspondent → Partner. Each tier reflects the depth and credibility of your intelligence contributions, not just your subscription level."],
-                  ["PESTEL+IR Signal Pipeline", "Every field signal is auto-classified across Political, Economic, Social, Tech, Environmental, Legal, and Investor Readiness dimensions — then surfaced in the Intelligence Workspace."],
-                  ["VBT Token Rewards", "Earn VBT tokens by submitting and validating signals. Tokens reflect your contribution standing in the network — separate from paid subscription tiers that unlock premium features."],
-                  ["Contributor Verification", "Verified contributors receive credibility badges, elevated signal weighting, and priority placement in the intelligence feed."],
-                ].map(([title, desc]) => (
-                  <li key={title} className="flex gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="font-semibold text-white text-sm">{title}</div>
-                      <div className="text-gray-300 text-sm">{desc}</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            </div>
+
+            <ul className="grid sm:grid-cols-2 gap-x-8 gap-y-5 mb-8">
+              {[
+                ["Verified Contributor Tiers", "Observer → Analyst → Correspondent → Partner. Each tier reflects the depth and credibility of your intelligence contributions — earned, not bought."],
+                ["PESTEL+IR Signal Pipeline", "Every field signal is auto-classified across Political, Economic, Social, Tech, Environmental, Legal, and Investor Readiness dimensions — then surfaced in the Intelligence Workspace."],
+                ["Contributor Verification", "Verified contributors receive credibility badges, elevated signal weighting, and priority placement in the intelligence feed."],
+                ["Cite It Publicly", "Contributors reference the methodology openly, so the intelligence you file becomes defensible evidence for institutional users."],
+              ].map(([title, desc]) => (
+                <li key={title} className="flex gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-semibold text-white text-sm">{title}</div>
+                    <div className="text-gray-400 text-sm leading-snug">{desc}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/* VBT rewards — slim strip (reputation, not payment) */}
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3.5 mb-8 flex flex-wrap items-center gap-x-6 gap-y-2">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <Coins className="w-4 h-4 text-purple-400" />
+                <span className="text-purple-300 font-semibold">VBT rewards</span> · reputation, not payment
+              </div>
+              <div className="h-4 w-px bg-white/10 hidden sm:block" />
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+                <span><b className="text-purple-300">+500</b> <span className="text-gray-500 text-xs">file a signal</span></span>
+                <span><b className="text-cyan-300">+50</b> <span className="text-gray-500 text-xs">validate</span></span>
+                <span><b className="text-emerald-300">+200</b> <span className="text-gray-500 text-xs">tier bonus / mo</span></span>
+              </div>
+            </div>
+
+            <div className="text-center">
               <Button onClick={() => user ? setLocation("/haa") : (window.location.href = getLoginUrl())} variant="outline" className="border-purple-500/30 text-purple-300 hover:text-white hover:border-purple-400/50">
                 Join as a Contributor <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="grid grid-cols-2 gap-4">
-              {[
-                { icon: Users,     title: "File a Field Signal", reward: "+500 VBT", color: "#a78bfa", desc: "Per verified ground-truth submission" },
-                { icon: TrendingUp,title: "Validate a Signal",  reward: "+50 VBT",  color: "#22d3ee", desc: "Per corroboration confirmed by 3+ analysts" },
-                { icon: BarChart3, title: "Analyst Tier Bonus",  reward: "+200 VBT", color: "#34d399", desc: "Monthly reward for sustained accuracy" },
-                { icon: Coins,     title: "VBT Tokens",          reward: "Earned",   color: "#fb923c", desc: "Contribution rewards — not payment tokens" },
-              ].map((item, i) => (
-                <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }}
-                  className="bg-[#0f2240] border border-[#1e3a5f] rounded-xl p-5 hover:border-purple-500/30 transition-all">
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ background: `${item.color}15` }}>
-                    <item.icon className="w-4 h-4" style={{ color: item.color }} />
-                  </div>
-                  <div className="text-xs text-gray-500 mb-0.5">{item.title}</div>
-                  <div className="text-xl font-black mb-1" style={{ color: item.color }}>{item.reward}</div>
-                  <div className="text-xs text-gray-500">{item.desc}</div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
