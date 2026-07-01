@@ -201,8 +201,19 @@ export default function LandingPage() {
   const verdictColour = (v: string) => v === "go-market" ? "#22c55e" : v === "monitor" ? "#84cc16" : v === "caution" ? "#f59e0b" : "#ef4444";
   const boardRows = [...COUNTRIES].sort((a, b) => composite(b) - composite(a)).slice(0, 6);
   const avgComposite = boardRows.length ? Math.round(boardRows.reduce((s, c) => s + composite(c), 0) / boardRows.length) : 0;
-  const liveFeed = COUNTRIES.flatMap(c => (c.signals ?? []).slice(0, 1).map(s => ({ ...s, flag: c.flag, country: c.name }))).slice(0, 4);
   const totalSignals = COUNTRIES.reduce((n, c) => n + (c.signals?.length ?? 0), 0);
+
+  // Live feed that ticks (P: make it tick) — rotate a window of 4 through the pool.
+  const signalPool = COUNTRIES.flatMap(c => (c.signals ?? []).map(s => ({ ...s, flag: c.flag, country: c.name })));
+  const [feedStart, setFeedStart] = useState(0);
+  const [ago, setAgo] = useState(0);
+  useEffect(() => {
+    if (signalPool.length === 0) return;
+    const feed = setInterval(() => setFeedStart(i => (i + 1) % signalPool.length), 3500);
+    const clock = setInterval(() => setAgo(a => (a + 1) % 60), 1000);
+    return () => { clearInterval(feed); clearInterval(clock); };
+  }, [signalPool.length]);
+  const liveFeed = Array.from({ length: Math.min(4, signalPool.length) }, (_, k) => signalPool[(feedStart + k) % signalPool.length]);
 
   const handleExplore = () => {
     if (user) setLocation("/africa");
@@ -649,10 +660,13 @@ export default function LandingPage() {
 
               {/* Live signals feed (P3 + P5 provenance) */}
               <div className="mt-3 rounded-2xl border border-[#1e3a5f] bg-[#0a1628]/80 p-3">
-                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-slate-500 mb-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> Live signals — updating now
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-slate-500">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> Live signals — updating now
+                  </div>
+                  <span className="text-[10px] text-slate-600 tabular-nums">{ago}s ago</span>
                 </div>
-                <div className="space-y-2">
+                <motion.div key={feedStart} initial={{ opacity: 0.3 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="space-y-2">
                   {liveFeed.map((s, i) => (
                     <div key={i} className="flex items-start gap-2.5">
                       <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${s.impact === "pos" ? "bg-emerald-400" : s.impact === "neg" ? "bg-red-400" : "bg-slate-500"}`} />
@@ -662,7 +676,7 @@ export default function LandingPage() {
                       </div>
                     </div>
                   ))}
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           </div>
@@ -1137,8 +1151,8 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}>
 
             {/* Section header */}
-            <div className="text-center mb-12">
-              <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="text-left mb-12 max-w-3xl">
+              <div className="flex items-center gap-3 mb-4">
                 <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Investment Facilitation</Badge>
                 <span className="text-xs text-emerald-400/80 border border-emerald-500/20 bg-emerald-500/5 rounded-full px-3 py-1">● 8 countries · live data</span>
               </div>
@@ -1146,7 +1160,7 @@ export default function LandingPage() {
                 The Market Is Open.<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">OSS Confirms It.</span>
               </h2>
-              <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+              <p className="text-gray-300 text-lg">
                 Beyond PESTEL scores and IRS rankings — a country's One-Stop-Shop for investment is the single clearest signal that the market is ready and open for business. ViralBeat maps every active OSS across Africa so you know exactly where the door is open.
               </p>
             </div>
@@ -1286,8 +1300,8 @@ export default function LandingPage() {
           <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} viewport={{ once: true }}>
 
             {/* Header */}
-            <div className="text-center mb-12">
-              <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="text-left mb-12 max-w-3xl">
+              <div className="flex items-center gap-3 mb-4">
                 <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20">SME Exchange</Badge>
                 <span className="text-xs text-cyan-400/80 border border-cyan-500/20 bg-cyan-500/5 rounded-full px-3 py-1">● Phase 1 · discovery only</span>
               </div>
@@ -1295,7 +1309,7 @@ export default function LandingPage() {
                 List small. Prove it.<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">Graduate up.</span>
               </h2>
-              <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+              <p className="text-gray-300 text-lg">
                 A stock-market-style ladder for African enterprise. SMEs build a verified Enterprise Readiness Score
                 and graduate from the open floor to the capital-ready board at ERS {ERS_GATE}.
               </p>
@@ -2026,6 +2040,42 @@ export default function LandingPage() {
                   Become a Contributor
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── METHODOLOGY HUB (collapses explanatory detail) ──────────────────── */}
+      <section id="how-it-works" className="py-20 px-4" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-7">
+            <div className="flex items-center gap-3 mb-2">
+              <Badge className="bg-white/5 text-gray-300 border-white/10">Under the hood</Badge>
+              <span className="text-xs text-gray-500">The detail, without the clutter</span>
+            </div>
+            <h2 className="text-2xl font-black mb-2">How it works &amp; how we verify</h2>
+            <p className="text-gray-400 text-sm max-w-2xl mb-5">
+              The top of this page is about the market, the value, and what's on offer. The methodology, scale and verification detail lives here — jump straight to what you need.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              {[
+                ["Methodology & scoring", "How PESTEL+IR composites are built", "/about#methodology"],
+                ["How data is validated", "Four-stage ground-truth verification", "/about#methodology"],
+                ["Intelligence at scale", "Coverage, feeds and the workspace", "#intelligence"],
+                ["API & embedding", "Build on the intelligence layer", "#api"],
+                ["Why ViralBeat exists", "The mission behind the platform", "#mission"],
+                ["Field contributors", "Who files the signals, and how they're tiered", "#creator-network"],
+              ].map(([t, d, href]) => (
+                <button key={t as string}
+                  onClick={() => (href as string).startsWith("#") ? scrollTo((href as string).slice(1)) : setLocation(href as string)}
+                  className="text-left flex items-start justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:border-cyan-500/30 hover:bg-white/[0.04] transition-colors p-3.5">
+                  <div>
+                    <div className="text-sm font-semibold text-white">{t}</div>
+                    <div className="text-[11px] text-gray-500 leading-snug">{d}</div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-gray-600 shrink-0 mt-0.5" />
+                </button>
+              ))}
             </div>
           </div>
         </div>
