@@ -255,6 +255,10 @@ export default function LandingPage() {
       cta: { label: "See access options", path: "/pricing" },
     },
     {
+      type: "sme",
+      cta: { label: "Explore the SME Exchange", path: "/exchange" },
+    },
+    {
       type: "quote",
       avatar: "FK", avatarBg: "linear-gradient(135deg,#7c3aed,#9333ea)",
       name: "Fatou Kouyaté", role: "DFI Programme Analyst · Dakar",
@@ -1592,7 +1596,7 @@ export default function LandingPage() {
       <section className="py-24 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-black mb-2">Why analysts and investors choose ViralBeat</h2>
+            <h2 className="text-3xl font-black mb-2">Why Choose ViralBeat</h2>
             <p className="text-gray-500 text-sm">Pause any slide to go deeper</p>
           </div>
 
@@ -1696,6 +1700,32 @@ export default function LandingPage() {
                           <div className="text-gray-700 text-lg">→</div>
                           <div className="text-center"><div className="text-base font-black text-cyan-400">Free in beta</div><div className="text-[10px] text-gray-600">ViralBeat</div></div>
                         </div>
+                      </>
+                    )}
+
+                    {slide.type === "sme" && (
+                      <>
+                        <div className="flex items-center gap-2 text-[10px] text-cyan-400 uppercase tracking-widest mb-3">
+                          <Building2 className="w-3.5 h-3.5" /> SME Exchange · a pathway to market discovery
+                        </div>
+                        <h3 className="text-xl font-black text-white mb-2">From intelligence to opportunity</h3>
+                        <p className="text-sm text-gray-300 leading-relaxed mb-4">
+                          The scanner tells you a market is open — the <span className="text-cyan-300 font-semibold">SME Exchange</span> shows you who to work with in it.
+                          Discover verified, investment-ready African SMEs by their Enterprise Readiness Score, then connect safely on-platform.
+                        </p>
+                        <div className="grid grid-cols-3 gap-3 mb-2">
+                          {[
+                            ["Discover", "Filter SMEs by country, sector & ERS"],
+                            ["Verify", "Ground-truth readiness, not self-claims"],
+                            ["Connect", "Safe, on-platform introductions"],
+                          ].map(([t, d]) => (
+                            <div key={t} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3">
+                              <div className="text-sm font-bold text-cyan-300 mb-0.5">{t}</div>
+                              <div className="text-[11px] text-gray-500 leading-snug">{d}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="text-[11px] text-gray-600 mt-3">For investors, enterprises & DFIs seeking their next African partner.</div>
                       </>
                     )}
 
