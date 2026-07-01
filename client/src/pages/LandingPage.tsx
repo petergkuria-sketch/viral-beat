@@ -62,7 +62,7 @@ function StabilityBar({ score }: { score: number }) {
 
 // ── Persona gate data ─────────────────────────────────────────────────────────
 
-type PersonaId = "investor" | "analyst" | "ngo" | "journalist" | "researcher" | "enthusiast";
+type PersonaId = "investor" | "founder" | "analyst" | "ngo" | "journalist" | "researcher" | "enthusiast";
 
 const PERSONAS: Array<{
   id: PersonaId;
@@ -86,6 +86,20 @@ const PERSONAS: Array<{
       { step: "01", title: "Rank all 55 markets", desc: "Africa Scanner scores every AU nation on composite PESTEL+IR. Sort by score, filter by region.", tag: "Africa Scanner" },
       { step: "02", title: "Run Investor DD", desc: "AI agent produces sovereign risk score, regulatory pipeline, exit scenarios, and entry/exit signals.", tag: "AI Agents Hub" },
       { step: "03", title: "Export the brief", desc: "Download board-ready output with citation key. Set a signal watchlist for ongoing country monitoring.", tag: "Archive + Watchlist" },
+    ],
+  },
+  {
+    id: "founder",
+    icon: Building2,
+    label: "SME / Startup",
+    sub: "Founders · incubators · accelerators",
+    accent: "#f59e0b",
+    cta: "Open SME Exchange",
+    path: "/exchange",
+    steps: [
+      { step: "01", title: "List your venture", desc: "SMEs and startups list free; incubators and accelerators list on behalf of their exits or clients — clearly attributed.", tag: "SME Exchange" },
+      { step: "02", title: "Get an ERS readiness score", desc: "Every listing is scored on the four ERS pillars — governance, financial, innovation, and market — before it reaches investors.", tag: "ERS Scoring" },
+      { step: "03", title: "Reach ready capital", desc: "Cross the ERS gate to graduate onto the capital-ready board and connect with investors scanning the exchange.", tag: "Capital-Ready Board" },
     ],
   },
   {
