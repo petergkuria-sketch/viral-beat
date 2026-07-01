@@ -103,6 +103,14 @@ async function startServer() {
       runAgentCycle("scheduled").catch(e => console.error("[ScannerAgent] scheduled run failed:", e));
     }, 4 * 60 * 60 * 1000);
 
+    // ERS annual re-verification decay — first sweep after 60s, then daily.
+    setTimeout(() => {
+      import("../services/ersScore").then(m => m.decayStaleErs().catch(e => console.error("[ERS decay] initial run failed:", e)));
+    }, 60_000);
+    setInterval(() => {
+      import("../services/ersScore").then(m => m.decayStaleErs().catch(e => console.error("[ERS decay] scheduled run failed:", e)));
+    }, 24 * 60 * 60 * 1000);
+
     // Pre-warm Vite dep optimization so the first browser load is instant
     // (Vite in middleware mode does lazy dep bundling on first request)
     if (process.env.NODE_ENV === "development") {

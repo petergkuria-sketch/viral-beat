@@ -7,8 +7,11 @@ import { eq, and, desc, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { sendEmail, appBaseUrl } from "../services/email";
 import { recomputeErs, MIN_VALIDATORS } from "../services/ersScore";
+import { users } from "../../drizzle/schema";
+import { awardTokens } from "./tokens";
 
-const MAX_VALIDATORS = 7;   // cap nominations per listing
+const MAX_VALIDATORS = 7;    // cap nominations per listing
+const VALIDATOR_REWARD = 25; // VBT awarded for a completed validation (accurate, timely scoring)
 
 const dim = z.number().int().min(0).max(100);
 
@@ -168,6 +171,14 @@ export const ersValidationRouter = router({
 
       await recomputeErs(db, v.listingId);
       const [l] = await db.select().from(smeListings).where(eq(smeListings.id, v.listingId));
+
+      // Reward the validator in VBT if they have a platform account (contribution
+      // reward — NOT commission tied to capital, which would bias scoring up).
+      try {
+        const [u] = await db.select().from(users).where(eq(users.email, v.email));
+        if (u) await awardTokens(u.id, VALIDATOR_REWARD, "ers_validation", `Validated ${l?.name ?? "an SME"}`, v.listingId, "sme_listing");
+      } catch { /* reward is best-effort, never blocks scoring */ }
+
       return { ok: true, verificationLevel: l?.verificationLevel ?? "unverified", ers: l?.ers ?? 0 };
     }),
 });

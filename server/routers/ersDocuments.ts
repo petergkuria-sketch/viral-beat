@@ -1,11 +1,13 @@
 import { z } from "zod";
+import { randomBytes } from "crypto";
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "../_core/trpc";
 import { getDb } from "../db";
-import { smeListings, ersDocuments } from "../../drizzle/schema";
+import { smeListings, ersDocuments, ersAppeals } from "../../drizzle/schema";
 import { eq, and, desc, inArray, ne } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { recomputeErs, evaluateGateway, TIER1_TYPES } from "../services/ersScore";
+import { recomputeErs, evaluateGateway, TIER1_TYPES, decayStaleErs } from "../services/ersScore";
 import { getOrchestrator } from "../_core/ai/orchestrator";
+import { isStorageConfigured, createUploadUrl, createDownloadUrl } from "../services/storage";
 
 // Required documents per tier (labels shared with the client checklist).
 export const DOC_TYPES = {
@@ -148,5 +150,80 @@ export const ersDocumentsRouter = router({
       } catch (e: any) {
         return { summary: `Authenticity check unavailable: ${e?.message ?? "error"}` };
       }
+    }),
+
+  // ── Direct file upload (S3-compatible). Falls back to reference model if unset ──
+  storageEnabled: publicProcedure.query(() => ({ enabled: isStorageConfigured() })),
+
+  /** Owner requests a presigned URL to upload a document file directly. */
+  uploadUrl: protectedProcedure
+    .input(z.object({ listingId: z.number().int(), docType: z.string().min(2).max(64), contentType: z.string().max(120), ext: z.string().max(10).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!isStorageConfigured()) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "File storage is not configured." });
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      await ownedListing(db, input.listingId, String(ctx.user.id));
+      const safeExt = (input.ext ?? "").replace(/[^a-z0-9]/gi, "").slice(0, 8);
+      const key = `ers-docs/${input.listingId}/${input.docType}-${randomBytes(8).toString("hex")}${safeExt ? "." + safeExt : ""}`;
+      const uploadUrl = await createUploadUrl(key, input.contentType || "application/octet-stream");
+      return { uploadUrl, reference: `s3:${key}` }; // store reference as s3:<key>
+    }),
+
+  /** Admin resolves an s3:<key> reference to a short-lived viewing URL. */
+  docUrl: adminProcedure
+    .input(z.object({ id: z.number().int() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      const [doc] = await db.select().from(ersDocuments).where(eq(ersDocuments.id, input.id));
+      if (!doc?.reference?.startsWith("s3:")) throw new TRPCError({ code: "BAD_REQUEST", message: "No stored file for this document" });
+      const url = await createDownloadUrl(doc.reference.slice(3));
+      return { url };
+    }),
+
+  /** Admin: manually trigger the annual re-verification decay sweep. */
+  adminRunDecay: adminProcedure.mutation(async () => decayStaleErs()),
+
+  // ── Appeals ──────────────────────────────────────────────────────────────
+  /** Owner contests a score or document decision. */
+  submitAppeal: protectedProcedure
+    .input(z.object({ listingId: z.number().int(), reason: z.string().min(10).max(2000) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      await ownedListing(db, input.listingId, String(ctx.user.id));
+      await db.insert(ersAppeals).values({ listingId: input.listingId, submittedByUserId: String(ctx.user.id), reason: input.reason, status: "open" });
+      return { ok: true };
+    }),
+
+  /** Owner's appeals for a listing. */
+  myAppeals: protectedProcedure
+    .input(z.object({ listingId: z.number().int() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      await ownedListing(db, input.listingId, String(ctx.user.id));
+      return db.select().from(ersAppeals).where(eq(ersAppeals.listingId, input.listingId)).orderBy(desc(ersAppeals.createdAt));
+    }),
+
+  /** Admin: open appeals across all listings. */
+  adminAppeals: adminProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+    const rows = await db.select().from(ersAppeals).where(eq(ersAppeals.status, "open")).orderBy(desc(ersAppeals.createdAt));
+    const ids = Array.from(new Set(rows.map(r => r.listingId)));
+    const listings = ids.length ? await db.select().from(smeListings).where(inArray(smeListings.id, ids)) : [];
+    const nameOf = new Map(listings.map(l => [l.id, l.name]));
+    return rows.map(r => ({ id: r.id, listingId: r.listingId, listingName: nameOf.get(r.listingId) ?? `#${r.listingId}`, reason: r.reason, createdAt: r.createdAt }));
+  }),
+
+  /** Admin: resolve or reject an appeal. */
+  resolveAppeal: adminProcedure
+    .input(z.object({ id: z.number().int(), action: z.enum(["resolve", "reject"]), resolution: z.string().max(1000).optional() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      await db.update(ersAppeals).set({ status: input.action === "resolve" ? "resolved" : "rejected", resolution: input.resolution ?? null }).where(eq(ersAppeals.id, input.id));
+      return { ok: true };
     }),
 });

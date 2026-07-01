@@ -1860,6 +1860,23 @@ export const ersDocuments = mysqlTable("ersDocuments", {
 export type ErsDocument = typeof ersDocuments.$inferSelect;
 export type InsertErsDocument = typeof ersDocuments.$inferInsert;
 
+/** ERS appeals — an SME owner contests a score or document decision. */
+export const ersAppeals = mysqlTable("ersAppeals", {
+  id:            int("id").autoincrement().primaryKey(),
+  listingId:     int("listingId").notNull(),
+  submittedByUserId: varchar("submittedByUserId", { length: 128 }).notNull(),
+  reason:        text("reason").notNull(),
+  status:        mysqlEnum("status", ["open", "resolved", "rejected"]).notNull().default("open"),
+  resolution:    text("resolution"),
+  createdAt:     timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:     timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, t => ({
+  listingIdx: index("ersAppeals_listing_idx").on(t.listingId),
+  statusIdx:  index("ersAppeals_status_idx").on(t.status),
+}));
+export type ErsAppeal = typeof ersAppeals.$inferSelect;
+export type InsertErsAppeal = typeof ersAppeals.$inferInsert;
+
 /**
  * SME Exchange — investor↔SME safe contact. An investor/DFI expresses interest
  * in a listing (exchangeIntros); the SME owner accepts/declines. On accept, a

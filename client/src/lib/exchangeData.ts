@@ -138,3 +138,14 @@ export function ersBand(ers: number): { label: string; color: string } {
   if (ers >= 41) return { label: "Developing", color: "#f59e0b" };
   return { label: "Not ready", color: "#ef4444" };
 }
+
+// Graduation sub-tiers (from the ERS review) so investors can distinguish
+// Capital-Ready SMEs. Only meaningful once fully verified.
+export function ersTier(ers: number): { label: string; color: string; rank: number } {
+  if (ers >= 86) return { label: "Elite", color: "#a855f7", rank: 5 };
+  if (ers >= 76) return { label: "Premium", color: "#8b5cf6", rank: 4 };
+  if (ers >= 61) return { label: "Capital-Ready", color: "#22c55e", rank: 3 };
+  if (ers >= 51) return { label: "Developing", color: "#38bdf8", rank: 2 };
+  if (ers >= 31) return { label: "Emerging", color: "#f59e0b", rank: 1 };
+  return { label: "Pre-launch", color: "#94a3b8", rank: 0 };
+}

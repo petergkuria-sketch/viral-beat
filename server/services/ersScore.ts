@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, lt, isNotNull } from "drizzle-orm";
 import { getDb } from "../db";
 import { smeListings, ersValidators, ersDocuments } from "../../drizzle/schema";
 import { sendEmail, appBaseUrl } from "./email";
@@ -77,6 +77,31 @@ export async function recomputeErs(db: Db, listingId: number) {
 
   if (level === "fully_verified" && !wasFull) await sendGraduationEmail(l, ers);
   return { level, ers, validatorErs, documentErs };
+}
+
+/**
+ * ERS decay / annual re-verification. Fully-verified listings older than
+ * `maxAgeDays` have their verified documents returned to "pending" (re-verify)
+ * and drop off the Capital-Ready board until documents are re-cleared. Run daily.
+ */
+export async function decayStaleErs(maxAgeDays = 365): Promise<{ decayed: number }> {
+  const db = await getDb();
+  if (!db) return { decayed: 0 };
+  const cutoff = new Date(Date.now() - maxAgeDays * 24 * 60 * 60 * 1000);
+  const stale = await db.select().from(smeListings).where(and(
+    eq(smeListings.verificationLevel, "fully_verified"),
+    isNotNull(smeListings.ersVerifiedAt),
+    lt(smeListings.ersVerifiedAt, cutoff),
+  ));
+  for (const l of stale) {
+    await db.update(ersDocuments)
+      .set({ status: "pending", reviewNote: "Annual re-verification required" })
+      .where(and(eq(ersDocuments.listingId, l.id), eq(ersDocuments.status, "verified")));
+    await db.update(smeListings).set({ ersVerifiedAt: null }).where(eq(smeListings.id, l.id));
+    await recomputeErs(db, l.id); // docs now pending → drops to validator_verified
+  }
+  if (stale.length) console.log(`[ERS decay] re-verification triggered for ${stale.length} listing(s)`);
+  return { decayed: stale.length };
 }
 
 /** Prompt 4 — graduation notification when an SME reaches Capital-Ready. */

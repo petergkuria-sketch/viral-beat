@@ -4,8 +4,8 @@ import { TopNav } from "@/components/TopNav";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import {
-  EXCHANGE_SMES, boardOf, ersBand, ERS_GATE,
-  type ExchangeSME,
+  EXCHANGE_SMES, boardOf, ersBand, ersTier, verificationBadge, ERS_GATE,
+  type ExchangeSME, type VerificationLevel,
 } from "@/lib/exchangeData";
 import {
   Building2, ArrowRight, TrendingUp, Plus, ShieldCheck,
@@ -53,10 +53,12 @@ function SMECard({ sme }: { sme: ExchangeSME }) {
       </div>
 
       <div className="flex flex-wrap gap-1.5 mb-4">
-        <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold border"
-          style={{ color: band.color, background: `${band.color}14`, borderColor: `${band.color}33` }}>
-          {band.label}
-        </span>
+        {(() => { const t = ersTier(sme.ers); const vb = verificationBadge(sme.verificationLevel); return (<>
+          <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold border"
+            style={{ color: t.color, background: `${t.color}14`, borderColor: `${t.color}33` }}>{t.label}</span>
+          <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold border" title={vb.hint}
+            style={{ color: vb.color, background: `${vb.color}14`, borderColor: `${vb.color}33` }}>{vb.label}</span>
+        </>); })()}
         {sme.status.map(s => (
           <span key={s} className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-slate-300">{s}</span>
         ))}
@@ -113,6 +115,7 @@ export default function ExchangeHub() {
     countryCode: r.countryCode,
     location: r.location ?? r.countryName,
     ers: r.ers ?? 0,
+    verificationLevel: ((r as any).verificationLevel as VerificationLevel) ?? "unverified",
     pillars: {
       governance: r.governance ?? 0, financial: r.financial ?? 0,
       innovation: r.innovation ?? 0, market: r.market ?? 0,
@@ -137,17 +140,24 @@ export default function ExchangeHub() {
   const [fSector, setFSector] = useState("");
   const [fMinErs, setFMinErs] = useState(0);
   const [fStatus, setFStatus] = useState("");
+  const [fVerified, setFVerified] = useState(""); // "", "fully_verified", "validated+"
 
   const countries = Array.from(new Set(all.map(s => s.country))).sort();
   const sectors = Array.from(new Set(all.map(s => s.sector))).sort();
   const statusOptions = Array.from(new Set(all.flatMap(s => s.status))).sort();
-  const activeFilters = !!(fCountry || fSector || fMinErs > 0 || fStatus);
+  const activeFilters = !!(fCountry || fSector || fMinErs > 0 || fStatus || fVerified);
 
+  const verifiedOk = (s: ExchangeSME) => {
+    if (fVerified === "fully_verified") return s.verificationLevel === "fully_verified";
+    if (fVerified === "validated+") return s.verificationLevel === "fully_verified" || s.verificationLevel === "validator_verified";
+    return true;
+  };
   const filtered = all.filter(s =>
     (!fCountry || s.country === fCountry) &&
     (!fSector || s.sector === fSector) &&
     s.ers >= fMinErs &&
-    (!fStatus || s.status.includes(fStatus))
+    (!fStatus || s.status.includes(fStatus)) &&
+    verifiedOk(s)
   );
 
   const openBoard = filtered.filter(s => boardOf(s) === "open");
@@ -208,13 +218,21 @@ export default function ExchangeHub() {
             </select>
           </div>
           <div>
+            <label className="text-[10px] uppercase tracking-wider text-slate-500 mb-1 block">Verification</label>
+            <select value={fVerified} onChange={e => setFVerified(e.target.value)} className="bg-[#050e1c] border border-[#1a2d4a] rounded-md text-xs h-8 px-2 min-w-[130px]">
+              <option value="">Any level</option>
+              <option value="fully_verified">Fully verified</option>
+              <option value="validated+">Validator-verified+</option>
+            </select>
+          </div>
+          <div>
             <label className="text-[10px] uppercase tracking-wider text-slate-500 mb-1 block">Min ERS: {fMinErs}</label>
             <input type="range" min={0} max={100} step={5} value={fMinErs} onChange={e => setFMinErs(Number(e.target.value))} className="accent-cyan-400 w-32 h-8" />
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className="text-[11px] text-slate-500">{filtered.length} of {all.length}</span>
             {activeFilters && (
-              <button onClick={() => { setFCountry(""); setFSector(""); setFMinErs(0); setFStatus(""); }}
+              <button onClick={() => { setFCountry(""); setFSector(""); setFMinErs(0); setFStatus(""); setFVerified(""); }}
                 className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
                 <X className="w-3 h-3" /> Clear
               </button>
