@@ -16,8 +16,8 @@ const TYPES: { key: ModType; label: string; icon: typeof Building2; hint: string
   { key: "oss",     label: "OSS data",            icon: Building2,  hint: "One-Stop-Shop records" },
   { key: "sme",     label: "SME listings",        icon: TrendingUp, hint: "Exchange IPO onboarding" },
   { key: "green",   label: "Green reports",       icon: Leaf,       hint: "Field observations" },
-  { key: "viral",   label: "Viral content",       icon: Flame,      hint: "HAA submissions" },
-  { key: "creator", label: "Creator verification", icon: BadgeCheck, hint: "Identity / portfolio" },
+  { key: "viral",   label: "Grounded Verification",    icon: Flame,      hint: "HAA submissions" },
+  { key: "creator", label: "Contributor Verification", icon: BadgeCheck, hint: "Identity / portfolio" },
 ];
 
 function fmtDate(d: string | Date | null) {
