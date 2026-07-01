@@ -378,7 +378,7 @@ export default function LandingPage() {
           {/* Right zone — exactly three: Pricing · Settings · CTA */}
           <div className="flex items-center gap-2">
             <button onClick={() => setLocation("/pricing")} className="hidden sm:inline-flex px-3 py-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300 rounded-lg hover:bg-white/5 transition-all">
-              Pricing
+              Access
             </button>
 
             <DropdownMenu>

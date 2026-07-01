@@ -1821,3 +1821,21 @@ export const exchangeMessages = mysqlTable("exchangeMessages", {
 }));
 export type ExchangeMessage = typeof exchangeMessages.$inferSelect;
 export type InsertExchangeMessage = typeof exchangeMessages.$inferInsert;
+
+/**
+ * Access requests — price-discovery capture. While paid tiers are hidden,
+ * users "request access" to Bronze / Premium and we record demand + notify admins.
+ */
+export const accessRequests = mysqlTable("accessRequests", {
+  id:        int("id").autoincrement().primaryKey(),
+  userId:    varchar("userId", { length: 128 }),
+  email:     varchar("email", { length: 200 }).notNull(),
+  tier:      mysqlEnum("tier", ["bronze", "premium"]).notNull(),
+  message:   text("message"),
+  status:    mysqlEnum("status", ["new", "contacted", "closed"]).notNull().default("new"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, t => ({
+  statusIdx: index("accessRequests_status_idx").on(t.status),
+}));
+export type AccessRequest = typeof accessRequests.$inferSelect;
+export type InsertAccessRequest = typeof accessRequests.$inferInsert;
