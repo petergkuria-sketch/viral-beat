@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
-import { ersBand, ERS_GATE } from "@/lib/exchangeData";
+import { ersBand, boardOf, verificationBadge, type VerificationLevel } from "@/lib/exchangeData";
 import {
   Building2, Plus, Pencil, Loader2, Lock, Inbox, ArrowLeft, Clock, CheckCircle2, XCircle,
   Send, Copy, Check, X, UserCheck,
@@ -95,6 +95,9 @@ export default function MyListings() {
               const st = STATUS_STYLE[l.status] ?? STATUS_STYLE.pending;
               const StIcon = st.icon;
               const band = ersBand(l.ers ?? 0);
+              const vlevel = ((l as any).verificationLevel as VerificationLevel) ?? "unverified";
+              const vbadge = verificationBadge(vlevel);
+              const onCapital = boardOf({ ers: l.ers ?? 0, verificationLevel: vlevel }) === "capital_ready";
               const onBehalf = l.listedByType !== "self";
               const pending = transferByListing.get(l.id);
               const claimUrl = pending ? `${window.location.origin}/exchange/claim/${pending.token}` : null;
@@ -107,9 +110,14 @@ export default function MyListings() {
                         <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${st.cls}`}>
                           <StIcon className="w-3 h-3" /> {st.label}
                         </span>
+                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full border"
+                          title={vbadge.hint}
+                          style={{ color: vbadge.color, background: `${vbadge.color}14`, borderColor: `${vbadge.color}33` }}>
+                          {vbadge.label}
+                        </span>
                       </div>
                       <div className="text-[11px] text-slate-500">
-                        {l.sector} · {l.countryName} · {(l.ers ?? 0) >= ERS_GATE ? "Capital-Ready board" : "Open Innovation board"}
+                        {l.sector} · {l.countryName} · {onCapital ? "Capital-Ready board" : "Open Innovation board"}
                         {onBehalf && l.listedByOrg ? ` · via ${l.listedByOrg} (${l.listedByType})` : ""}
                       </div>
                       {l.status === "rejected" && l.reviewNote && (

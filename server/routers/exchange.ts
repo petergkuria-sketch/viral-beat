@@ -40,8 +40,18 @@ const listingInput = z.object({
   { message: "Incubator / accelerator name is required when listing on behalf of a client", path: ["listedByOrg"] },
 );
 
-function composite(g = 0, f = 0, i = 0, m = 0) {
-  return Math.round((g + f + i + m) / 4);
+// ── Weighted ERS (anti-inflation) ────────────────────────────────────────────
+// Self-assessment is a starting point, not a grade. The four 0–100 pillars are
+// averaged and capped to contribute at most 50 points (Layer 1). Validators
+// (Layer 2, ≤30) and documents (Layer 3, ≤20) are added as they corroborate the
+// claim. In P0 no validator/document data exists yet, so a fresh listing's ERS
+// equals its capped self-score (≤50) and stays "unverified" on the Open board —
+// this is the deliberate re-baseline that ends grade inflation.
+function selfScore(g = 0, f = 0, i = 0, m = 0) {
+  return Math.round((g + f + i + m) / 4 / 2); // 0–50
+}
+function weightedErs(self: number, validator = 0, document = 0) {
+  return Math.min(100, self + validator + document);
 }
 
 /** Ensure stored websites are absolute URLs (scheme-less values break links). */
@@ -69,7 +79,13 @@ function valuesFrom(input: z.infer<typeof listingInput>) {
     financial: input.financial ?? 0,
     innovation: input.innovation ?? 0,
     market: input.market ?? 0,
-    ers: composite(input.governance, input.financial, input.innovation, input.market),
+    // Weighted ERS — self-assessment only until validators + documents corroborate.
+    selfErs: selfScore(input.governance, input.financial, input.innovation, input.market),
+    validatorErs: 0,
+    documentErs: 0,
+    ers: weightedErs(selfScore(input.governance, input.financial, input.innovation, input.market)),
+    verificationLevel: "unverified" as const,
+    provisional: true,
     statusTags: input.statusTags ?? [],
     certifications: input.certifications ?? [],
     exportMarkets: input.exportMarkets ?? [],
@@ -158,6 +174,11 @@ export const exchangeRouter = router({
         innovation: row.innovation ?? 0,
         market: row.market ?? 0,
         ers: row.ers ?? 0,
+        selfErs: row.selfErs ?? 0,
+        validatorErs: row.validatorErs ?? 0,
+        documentErs: row.documentErs ?? 0,
+        verificationLevel: row.verificationLevel ?? "unverified",
+        provisional: row.provisional ?? true,
         statusTags: (row.statusTags as string[]) ?? [],
         certifications: (row.certifications as string[]) ?? [],
         exportMarkets: (row.exportMarkets as string[]) ?? [],

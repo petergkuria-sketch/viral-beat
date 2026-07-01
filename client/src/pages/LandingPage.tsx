@@ -183,11 +183,14 @@ export default function LandingPage() {
     id: `db-${r.id}`, listingId: r.id, name: r.name, sector: r.sector,
     country: r.countryName, countryCode: r.countryCode, location: r.location ?? r.countryName,
     ers: r.ers ?? 0,
+    verificationLevel: (r.verificationLevel as any) ?? "unverified",
     pillars: { governance: r.governance ?? 0, financial: r.financial ?? 0, innovation: r.innovation ?? 0, market: r.market ?? 0 },
     status: (r.statusTags as string[]) ?? [], summary: r.summary ?? "", sample: false,
   }));
   const teaserSMEs = liveSMEs.length ? liveSMEs : EXCHANGE_SMES;
-  const teaserCapital = teaserSMEs.find(s => boardOf(s) === "capital_ready") ?? teaserSMEs[0];
+  // Only a genuinely graduated (fully-verified, ERS≥61) SME may sit on the
+  // Capital-Ready teaser — never a re-baselined self-assessed listing.
+  const teaserCapital = teaserSMEs.find(s => boardOf(s) === "capital_ready");
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [carouselIdx, setCarouselIdx]   = useState(0);
@@ -1071,7 +1074,13 @@ export default function LandingPage() {
                 <div className="text-xs text-gray-500 mb-5">Investor screening · partner matchmaking</div>
                 {(() => {
                   const sme = teaserCapital;
-                  if (!sme) return null;
+                  if (!sme) return (
+                    <div className="rounded-2xl bg-white/[0.03] border border-dashed border-white/[0.12] p-5 text-center">
+                      <div className="text-sm font-bold text-white mb-1">This board is earned</div>
+                      <p className="text-[11px] text-gray-500 leading-snug mb-2">No SME has completed validator and document verification yet. Fully-verified enterprises at ERS {ERS_GATE}+ appear here.</p>
+                      <span className="text-[10px] uppercase tracking-wider text-purple-300/70">Be the first to graduate</span>
+                    </div>
+                  );
                   const band = ersBand(sme.ers);
                   const clickable = sme.listingId != null;
                   return (

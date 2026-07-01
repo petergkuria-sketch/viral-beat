@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { COUNTRIES } from "@/lib/scannerData";
-import { ERS_GATE, ersBand } from "@/lib/exchangeData";
+import { ERS_GATE, rubricBand, type ERSPillars } from "@/lib/exchangeData";
 import { parseListingDocx } from "@/lib/docxImport";
 import {
   Building2, ArrowLeft, Check, Loader2, Plus, X, TrendingUp, Lock, AlertTriangle,
@@ -79,13 +79,16 @@ function ChipList({ label, items, onChange, placeholder }: {
   );
 }
 
-function Pillar({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+function Pillar({ pillar, label, value, onChange }: { pillar: keyof ERSPillars; label: string; value: number; onChange: (v: number) => void }) {
+  const band = rubricBand(pillar, value);
+  const tone = value <= 33 ? "#94a3b8" : value <= 66 ? "#f59e0b" : "#22c55e";
   return (
-    <div>
+    <div className="rounded-lg border border-[#0f1e35] bg-[#0a1628]/40 p-3">
       <div className="flex justify-between text-xs mb-1">
-        <span className="text-slate-400">{label}</span>
-        <span className="text-slate-200 font-semibold">{value}</span>
+        <span className="text-slate-300 font-medium">{label}</span>
+        <span className="font-semibold" style={{ color: tone }}>{band.label}</span>
       </div>
+      <p className="text-[11px] text-slate-500 mb-2 leading-snug min-h-[28px]">{band.example}</p>
       <input type="range" min={0} max={100} value={value} onChange={e => onChange(Number(e.target.value))} className="w-full accent-cyan-400" />
     </div>
   );
@@ -176,8 +179,8 @@ export default function SMEListing() {
     }
   }
 
-  const ers = Math.round((form.governance + form.financial + form.innovation + form.market) / 4);
-  const band = ersBand(ers);
+  const selfAvg = Math.round((form.governance + form.financial + form.innovation + form.market) / 4); // 0–100 self rating
+  const selfErs = Math.round(selfAvg / 2); // capped self-assessment 0–50 (Layer 1 of the weighted ERS)
   const wasApproved = isEdit && existing.data?.status === "approved";
 
   function toggleStatus(s: string) {
@@ -231,7 +234,7 @@ export default function SMEListing() {
         <h2 className="text-xl font-black text-white">{isEdit ? "Listing updated" : "Listing submitted"}</h2>
         <p className="text-sm text-slate-400 max-w-sm">
           {isEdit ? "Your changes are pending re-review before they go live again." : "Your SME is in the review queue."}{" "}
-          Once verified it appears on the {ers >= ERS_GATE ? "Capital-Ready" : "Open Innovation"} board (self-assessed ERS {ers}).
+          Once approved it appears on the Open Innovation board as <span className="text-slate-300">self-assessed</span> (ERS {selfErs}/100). Next step: independent validators verify your score — we'll guide you through it.
         </p>
         <div className="flex gap-2">
           <Button variant="outline" className="border-[#1a2d4a] text-slate-300" onClick={() => setLocation("/exchange/mine")}>My listings</Button>
@@ -345,16 +348,37 @@ export default function SMEListing() {
           )}
         </div>
 
-        {/* Live ERS preview */}
-        <div className="flex items-center justify-between bg-[#0a1628] border border-[#1a2d4a] rounded-lg p-4 my-5">
-          <div>
-            <div className="text-[11px] uppercase tracking-wider text-slate-500">Self-assessed ERS</div>
-            <div className="text-xs text-slate-400">{ers >= ERS_GATE ? "Qualifies for Capital-Ready board" : `Open Innovation board · ${ERS_GATE - ers} to graduate`}</div>
+        {/* Live self-assessment score + coach: the path to Capital-Ready */}
+        <div className="bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-4 my-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-slate-500">Your self-assessment</div>
+              <div className="text-xs text-slate-400">Step 1 of 3 — this is where every SME starts</div>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-black text-cyan-300">{selfErs}<span className="text-base text-slate-500">/50</span></div>
+              <div className="text-[10px] text-slate-500">self-assessed points</div>
+            </div>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-black" style={{ color: band.color }}>{ers}</div>
-            <div className="text-[10px]" style={{ color: band.color }}>{band.label}</div>
+          {/* 3-step ladder to Capital-Ready */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { n: "1", cap: "Self-assessment", pts: "0–50", state: "now", note: "You're here — free, no documents." },
+              { n: "2", cap: "Validator review", pts: "+0–30", state: "next", note: "3+ independent experts verify you." },
+              { n: "3", cap: "Document gateway", pts: "+0–20", state: "later", note: "Prove it — only when near graduation." },
+            ].map(s => (
+              <div key={s.n} className={`rounded-lg border p-2.5 ${s.state === "now" ? "border-cyan-500/40 bg-cyan-500/[0.06]" : "border-white/10 bg-white/[0.02]"}`}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className={`w-4 h-4 rounded-full text-[9px] font-black flex items-center justify-center ${s.state === "now" ? "bg-cyan-500 text-[#04222b]" : "bg-white/10 text-slate-400"}`}>{s.n}</span>
+                  <span className="text-[11px] font-semibold text-white">{s.cap}</span>
+                </div>
+                <div className="text-[10px] text-slate-500 leading-snug">{s.pts} pts · {s.note}</div>
+              </div>
+            ))}
           </div>
+          <p className="text-[11px] text-slate-500 mt-3 leading-snug">
+            You list on the <span className="text-slate-300 font-medium">Open Innovation board</span> today as <span className="text-slate-300 font-medium">self-assessed</span>. Graduating to Capital-Ready (ERS {ERS_GATE}+) happens once validators and documents confirm your claims — we coach you through each step.
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -407,15 +431,20 @@ export default function SMEListing() {
               <TrendingUp className="w-4 h-4 text-cyan-400" />
               <span className="text-sm font-bold text-white">Readiness self-assessment</span>
             </div>
-            <p className="text-[11px] text-slate-500 mb-4">Rate each pillar honestly — scores are verified by ViralBeat's network before publishing.</p>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-              <Pillar label="Governance" value={form.governance} onChange={v => set("governance", v)} />
-              <Pillar label="Financial health" value={form.financial} onChange={v => set("financial", v)} />
-              <Pillar label="Innovation capacity" value={form.innovation} onChange={v => set("innovation", v)} />
-              <Pillar label="Market reach" value={form.market} onChange={v => set("market", v)} />
+            <p className="text-[11px] text-slate-500 mb-4">Be honest — this is your starting point, not your final grade. Rate where you are today; independent validators and documents verify the rest later. There's no penalty for a modest score.</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Pillar pillar="governance" label="Governance" value={form.governance} onChange={v => set("governance", v)} />
+              <Pillar pillar="financial" label="Financial health" value={form.financial} onChange={v => set("financial", v)} />
+              <Pillar pillar="innovation" label="Innovation capacity" value={form.innovation} onChange={v => set("innovation", v)} />
+              <Pillar pillar="market" label="Market reach" value={form.market} onChange={v => set("market", v)} />
             </div>
           </div>
 
+          <div className="flex items-center gap-2 pt-2">
+            <div className="h-px flex-1 bg-[#0f1e35]" />
+            <span className="text-[10px] uppercase tracking-wider text-slate-600">Optional — add anytime</span>
+            <div className="h-px flex-1 bg-[#0f1e35]" />
+          </div>
           <ChipList label="Certifications" items={form.certifications} onChange={v => set("certifications", v)} placeholder="UNBS, ISO 9001…" />
           <ChipList label="Export markets" items={form.exportMarkets} onChange={v => set("exportMarkets", v)} placeholder="Kenya, Rwanda…" />
           <ChipList label="Awards / recognition" items={form.awards} onChange={v => set("awards", v)} placeholder="Top 100 MSMEs…" />

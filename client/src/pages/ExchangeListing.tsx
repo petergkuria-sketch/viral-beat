@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
-import { ersBand, ERS_GATE } from "@/lib/exchangeData";
+import { ersBand, ERS_GATE, boardOf, verificationBadge, type VerificationLevel } from "@/lib/exchangeData";
 import {
   Building2, ArrowLeft, Globe, Award, BadgeCheck, MapPin, Users, Calendar,
   Loader2, AlertTriangle, ExternalLink, TrendingUp, MessageSquare, Check, ShieldAlert, X,
@@ -71,7 +71,9 @@ export default function ExchangeListing() {
 
   const l = q.data;
   const band = ersBand(l.ers);
-  const onCapital = l.ers >= ERS_GATE;
+  const vlevel = ((l as any).verificationLevel as VerificationLevel) ?? "unverified";
+  const vbadge = verificationBadge(vlevel);
+  const onCapital = boardOf({ ers: l.ers, verificationLevel: vlevel }) === "capital_ready";
 
   return (
     <div className="min-h-screen bg-[#050b1a] text-white">
@@ -94,6 +96,11 @@ export default function ExchangeListing() {
                 <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold border"
                   style={{ color: onCapital ? "#afa9ec" : "#5dcaa5", background: onCapital ? "rgba(127,119,221,.12)" : "rgba(29,158,117,.12)", borderColor: onCapital ? "rgba(127,119,221,.3)" : "rgba(29,158,117,.3)" }}>
                   {onCapital ? "Capital-Ready board" : "Open Innovation board"}
+                </span>
+                <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold border inline-flex items-center gap-1"
+                  title={vbadge.hint}
+                  style={{ color: vbadge.color, background: `${vbadge.color}14`, borderColor: `${vbadge.color}33` }}>
+                  {vbadge.label}
                 </span>
                 {l.statusTags.map(s => (
                   <span key={s} className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-slate-300">{s}</span>

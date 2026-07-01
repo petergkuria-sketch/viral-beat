@@ -1739,6 +1739,18 @@ export const smeListings = mysqlTable("smeListings", {
   innovation:   int("innovation").default(0),
   market:       int("market").default(0),
   ers:          int("ers").default(0),
+  // Weighted ERS (anti-inflation): self-assessment is capped and only counts
+  // in full once validators + documents corroborate it. selfErs 0–50,
+  // validatorErs 0–30, documentErs 0–20; `ers` is the weighted final.
+  selfErs:      int("selfErs").default(0),
+  validatorErs: int("validatorErs").default(0),
+  documentErs:  int("documentErs").default(0),
+  // Board eligibility is gated by verification level, not the number alone.
+  verificationLevel: mysqlEnum("verificationLevel",
+    ["unverified", "validator_verified", "document_verified", "fully_verified"])
+    .notNull().default("unverified"),
+  ersVerifiedAt: timestamp("ersVerifiedAt"),   // last full verification; drives decay
+  provisional:  boolean("provisional").notNull().default(true), // true until fully verified
   statusTags:   json("statusTags"),       // string[] — Seeking capital, Open to collaboration, Open to exit
   certifications: json("certifications"),  // string[]
   exportMarkets:  json("exportMarkets"),   // string[]
