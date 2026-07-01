@@ -218,7 +218,18 @@ export default function LandingPage() {
   const totalSignals = COUNTRIES.reduce((n, c) => n + (c.signals?.length ?? 0), 0);
 
   // Live feed that ticks (P: make it tick) — rotate a window of 4 through the pool.
-  const signalPool = COUNTRIES.flatMap(c => (c.signals ?? []).map(s => ({ ...s, flag: c.flag, country: c.name })));
+  // Recency gate: only signals published within the last 7 days qualify for "live".
+  // Relative-time units — min/h/d, plus w only when ≤1 week. Months ("m") and older are excluded.
+  const withinLastWeek = (t: string) => {
+    const m = /^(\d+)\s*(min|h|d|w)\b/i.exec((t ?? "").trim());
+    if (!m) return false;
+    const n = parseInt(m[1], 10);
+    const days = { min: n / 1440, h: n / 24, d: n, w: n * 7 }[m[2].toLowerCase() as "min" | "h" | "d" | "w"];
+    return days <= 7;
+  };
+  const signalPool = COUNTRIES
+    .flatMap(c => (c.signals ?? []).map(s => ({ ...s, flag: c.flag, country: c.name })))
+    .filter(s => withinLastWeek(s.time));
   const [feedStart, setFeedStart] = useState(0);
   const [ago, setAgo] = useState(0);
   useEffect(() => {
