@@ -375,7 +375,7 @@ export default function LandingPage() {
 
           {/* Primary links — the 6 most-used */}
           <div className="hidden md:flex items-center gap-0.5">
-            {[["scanner-section", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
+            {[["investment-facilitation", "OSS"], ["sme-exchange", "SME Exchange"], ["green-investment", "Green"], ["technicals", "The Technicals"]].map(([id, label]) => (
               <button key={id} onClick={() => scrollTo(id)} className="px-3.5 py-2 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-all">
                 {label}
               </button>
@@ -390,7 +390,8 @@ export default function LandingPage() {
                 More <ChevronDown className="w-3.5 h-3.5" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem onClick={() => scrollTo("scanner-section")}>Scanner</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => scrollTo("technicals")}>The Technicals</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => scrollTo("api")}>Developer API</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLocation("/exchange")}>SME Exchange</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => scrollTo("download-app")}>Get the app</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLocation("/about")}>About</DropdownMenuItem>
@@ -446,7 +447,7 @@ export default function LandingPage() {
         </div>
         {mobileMenuOpen && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="md:hidden border-t border-white/5 bg-[#050b1a] px-4 py-4 flex flex-col gap-1">
-            {[["scanner-section", "Intelligence"], ["green-investment", "Green"], ["elections", "Elections"], ["people-signal", "Field Signals"], ["api", "API"]].map(([id, label]) => (
+            {[["investment-facilitation", "OSS"], ["sme-exchange", "SME Exchange"], ["green-investment", "Green"], ["technicals", "The Technicals"], ["api", "API"]].map(([id, label]) => (
               <button key={id} onClick={() => { setMobileMenuOpen(false); scrollTo(id); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">{label}</button>
             ))}
             <button onClick={() => { setMobileMenuOpen(false); setLocation("/about#methodology"); }} className="text-left px-3 py-2.5 text-sm font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/5">Methodology</button>
@@ -834,170 +835,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── GATED LIVE BRIEF ─────────────────────────────────────────────────── */}
-      <section className="pb-20 px-4">
-        <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Kenya Intelligence Brief · Live · Updated 14 min ago</span>
-              </div>
-              <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px]">Page 1 of 8 — free</Badge>
-            </div>
-
-            <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
-              {/* Brief header */}
-              <div className="px-6 py-4 border-b border-[#1e3a5f] flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">🇰🇪</span>
-                  <div>
-                    <div className="text-lg font-black text-white">Kenya Intelligence Brief</div>
-                    <div className="text-xs text-gray-500">PESTEL+IR Composite · June 2026 · Compiled from 3 field contributors</div>
-                  </div>
-                </div>
-                <span className="text-sm font-bold px-4 py-1.5 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">Go-Market</span>
-              </div>
-
-              {/* Score bar */}
-              <div className="grid grid-cols-6 border-b border-[#1e3a5f] divide-x divide-[#1e3a5f]">
-                {[["Political","62","#fb923c"],["Economic","71","#22d3ee"],["Social","68","#22d3ee"],["Tech","83","#4ade80"],["IRS","78","#4ade80"],["Composite","72","#22d3ee"]].map(([dim,val,col]) => (
-                  <div key={dim} className="px-2 py-3 text-center">
-                    <div className="text-[9px] text-gray-600 uppercase tracking-wider mb-1">{dim}</div>
-                    <div className="text-xl font-black" style={{ color: col }}>{val}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Body — two columns */}
-              <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[#1e3a5f]">
-                {/* Field signals */}
-                <div className="p-5">
-                  <div className="flex items-center gap-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                    Live field signals · past 48h
-                  </div>
-                  {[
-                    { dot: "#fb923c", text: "Opposition coalition meeting in Westlands — 3 parties aligning ahead of by-election", source: "VB Field Contributor · Nairobi · 4h ago" },
-                    { dot: "#4ade80", text: "Safaricom M-Pesa expansion into Ethiopia confirmed — tech sector bullish", source: "VB Analyst · 11h ago" },
-                    { dot: "#4ade80", text: "IMF ECF review positive — next disbursement tranche expected Q3", source: "IMF Press Release · 1d ago" },
-                  ].map((s, i) => (
-                    <div key={i} className="flex items-start gap-3 mb-4">
-                      <span className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: s.dot }} />
-                      <div>
-                        <div className="text-sm text-gray-200 leading-snug mb-1">{s.text}</div>
-                        <div className="text-[10px] text-gray-600">{s.source}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Contributors */}
-                <div className="p-5">
-                  <div className="flex items-center gap-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                    <Users className="w-3 h-3" />
-                    Who's reporting from Kenya right now
-                  </div>
-                  {[
-                    { initials: "JM", bg: "linear-gradient(135deg,#0e7490,#0284c7)", name: "James M.", role: "Political journalist · Nairobi", signals: "12 signals this month" },
-                    { initials: "AW", bg: "linear-gradient(135deg,#15803d,#16a34a)", name: "Amina W.", role: "NGO Programme Lead · Kisumu", signals: "8 signals this month" },
-                    { initials: "RO", bg: "linear-gradient(135deg,#7c3aed,#9333ea)", name: "Rahim O.", role: "Civic researcher · Mombasa", signals: "5 signals this month" },
-                  ].map((c) => (
-                    <div key={c.name} className="flex items-center gap-3 mb-4">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: c.bg }}>{c.initials}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-white">{c.name}</div>
-                        <div className="text-[10px] text-gray-500">{c.role}</div>
-                      </div>
-                      <span className="text-[9px] text-green-400 bg-green-400/10 px-2 py-0.5 rounded-md shrink-0">{c.signals}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Gate bar */}
-              <div className="border-t border-[#1e3a5f] bg-[#060c1e]/60 px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-                <div className="text-sm text-gray-400">
-                  <span className="text-white font-semibold">Pages 2–8 locked:</span> Risk matrix · Sector verdicts · Go/No-Go rationale · Electoral calendar · Investment entry points
-                </div>
-                <Button
-                  onClick={() => user ? setLocation("/scanner/ken/brief") : (window.location.href = getLoginUrl())}
-                  className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold shrink-0"
-                >
-                  Unlock full brief — free <ArrowRight className="ml-1.5 w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── LIVE SCANNER PREVIEW ─────────────────────────────────────────────── */}
-      <section className="pb-20 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Africa Intelligence Scanner — live</span>
-          </div>
-          <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
-            <div className="px-4 pt-3 pb-2 border-b border-[#1e3a5f]">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                  <BarChart3 className="w-3.5 h-3.5 text-cyan-400" />
-                  Composite Score · PESTEL×0.6 + IRS×0.4
-                </div>
-                <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Live</Badge>
-              </div>
-              <div className="grid grid-cols-12 gap-1 text-[9px] text-gray-600 uppercase tracking-wider font-medium pt-1">
-                <span className="col-span-4">Country</span>
-                <span className="col-span-2 text-center">PESTEL</span>
-                <span className="col-span-2 text-center">IRS</span>
-                <span className="col-span-2 text-center">Score</span>
-                <span className="col-span-2 text-center">Verdict</span>
-              </div>
-            </div>
-            <div className="divide-y divide-[#1e3a5f]">
-              {[
-                { flag: "🇷🇼", name: "Rwanda",   pestel: 82, irs: 79, score: 81, verdict: "Go-Market", vc: "#22c55e", trend: [55,60,68,75,80,81] },
-                { flag: "🇰🇪", name: "Kenya",    pestel: 79, irs: 74, score: 77, verdict: "Go-Market", vc: "#22c55e", trend: [60,63,70,74,76,77] },
-                { flag: "🇬🇭", name: "Ghana",    pestel: 74, irs: 68, score: 72, verdict: "Monitor",   vc: "#84cc16", trend: [68,70,71,72,71,72] },
-                { flag: "🇸🇳", name: "Senegal",  pestel: 71, irs: 65, score: 69, verdict: "Monitor",   vc: "#84cc16", trend: [60,63,65,67,68,69] },
-                { flag: "🇳🇬", name: "Nigeria",  pestel: 58, irs: 51, score: 55, verdict: "Caution",   vc: "#f59e0b", trend: [58,56,55,57,54,55] },
-                { flag: "🇪🇹", name: "Ethiopia", pestel: 44, irs: 38, score: 42, verdict: "No-Go",     vc: "#ef4444", trend: [50,47,44,43,41,42] },
-              ].map((c, i) => {
-                const mini = c.trend;
-                const minV = Math.min(...mini), maxV = Math.max(...mini);
-                const pts = mini.map((v, j) => `${(j / (mini.length - 1)) * 44},${12 - ((v - minV) / (maxV - minV + 1)) * 11}`).join(" ");
-                return (
-                  <motion.div key={c.name} initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.07 }}
-                    className="px-4 py-2.5 hover:bg-white/[0.03] transition-colors cursor-pointer grid grid-cols-12 gap-1 items-center"
-                    onClick={() => user ? setLocation(`/scanner/${c.name.slice(0,3).toUpperCase()}`) : (window.location.href = getLoginUrl())}>
-                    <div className="col-span-4 flex items-center gap-2">
-                      <span className="text-base leading-none">{c.flag}</span>
-                      <span className="text-xs font-semibold text-white truncate">{c.name}</span>
-                    </div>
-                    <span className="col-span-2 text-center text-xs font-mono text-gray-300">{c.pestel}</span>
-                    <span className="col-span-2 text-center text-xs font-mono text-gray-300">{c.irs}</span>
-                    <div className="col-span-2 flex items-center justify-center gap-1">
-                      <span className="text-xs font-black" style={{ color: c.vc }}>{c.score}</span>
-                      <svg width="44" height="14" viewBox="0 0 44 14" className="opacity-70">
-                        <polyline points={pts} fill="none" stroke={c.vc} strokeWidth="1.5" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                    <div className="col-span-2 flex justify-center">
-                      <span className="text-[8px] font-bold px-1.5 py-0.5 rounded border truncate" style={{ color: c.vc, borderColor: `${c.vc}40`, background: `${c.vc}12` }}>{c.verdict}</span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-            <button onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())} className="w-full py-3 text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center justify-center gap-1 border-t border-[#1e3a5f] hover:bg-cyan-500/5 transition-all">
-              Open Africa Scanner — all 55 nations <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </section>
-
       {/* ── SOCIAL PROOF BAR ────────────────────────────────────────────────── */}
       <div className="border-y border-white/5 bg-white/[0.02] py-4 px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-8 text-xs text-gray-500 font-medium uppercase tracking-wider">
@@ -1009,141 +846,6 @@ export default function LandingPage() {
           ))}
         </div>
       </div>
-
-      {/* ── PEOPLE SIGNAL — new first section ───────────────────────────────── */}
-      <section id="people-signal" className="py-32 px-4" style={{ scrollMarginTop: "4rem" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">Field Contributors</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mb-4">Ground Truth, Not Just Headlines</h2>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Journalists, activists, NGO officers, and researchers submit verified field signals — protests, policy shifts, voting discrepancies, county-level events. Signals are weighted by contributor tier, structured into PESTEL+IR categories, and surfaced as credible intelligence you can cite. Contributors earn VBT tokens for every verified submission.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {[
-              {
-                icon: Users,
-                color: "#a78bfa",
-                title: "On-the-Ground Contributors",
-                desc: "A verified network of local journalists, NGO workers, and civic leaders across 55 countries submit real-time observations — protests, policy shifts, civic movements, and breaking events.",
-                bullets: ["Verified contributor network", "Local-language signal capture", "First-mover early alerts", "Cross-border linkages"],
-              },
-              {
-                icon: TrendingUp,
-                color: "#22d3ee",
-                title: "PESTEL+IR Signal Pipeline",
-                desc: "RSS feeds, social sources, chamber bulletins, APEX body statements, and parliamentary records are ingested and classified across all 7 PESTEL+IR dimensions — 24h rolling signal intelligence.",
-                bullets: ["RSS + social + parliament sources", "7-dimension PESTEL+IR tagging", "Signal intensity scoring", "24h rolling update window"],
-              },
-              {
-                icon: Shield,
-                color: "#34d399",
-                title: "Structured & Verified",
-                desc: "Raw signals pass a 4-stage validation gate before entering the intelligence layer — corroboration, tier weighting, AI classification, and editorial review. Only verified signals move the composite score.",
-                bullets: ["4-stage validation gate", "Tier-weighted credibility scoring", "AI + editorial cross-check", "Composite score updated on pass"],
-              },
-            ].map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }} viewport={{ once: true }}
-                className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl p-7 hover:border-purple-500/30 transition-all">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: `${item.color}15` }}>
-                  <item.icon className="w-6 h-6" style={{ color: item.color }} />
-                </div>
-                <h3 className="font-bold text-lg text-white mb-3">{item.title}</h3>
-                <p className="text-gray-300 text-sm leading-relaxed mb-4">{item.desc}</p>
-                <ul className="space-y-1.5">
-                  {item.bullets.map(b => (
-                    <li key={b} className="flex items-center gap-2 text-xs text-gray-400">
-                      <CheckCircle2 className="w-3 h-3 shrink-0" style={{ color: item.color }} />{b}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* ── Validation methodology strip ────────────────────────────────── */}
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} viewport={{ once: true }}
-            className="bg-[#0a1628] border border-[#1e3a5f] rounded-2xl p-8">
-            <div className="flex items-center gap-2 mb-6">
-              <Shield className="w-4 h-4 text-green-400" />
-              <span className="text-xs font-bold tracking-[2px] text-green-400 uppercase">How Intelligence Gets Validated</span>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-start">
-              {[
-                { step: "01", color: "#a78bfa", title: "Field Submission", desc: "Contributor files signal with location, category, and evidence — photo, document, or URL." },
-                { step: "02", color: "#22d3ee", title: "Corroboration", desc: "3+ independent contributors or a senior analyst must independently confirm the event before it is accepted." },
-                { step: "03", color: "#fb923c", title: "Tier Weighting", desc: "Signals are weighted by contributor tier — Observer, Analyst, Correspondent — and institutional affiliation." },
-                { step: "04", color: "#f472b6", title: "AI Classification", desc: "VB engine auto-tags dimension (P/E/S/T/En/L/IR), severity, and estimated composite score impact (−20 to +20)." },
-                { step: "05", color: "#34d399", title: "Score Update", desc: "Validated signals move the country's PESTEL+IR composite score and surface in the Intelligence Workspace as citable intelligence." },
-              ].map((s, i) => (
-                <div key={i} className="relative">
-                  {i < 4 && (
-                    <div className="hidden md:block absolute top-4 left-full w-full h-px bg-gradient-to-r from-white/10 to-transparent z-0" style={{ width: "calc(100% - 2rem)", left: "calc(100% - 1rem)" }} />
-                  )}
-                  <div className="relative z-10">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black mb-3" style={{ background: `${s.color}20`, color: s.color, border: `1px solid ${s.color}40` }}>{s.step}</div>
-                    <div className="font-bold text-sm text-white mb-1">{s.title}</div>
-                    <div className="text-xs text-gray-400 leading-relaxed">{s.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-6 text-xs text-gray-500">
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-green-400" />Signals that fail corroboration are flagged, not published</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-green-400" />Every validated signal carries a source chain you can audit</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3 text-green-400" />Composite scores update within 24h of signal validation</span>
-            </div>
-          </motion.div>
-
-        </div>
-      </section>
-
-      {/* ── AFRICA SCANNER SECTION ─────────────────────────────────────────── */}
-      <section id="scanner-section" className="py-32 px-4" style={{ scrollMarginTop: "4rem" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20">Africa Scanner</Badge>
-              <span className="text-xs text-green-400/80 border border-green-500/20 bg-green-500/5 rounded-full px-3 py-1">● Updated daily · 312 signals this week</span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-black mb-4">
-              From Signal to Decision<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-green-400">in One Flow</span>
-            </h2>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Every African market scored on a Composite Index (PESTEL × 0.6 + IRS × 0.4). Scan 55 nations, deep-dive into any country, and generate a structured Go/No-Go entry brief — all without leaving the platform.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 mb-10">
-            {[
-              { emoji: "📡", color: "#00d4ff", title: "Africa Scanner", desc: "55 AU markets ranked by composite PESTEL+IR score. Filter by region, sort by score, drill into any country.", badge: "Scan", href: "/scanner" },
-              { emoji: "📊", color: "#a78bfa", title: "Country Deep Dive", desc: "Full PESTEL+IR breakdown, signals, sector readiness scores, risk matrix, and 9-month trend for any AU nation.", badge: "Analyse", href: "/scanner/ken" },
-              { emoji: "📋", color: "#22c55e", title: "Go/No-Go Brief", desc: "Select country, sector, and horizon. Generate a structured entry verdict with risk matrix and PDF export.", badge: "Decide", href: "/scanner/ken/brief" },
-            ].map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }} viewport={{ once: true }}
-                onClick={() => user ? setLocation(item.href) : (window.location.href = getLoginUrl())}
-                className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl p-7 hover:border-cyan-500/40 transition-all cursor-pointer group">
-                <div className="flex items-center justify-between mb-5">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style={{ background: `${item.color}15` }}>{item.emoji}</div>
-                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border" style={{ color: item.color, borderColor: `${item.color}40`, background: `${item.color}10` }}>{item.badge}</span>
-                </div>
-                <h3 className="font-bold text-lg text-white mb-2 group-hover:text-cyan-300 transition-colors">{item.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed mb-4">{item.desc}</p>
-                <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: item.color }}>
-                  Open {item.title} <ArrowRight className="w-3 h-3 ml-1" />
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          <div className="text-center">
-            <Button size="lg" onClick={() => user ? setLocation("/scanner") : (window.location.href = getLoginUrl())} className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20">
-              Open Africa Scanner <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </section>
 
       {/* ── OSS INVESTMENT FACILITATION HOOK ───────────────────────────────── */}
       <section id="investment-facilitation" className="py-24 px-4" style={{ scrollMarginTop: "4rem" }}>
@@ -1401,7 +1103,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── INTELLIGENCE SECTION ────────────────────────────────────────────── */}
 
       {/* ── GREEN INVESTMENT (GIaaS) ────────────────────────────────────────── */}
       <section id="green-investment" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
@@ -1498,47 +1199,105 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── ELECTORAL CALENDAR ──────────────────────────────────────────────── */}
-      <section id="elections" className="py-32 px-4" style={{ scrollMarginTop: "4rem" }}>
+      {/* ── THE TECHNICALS (clustered pillars) ──────────────────────────────── */}
+      <section id="technicals" className="py-32 px-4" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <Badge className="mb-4 bg-orange-500/10 text-orange-400 border-orange-500/20">Electoral Calendar</Badge>
-            <h2 className="text-4xl sm:text-5xl font-black mb-4">Keep Track of Transitional Leadership & Impact</h2>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Monitor elections, leadership transitions, and political risk across all 55 nations. Click any country for the full intelligence brief.
+          <div className="text-left mb-12 max-w-3xl">
+            <Badge className="mb-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">The Technicals</Badge>
+            <h2 className="text-4xl sm:text-5xl font-black mb-4">How the intelligence layer works</h2>
+            <p className="text-gray-300 text-lg">
+              Four pillars turn raw, on-the-ground signal into a defensible entry decision — scored, verified, and ready to build on.
             </p>
           </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-            {ELECTIONS.map((e, i) => (
-              <motion.div key={e.code} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} viewport={{ once: true }}
-                onClick={() => handleCountry(e.code)}
-                className="bg-[#0f2240] border border-[#1e3a5f] rounded-xl p-5 hover:border-orange-500/40 hover:bg-[#111e38] transition-all cursor-pointer group">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{e.flag}</span>
-                    <div>
-                      <div className="font-bold text-white text-sm group-hover:text-cyan-400 transition-colors">{e.country}</div>
-                      <div className="text-xs text-gray-500">{e.type}</div>
-                    </div>
-                  </div>
-                  {e.urgent && <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/20 text-[9px]">Imminent</Badge>}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { icon: BarChart3, color: "#22d3ee", tag: "Scan · Analyse · Decide", title: "From Signal to Decision", desc: "Every African market scored on a Composite Index (PESTEL x 0.6 + IRS x 0.4). Scan 55 nations, deep-dive any country, and generate a structured Go/No-Go brief.", bullets: ["55 AU markets ranked", "Full PESTEL+IR deep dive", "Exportable Go/No-Go brief"], cta: "Open Africa Scanner", onClick: () => user ? setLocation("/scanner") : (window.location.href = getLoginUrl()) },
+              { icon: Calendar, color: "#fb923c", tag: "Electoral Calendar", title: "Transitional Leadership", desc: "Track elections, leadership transitions, and political risk across all 55 nations — with the intelligence brief behind every date.", bullets: ["Elections for 55 nations", "Imminent-transition alerts", "One click to country brief"], cta: "View electoral calendar", onClick: () => handleExplore() },
+              { icon: Shield, color: "#34d399", tag: "Ground Truth", title: "Field-Verified Signals", desc: "Journalists, NGO officers, and researchers file signals that pass a 4-stage validation gate before they move a country's composite score.", bullets: ["Verified contributor network", "4-stage validation gate", "Auditable source chain"], cta: "Meet the field network", onClick: () => scrollTo("creator-network") },
+              { icon: Code2, color: "#60a5fa", tag: "Developer API", title: "Open API & Embedding", desc: "A clean REST API delivers real-time scores, briefings, PESTEL+IR signals, and Investment Readiness Scores — ready to integrate in minutes.", bullets: ["Composite score endpoints", "Go/No-Go brief by country", "Elections + IRS feeds"], cta: "See the API", onClick: () => scrollTo("api") },
+            ].map((p, i) => (
+              <motion.div key={p.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} viewport={{ once: true }}
+                className="flex flex-col bg-[#0f2240] border border-[#1e3a5f] rounded-2xl p-6 hover:border-cyan-500/30 transition-all">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style={{ background: `${p.color}15` }}>
+                  <p.icon className="w-5 h-5" style={{ color: p.color }} />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                    <Calendar className="w-3 h-3 text-orange-400" />
-                    {e.date}
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-gray-600 group-hover:text-cyan-400 transition-colors" />
-                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: p.color }}>{p.tag}</span>
+                <h3 className="font-bold text-lg text-white mb-2 leading-tight">{p.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-4">{p.desc}</p>
+                <ul className="space-y-1.5 mb-5">
+                  {p.bullets.map(b => (
+                    <li key={b} className="flex items-center gap-2 text-xs text-gray-400">
+                      <CheckCircle2 className="w-3 h-3 shrink-0" style={{ color: p.color }} />{b}
+                    </li>
+                  ))}
+                </ul>
+                <button onClick={p.onClick} className="mt-auto flex items-center gap-1 text-xs font-semibold hover:gap-1.5 transition-all" style={{ color: p.color }}>
+                  {p.cta} <ArrowRight className="w-3 h-3" />
+                </button>
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="text-center">
-            <Button variant="outline" className="border-white/10 text-gray-300 hover:text-white" onClick={handleExplore}>
-              View Full Electoral Calendar for All 55 Nations <ArrowRight className="ml-2 w-3.5 h-3.5" />
-            </Button>
+      {/* ── API / DEVELOPER ──────────────────────────────────────────────────── */}
+      <section id="api" className="py-32 px-4" style={{ scrollMarginTop: "4rem" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/20">Developer API</Badge>
+              <h2 className="text-4xl font-black mb-5 text-white">Embed Africa Intelligence in Your Product</h2>
+              <p className="text-gray-300 text-lg leading-relaxed mb-8">
+                A clean REST API gives your app real-time stability scores, country briefings, civic movement data, PESTEL+IR signals, and Investment Readiness Scores — ready to integrate in minutes.
+              </p>
+              <div className="space-y-3 mb-8">
+                {[
+                  ["GET /v1/scanner/:code",           "Composite score + verdict for any AU nation"],
+                  ["GET /v1/scanner/:code/brief",     "Full Go/No-Go brief with risk matrix"],
+                  ["GET /v1/pestel/:code/signals",    "PESTEL+IR signals by country"],
+                  ["GET /v1/africa/:code/news",       "Live news articles by country"],
+                  ["GET /v1/elections/calendar",      "Upcoming elections for all 55 nations"],
+                  ["GET /v1/irs/:code",               "Investment Readiness Score + B-READY indicators"],
+                ].map(([endpoint, desc]) => (
+                  <div key={endpoint} className="flex items-center gap-3 bg-[#0f2240] border border-[#1e3a5f] rounded-lg px-4 py-2.5">
+                    <code className="text-xs text-cyan-400 font-mono flex-1 truncate">{endpoint}</code>
+                    <span className="text-[10px] text-gray-500 shrink-0">{desc}</span>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={() => user ? setLocation("/developer-hub") : (window.location.href = getLoginUrl())} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold">
+                <Code2 className="mr-2 w-4 h-4" /> Get API Keys
+              </Button>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1e3a5f] bg-white/[0.02]">
+                  <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-green-500/60" /></div>
+                  <span className="text-xs text-gray-500 font-mono ml-1">GET /v1/africa/NG/brief</span>
+                </div>
+                <pre className="p-5 text-xs font-mono text-gray-300 leading-relaxed overflow-x-auto">{`{
+  "country": "Nigeria",
+  "pestelScore": 58,
+  "irs": 51,
+  "compositeScore": 55,
+  "verdict": "caution",
+  "riskLevel": "high",
+  "headOfState": "Bola Tinubu",
+  "pestelBreak": {
+    "P": 55, "E": 58, "S": 62,
+    "T": 60, "En": 52, "L": 56,
+    "IR": 51
+  },
+  "topSector": {
+    "name": "Fintech / Mobile Money",
+    "score": 78,
+    "verdict": "go"
+  },
+  "nextElection": "Feb 2027"
+}`}</pre>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -1802,68 +1561,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── API / DEVELOPER ──────────────────────────────────────────────────── */}
-      <section id="api" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/20">Developer API</Badge>
-              <h2 className="text-4xl font-black mb-5 text-white">Embed Africa Intelligence in Your Product</h2>
-              <p className="text-gray-300 text-lg leading-relaxed mb-8">
-                A clean REST API gives your app real-time stability scores, country briefings, civic movement data, PESTEL+IR signals, and Investment Readiness Scores — ready to integrate in minutes.
-              </p>
-              <div className="space-y-3 mb-8">
-                {[
-                  ["GET /v1/scanner/:code",           "Composite score + verdict for any AU nation"],
-                  ["GET /v1/scanner/:code/brief",     "Full Go/No-Go brief with risk matrix"],
-                  ["GET /v1/pestel/:code/signals",    "PESTEL+IR signals by country"],
-                  ["GET /v1/africa/:code/news",       "Live news articles by country"],
-                  ["GET /v1/elections/calendar",      "Upcoming elections for all 55 nations"],
-                  ["GET /v1/irs/:code",               "Investment Readiness Score + B-READY indicators"],
-                ].map(([endpoint, desc]) => (
-                  <div key={endpoint} className="flex items-center gap-3 bg-[#0f2240] border border-[#1e3a5f] rounded-lg px-4 py-2.5">
-                    <code className="text-xs text-cyan-400 font-mono flex-1 truncate">{endpoint}</code>
-                    <span className="text-[10px] text-gray-500 shrink-0">{desc}</span>
-                  </div>
-                ))}
-              </div>
-              <Button onClick={() => user ? setLocation("/developer-hub") : (window.location.href = getLoginUrl())} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold">
-                <Code2 className="mr-2 w-4 h-4" /> Get API Keys
-              </Button>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <div className="bg-[#0f2240] border border-[#1e3a5f] rounded-2xl overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1e3a5f] bg-white/[0.02]">
-                  <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" /><div className="w-2.5 h-2.5 rounded-full bg-green-500/60" /></div>
-                  <span className="text-xs text-gray-500 font-mono ml-1">GET /v1/africa/NG/brief</span>
-                </div>
-                <pre className="p-5 text-xs font-mono text-gray-300 leading-relaxed overflow-x-auto">{`{
-  "country": "Nigeria",
-  "pestelScore": 58,
-  "irs": 51,
-  "compositeScore": 55,
-  "verdict": "caution",
-  "riskLevel": "high",
-  "headOfState": "Bola Tinubu",
-  "pestelBreak": {
-    "P": 55, "E": 58, "S": 62,
-    "T": 60, "En": 52, "L": 56,
-    "IR": 51
-  },
-  "topSector": {
-    "name": "Fintech / Mobile Money",
-    "score": 78,
-    "verdict": "go"
-  },
-  "nextElection": "Feb 2027"
-}`}</pre>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
       {/* ── DOWNLOAD APP ─────────────────────────────────────────────────────── */}
       <section id="download-app" className="py-32 px-4 bg-white/[0.015] border-y border-white/5" style={{ scrollMarginTop: "4rem" }}>
         <div className="max-w-5xl mx-auto">
@@ -1974,7 +1671,7 @@ export default function LandingPage() {
               {[
                 ["Methodology & scoring", "How PESTEL+IR composites are built", "/about#methodology"],
                 ["How data is validated", "Four-stage ground-truth verification", "/about#methodology"],
-                ["Intelligence at scale", "Coverage, feeds and the workspace", "#scanner-section"],
+                ["Intelligence at scale", "Coverage, feeds and the workspace", "#technicals"],
                 ["API & embedding", "Build on the intelligence layer", "#api"],
                 ["Why ViralBeat exists", "The mission behind the platform", "/about"],
                 ["Field contributors", "Who files the signals, and how they're tiered", "#creator-network"],
