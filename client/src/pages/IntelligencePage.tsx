@@ -2578,11 +2578,11 @@ export default function IntelligencePage() {
                   </div>
                   <h3 className="font-bold text-base mb-1">Predictive Forecasting</h3>
                   <p className="text-sm text-slate-400 max-w-xs mb-2">AI-powered 7-day and 30-day signal forecasts with intelligence scoring, growth trajectory, and confidence levels.</p>
-                  <p className="text-xs text-amber-400/80 mb-1">Available on <span className="font-bold text-amber-400">Analyst</span> and <span className="font-bold text-amber-400">Correspondent</span> plans</p>
-                  <p className="text-[11px] text-slate-500 mb-6">VBT tokens are for contributor rewards — upgrade your plan to unlock premium intelligence features</p>
+                  <p className="text-xs text-amber-400/80 mb-1">Available with <span className="font-bold text-amber-400">Bronze</span> and <span className="font-bold text-amber-400">Premium</span> access</p>
+                  <p className="text-[11px] text-slate-500 mb-6">VBT tokens are for contributor rewards — request access to unlock premium intelligence features</p>
                   <a href="/pricing">
                     <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">
-                      Upgrade Plan →
+                      Request access →
                     </Button>
                   </a>
                 </div>

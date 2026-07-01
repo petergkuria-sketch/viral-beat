@@ -234,7 +234,7 @@ export default function LandingPage() {
       type: "quote",
       avatar: "AM", avatarBg: "linear-gradient(135deg,#0e7490,#0284c7)",
       name: "Amara Mensah", role: "Political Risk Analyst · Accra",
-      saving: "Saved $800/mo",
+      saving: "Replaced 2 services",
       quote: "First platform I've found that produces a composite PESTEL+IR score I can actually <b>defend in a board briefing</b>. We replaced two expensive subscription services.",
       cta: { label: "See a Go/No-Go Brief", path: "/scanner/ken/brief" },
     },
@@ -252,7 +252,7 @@ export default function LandingPage() {
     },
     {
       type: "compare",
-      cta: { label: "View pricing plans", path: "/pricing" },
+      cta: { label: "See access options", path: "/pricing" },
     },
     {
       type: "quote",
@@ -493,7 +493,7 @@ export default function LandingPage() {
                   { emoji: "🏗️", label: "IRS Score",       path: "/doing-business",      badge: 0, bg: "from-[#2a1500] to-[#5a3000]" },
                   { emoji: "🇰🇪", label: "Kenya Intel",     path: "/kenya",               badge: 0, bg: "from-[#001a30] to-[#002a50]" },
                   { emoji: "🗺️", label: "Elections",        path: "/africa",              badge: 0, bg: "from-[#1a0a30] to-[#350060]" },
-                  { emoji: "💎", label: "Pricing",          path: "/pricing",             badge: 0, bg: "from-[#0a200a] to-[#1a3a1a]" },
+                  { emoji: "💎", label: "Access",           path: "/pricing",             badge: 0, bg: "from-[#0a200a] to-[#1a3a1a]" },
                   { emoji: "📖", label: "About",            path: "/about",               badge: 0, bg: "from-[#151522] to-[#252540]" },
                   { emoji: "✉️", label: "Newsletter",       path: "/newsletter",          badge: 0, bg: "from-[#0d1a1a] to-[#1a2e2e]" },
                   { emoji: "⚙️", label: "Settings",         path: "/settings",            badge: 0, bg: "from-[#181818] to-[#2e2e2e]" },
@@ -572,7 +572,7 @@ export default function LandingPage() {
             <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
               Real-time political intelligence for all 55 African nations — from journalists, NGO officers and civic researchers who are{" "}
               <span className="text-white font-semibold">already there.</span>{" "}
-              Live PESTEL+IR scores, Go/No-Go briefs and field signals. From $29/month.
+              Live PESTEL+IR scores, Go/No-Go briefs and field signals. Free while in beta.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-3">
               <Button size="lg" className="text-base px-7 py-5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20" onClick={() => user ? setLocation("/scanner/ken/brief") : (window.location.href = getLoginUrl())}>
@@ -582,7 +582,7 @@ export default function LandingPage() {
                 See all 55 nations
               </Button>
             </div>
-            <p className="text-xs text-gray-600">No card required · Brief ready in 30 seconds · Cancel anytime</p>
+            <p className="text-xs text-gray-600">No card required · Free during beta · Brief ready in 30 seconds</p>
           </motion.div>
 
           {/* Persona selector */}
@@ -719,7 +719,7 @@ export default function LandingPage() {
                   "Live PESTEL+IR score updated by contributors in-country today",
                   "Field signals from journalists and NGO officers on the ground",
                   "Go/No-Go brief in 30 seconds — cited, exportable, defensible",
-                  "From $29/month — cancel anytime",
+                  "Free while in beta — no card required",
                   "People in Nairobi, Lagos, Dakar filing intelligence right now",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3 mb-3.5">
@@ -1696,7 +1696,7 @@ export default function LandingPage() {
                         <div className="flex justify-around items-center mt-4">
                           <div className="text-center"><div className="text-base font-black text-red-400">$10,000+/yr</div><div className="text-[10px] text-gray-600">Oxford Analytica</div></div>
                           <div className="text-gray-700 text-lg">→</div>
-                          <div className="text-center"><div className="text-base font-black text-cyan-400">from $29/mo</div><div className="text-[10px] text-gray-600">ViralBeat Pro</div></div>
+                          <div className="text-center"><div className="text-base font-black text-cyan-400">Free in beta</div><div className="text-[10px] text-gray-600">ViralBeat</div></div>
                         </div>
                       </>
                     )}
@@ -2093,7 +2093,7 @@ export default function LandingPage() {
                 { label: "VBT Token Rewards",     href: "/contributor" },
                 { label: "Our Methodology",       href: "/about#methodology" },
                 { label: "Who We Are",            href: "/about" },
-                { label: "Pricing & Tiers",       href: "/pricing" },
+                { label: "Access",               href: "/pricing" },
               ]},
               { title: "Legal", links: [
                 { label: "Privacy",     href: "#" },
