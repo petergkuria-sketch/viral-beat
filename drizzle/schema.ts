@@ -1751,6 +1751,7 @@ export const smeListings = mysqlTable("smeListings", {
     .notNull().default("unverified"),
   ersVerifiedAt: timestamp("ersVerifiedAt"),   // last full verification; drives decay
   provisional:  boolean("provisional").notNull().default(true), // true until fully verified
+  validatorFlag: boolean("validatorFlag").notNull().default(false), // validator scores disagree >30pts
   statusTags:   json("statusTags"),       // string[] — Seeking capital, Open to collaboration, Open to exit
   certifications: json("certifications"),  // string[]
   exportMarkets:  json("exportMarkets"),   // string[]
@@ -1796,6 +1797,42 @@ export const listingTransfers = mysqlTable("listingTransfers", {
 }));
 export type ListingTransfer = typeof listingTransfers.$inferSelect;
 export type InsertListingTransfer = typeof listingTransfers.$inferInsert;
+
+/**
+ * ERS Layer 2 — independent validators. An SME owner nominates arms-length
+ * experts; an admin approves ≥3; each approved validator scores the four ERS
+ * dimensions BLIND (never sees the self-assessment or other validators). The
+ * reputation-weighted consensus becomes the listing's validatorErs (0–30) and
+ * lifts verificationLevel to validator_verified.
+ */
+export const ersValidators = mysqlTable("ersValidators", {
+  id:            int("id").autoincrement().primaryKey(),
+  listingId:     int("listingId").notNull(),
+  nominatedByUserId: varchar("nominatedByUserId", { length: 128 }).notNull(),
+  name:          varchar("name", { length: 160 }).notNull(),
+  email:         varchar("email", { length: 200 }).notNull(),
+  org:           varchar("org", { length: 200 }),
+  expertise:     varchar("expertise", { length: 200 }),
+  relationship:  varchar("relationship", { length: 200 }), // must be arms-length (no insiders)
+  token:         varchar("token", { length: 64 }).notNull().unique(),
+  status:        mysqlEnum("status", ["nominated", "approved", "rejected", "scored"]).notNull().default("nominated"),
+  reputation:    int("reputation").notNull().default(100),  // 0–200; 100 = neutral, drives weighting
+  // Blind per-dimension scores (0–100), null until submitted
+  govScore:      int("govScore"),
+  finScore:      int("finScore"),
+  innScore:      int("innScore"),
+  mktScore:      int("mktScore"),
+  comment:       text("comment"),
+  scoredAt:      timestamp("scoredAt"),
+  createdAt:     timestamp("createdAt").defaultNow().notNull(),
+  updatedAt:     timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, t => ({
+  listingIdx: index("ersValidators_listing_idx").on(t.listingId),
+  tokenIdx:   index("ersValidators_token_idx").on(t.token),
+  statusIdx:  index("ersValidators_status_idx").on(t.status),
+}));
+export type ErsValidator = typeof ersValidators.$inferSelect;
+export type InsertErsValidator = typeof ersValidators.$inferInsert;
 
 /**
  * SME Exchange — investor↔SME safe contact. An investor/DFI expresses interest

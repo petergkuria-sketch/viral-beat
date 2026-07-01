@@ -62,6 +62,8 @@ const ExchangeHub = lazy(() => import("./pages/ExchangeHub"));
 const SMEListing = lazy(() => import("./pages/SMEListing"));
 const MyListings = lazy(() => import("./pages/MyListings"));
 const ClaimListing = lazy(() => import("./pages/ClaimListing"));
+const ValidatorScore = lazy(() => import("./pages/ValidatorScore"));
+const ValidatorsAdmin = lazy(() => import("./pages/ValidatorsAdmin"));
 const ExchangeListing = lazy(() => import("./pages/ExchangeListing"));
 const ExchangeMessages = lazy(() => import("./pages/ExchangeMessages"));
 const ExchangeThread = lazy(() => import("./pages/ExchangeThread"));
@@ -139,6 +141,7 @@ function Router() {
     { path: "/exchange/list", component: SMEListing },
     { path: "/exchange/list/:id", component: SMEListing },
     { path: "/exchange/claim/:token", component: ClaimListing },
+    { path: "/exchange/validate/:token", component: ValidatorScore },
     { path: "/exchange/sme/:id", component: ExchangeListing },
     { path: "/exchange/messages", component: ExchangeMessages },
     { path: "/exchange/thread/:id", component: ExchangeThread },
@@ -164,6 +167,7 @@ function Router() {
     { path: "/admin", component: AdminDashboard },
     { path: "/admin/moderation", component: ModerationDashboard },
     { path: "/admin/access", component: AccessRequestsAdmin },
+    { path: "/admin/validators", component: ValidatorsAdmin },
     { path: "/admin/ai-usage", component: AiUsagePage },
     { path: "/admin/users", component: AdminUsers },
     { path: "/admin/bulletins", component: BulletinAdmin },

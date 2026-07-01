@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { ersBand, boardOf, verificationBadge, type VerificationLevel } from "@/lib/exchangeData";
+import { ValidatorInvite } from "@/components/ValidatorInvite";
 import {
   Building2, Plus, Pencil, Loader2, Lock, Inbox, ArrowLeft, Clock, CheckCircle2, XCircle,
   Send, Copy, Check, X, UserCheck,
@@ -191,6 +192,9 @@ export default function MyListings() {
                       Editing a published listing returns it to review and hides it until re-approved.
                     </p>
                   )}
+
+                  {/* Layer 2 — validator verification (only for published, self-managed listings) */}
+                  {l.status === "approved" && !onBehalf && <ValidatorInvite listingId={l.id} />}
                 </div>
               );
             })}

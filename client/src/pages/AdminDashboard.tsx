@@ -342,6 +342,10 @@ export default function AdminDashboard() {
               className="border-[#1e3a5f] gap-2">
               <Shield className="w-4 h-4" /> Access requests
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setLocation("/admin/validators")}
+              className="border-[#1e3a5f] gap-2">
+              <Shield className="w-4 h-4" /> Validators
+            </Button>
             {activeTab === "overview" && (
               <>
                 <div className="text-sm text-gray-400">
